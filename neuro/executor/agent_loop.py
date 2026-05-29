@@ -539,6 +539,11 @@ class NeuroAgent:
             # Phase 2: Validation WITH skill invocation
             validation_passed = False
             
+            # Debug: Show what we're trying to parse
+            print(f"\n🔍 Solution length: {len(solution)} chars")
+            has_json_marker = '"files"' in solution or solution.strip().startswith('{')
+            print(f"🔍 Has JSON marker: {has_json_marker}")
+            
             # Fallback: If no JSON was parsed, try direct code block extraction
             if not files_created:
                 code_blocks = re.findall(r'```(?:json|python|py|js|html|css)?\s*([\s\S]*?)```', solution)
