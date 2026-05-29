@@ -1,19 +1,65 @@
-"""Website Builder - Complete website generation"""
+"""Website Builder - Complete website generation using real AI"""
 from typing import Dict, Any
+from neuro.router.smart_router import SmartRouter
+
 class WebsiteBuilder:
+    """Complete website builder using real AI generation."""
+    
+    def __init__(self):
+        self.router = SmartRouter()
+    
     def build(self, description: str, site_type: str = "portfolio") -> Dict[str, Any]:
+        """Build complete website using REAL AI."""
+        
+        # Generate HTML
+        html_prompt = f"""Generate complete HTML for a {site_type} website about: {description}
+
+Include:
+- Modern responsive layout
+- Navigation with smooth scrolling
+- Hero section
+- Features/services section
+- Contact form
+- Footer
+- SEO meta tags
+- Accessibility attributes
+
+Use Tailwind-like inline styles for modern look.
+Output ONLY HTML code, no markdown blocks.
+"""
+        html = self.router.chat(html_prompt, task_type="frontend_ui")
+        
+        # Generate CSS
+        css_prompt = """Generate CSS for the HTML website with:
+- Custom properties (variables)
+- Responsive breakpoints
+- Animations
+- Hover effects
+- Mobile menu styles
+
+Output ONLY CSS, no HTML.
+"""
+        css = self.router.chat(css_prompt, task_type="frontend_react")
+        
+        # Generate JavaScript
+        js_prompt = """Generate JavaScript for the website with:
+- Smooth scroll navigation
+- Mobile menu toggle
+- Form validation
+- Intersection Observer animations
+- Error handling
+
+Output ONLY JavaScript, no HTML.
+"""
+        js = self.router.chat(js_prompt, task_type="code_generation")
+        
         return {
-            "index.html": self._generate_html(),
-            "styles.css": self._generate_css(),
-            "main.js": self._generate_js(),
+            "index.html": html,
+            "styles.css": css,
+            "main.js": js,
         }
-    def _generate_html(self) -> str:
-        return '''<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Professional portfolio"><title>Portfolio</title><link rel="stylesheet" href="styles.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></head><body><header class="header"><nav class="nav container"><a href="#" class="logo">Portfolio</a><ul class="nav-menu"><li><a href="index.html" class="active">Home</a></li><li><a href="#work">Work</a></li><li><a href="#contact">Contact</a></li></ul></nav></header><main><section class="hero"><div class="container"><span class="subtitle">Creative Professional</span><h1>Designing Digital Experiences</h1><p>I craft beautiful, functional websites that help businesses grow.</p><div class="hero-cta"><a href="#work" class="btn btn-primary">View My Work</a><a href="#contact" class="btn btn-secondary">Get In Touch</a></div></div></section><section id="work" class="work"><div class="container"><h2>Selected Work</h2><div class="work-grid"><div class="work-item"><img src="https://picsum.photos/600/400?random=1" alt="Project"><div class="work-info"><h3>E-commerce Platform</h3><p>Full-stack shopping experience</p></div></div><div class="work-item"><img src="https://picsum.photos/600/400?random=2" alt="Project"><div class="work-info"><h3>SaaS Dashboard</h3><p>Analytics platform</p></div></div><div class="work-item"><img src="https://picsum.photos/600/400?random=3" alt="Project"><div class="work-info"><h3>Mobile App</h3><p>Fitness tracking</p></div></div></div></div></section><section id="contact" class="contact"><div class="container"><h2>Let's Work Together</h2><form class="contact-form"><div class="form-group"><label>Name</label><input type="text" required></div><div class="form-group"><label>Email</label><input type="email" required></div><div class="form-group"><label>Message</label><textarea rows="5" required></textarea></div><button type="submit" class="btn btn-primary">Send Message</button></form></div></section></main><footer class="footer"><div class="container"><p>© 2026 Portfolio. All rights reserved.</p></div></footer><script src="main.js"></script></body></html>'''
-    def _generate_css(self) -> str:
-        return ''':root{--primary:#6366f1;--secondary:#a855f7;--dark:#0f172a;--light:#f8fafc;--gray:#64748b}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,-apple-system,sans-serif;color:var(--dark);line-height:1.6}.container{max-width:1200px;margin:0 auto;padding:0 2rem}.btn{display:inline-block;padding:0.875rem 2rem;border-radius:0.5rem;font-weight:600;text-decoration:none;transition:all 0.3s ease;border:none;cursor:pointer}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.3)}.btn-secondary{background:var(--light);color:var(--dark);border:2px solid var(--gray)}.header{position:fixed;top:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);z-index:1000;padding:1rem 0}.nav{display:flex;justify-content:space-between;align-items:center}.logo{font-size:1.5rem;font-weight:800;color:var(--primary);text-decoration:none}.nav-menu{display:flex;list-style:none;gap:2rem}.nav-menu a{text-decoration:none;color:var(--dark);font-weight:500}.hero{min-height:100vh;display:flex;align-items:center}.subtitle{font-size:1.25rem;color:var(--primary);font-weight:600;text-transform:uppercase;letter-spacing:2px}.hero h1{font-size:3.5rem;line-height:1.2;margin:1rem 0;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.hero p{font-size:1.25rem;color:var(--gray);margin-bottom:2rem}.hero-cta{display:flex;gap:1rem}.work{padding:6rem 0;background:var(--light)}.work h2{font-size:2.5rem;text-align:center;margin-bottom:4rem}.work-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem}.work-item{background:white;border-radius:1rem;overflow:hidden;transition:transform 0.3s}.work-item:hover{transform:translateY(-10px)}.work-item img{width:100%;height:250px;object-fit:cover}.work-info{padding:1.5rem}.work-info h3{font-size:1.25rem;margin-bottom:0.5rem}.work-info p{color:var(--gray)}.contact{padding:6rem 0}.contact h2{font-size:2.5rem;text-align:center;margin-bottom:4rem}.contact-form{max-width:600px;margin:0 auto}.form-group{margin-bottom:1.5rem}.form-group label{display:block;margin-bottom:0.5rem;font-weight:500}.form-group input,.form-group textarea{width:100%;padding:0.875rem;border:2px solid #e2e8f0;border-radius:0.5rem;font-size:1rem;transition:border-color 0.3s}.form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}.footer{background:var(--dark);color:white;padding:3rem 0;text-align:center}@media(max-width:768px){.hero h1{font-size:2.5rem}.hero-cta{flex-direction:column}}'''
-    def _generate_js(self) -> str:
-        return '''document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("a[href^=\\"#\\"]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();const t=document.querySelector(a.getAttribute("href"));t&&t.scrollIntoView({behavior:"smooth"})})})})'''
+
 
 def build_website(description: str, site_type: str = "portfolio") -> Dict[str, Any]:
+    """Quick website builder using real AI."""
     return WebsiteBuilder().build(description, site_type)

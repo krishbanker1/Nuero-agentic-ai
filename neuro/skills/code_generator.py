@@ -1,49 +1,69 @@
 """Code Generator - Complete code generation for all languages"""
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from neuro.router.smart_router import SmartRouter
 
 class CodeGenerator:
-    """Advanced code generation that beats all competitors."""
-    MODEL = "openrouter/qwen/qwen3-coder:free"
+    """Advanced code generation using real AI models."""
+    MODEL = "groq/llama-3.3-70b-versatile"  # Fast and capable
     
     def __init__(self):
-        self.router = None
+        self.router = SmartRouter()
     
-    def _get_router(self):
-        if self.router is None:
-            from neuro.router.smart_router import SmartRouter
-            self.router = SmartRouter()
-        return self.router
-    
-    def generate(self, description: str, language: str, framework: str = None) -> str:
-        """Generate code from description."""
-        prompt = "Generate complete " + language + " code for: " + description
-        if framework:
-            prompt += " Using " + framework + " framework"
-        prompt += "\n\nInclude best practices, error handling, type hints."
-        return prompt
+    def generate(self, description: str, language: str = "python", framework: str = None) -> str:
+        """Generate complete code from description using REAL AI."""
+        
+        prompt = f"""You are an expert {language} developer. Generate COMPLETE, WORKING code for:
+
+{description}
+
+Requirements:
+- Use {" " + framework + " framework" if framework else "best practices for " + language}
+- Include error handling
+- Add docstrings/comments
+- Make it production-ready
+
+Output ONLY the code, nothing else. No markdown, no explanations.
+"""
+        
+        result = self.router.chat(prompt, task_type="code_generation")
+        return result
     
     def generate_full_stack(self, spec: Dict) -> Dict[str, str]:
         """Generate complete full-stack application."""
         components = {}
+        
         if spec.get("frontend"):
-            components["frontend"] = self._generate_frontend()
+            prompt = f"""Generate complete React frontend for: {spec.get('description', 'Application')}
+Include:
+- App.jsx with routing
+- Dashboard component
+- Forms with validation
+- API integration
+Output ONLY code, no markdown."""
+            components["frontend"] = self.router.chat(prompt, task_type="frontend_react")
+        
         if spec.get("backend"):
-            components["backend"] = self._generate_backend()
+            prompt = f"""Generate complete Node.js/Express backend with:
+- REST endpoints
+- JWT authentication
+- Database models
+- Error handling
+Output ONLY code, no markdown."""
+            components["backend"] = self.router.chat(prompt, task_type="backend_api")
+        
         if spec.get("database"):
-            components["database"] = self._generate_database()
+            prompt = f"""Generate PostgreSQL schema with:
+- Users table with roles
+- Relationships
+- Indexes
+- Triggers for timestamps
+Output ONLY SQL code."""
+            components["database"] = self.router.chat(prompt, task_type="database_sql")
+        
         return components
-    
-    def _generate_frontend(self) -> str:
-        return "import React from 'react';\n\nexport default function App() {\n  return <div>Hello</div>;\n}"
-    
-    def _generate_backend(self) -> str:
-        return "const express = require('express');\nconst app = express();\napp.listen(3000);"
-    
-    def _generate_database(self) -> str:
-        return "CREATE TABLE users (id SERIAL PRIMARY KEY, email VARCHAR(255));"
 
 
 def quick_generate(description: str, language: str = "python") -> str:
-    """Quick code generation."""
+    """Quick code generation using real AI."""
     gen = CodeGenerator()
     return gen.generate(description, language)
