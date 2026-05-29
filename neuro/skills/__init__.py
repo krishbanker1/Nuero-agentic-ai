@@ -448,12 +448,12 @@ def search_memory(query: str, **kwargs) -> List:
 
 # NEW: Code & API Builders
 from neuro.skills.code_generator import CodeGenerator, quick_generate
-from neuro.skills.rest_api_builder import RESTAPIBuilder, build_rest_api, Endpoint
-from neuro.skills.database_builder import DatabaseBuilder, build_database, Table
+from neuro.skills.rest_api_builder import RESTAPIBuilder, build_rest_api
+from neuro.skills.database_builder import DatabaseBuilder, build_database
 
 # NEW: Frontend & Website Builders  
-from neuro.skills.frontend_builder import FrontendBuilder, build_frontend, Component
-from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_page, Section
+from neuro.skills.frontend_builder import FrontendBuilder, build_frontend
+from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_page
 
 # NEW: DevOps & Deployment
 from neuro.skills.docker_deploy import DockerDeploy, docker_deploy

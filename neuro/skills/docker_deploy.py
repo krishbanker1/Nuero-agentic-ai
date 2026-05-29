@@ -1,98 +1,82 @@
-"""Docker Deploy - Complete containerization and deployment"""
+"""Docker Deploy - Complete containerization using REAL AI"""
 from typing import Dict, Any
+from neuro.router.smart_router import SmartRouter
+
 class DockerDeploy:
+    """Complete Docker deployment builder using real AI."""
+    
+    def __init__(self):
+        self.router = SmartRouter()
+    
     def build(self, description: str, stack: str = "node-react") -> Dict[str, Any]:
+        """Build complete Docker deployment using REAL AI."""
+        
+        # Generate Dockerfile
+        dockerfile_prompt = f"""Generate production-ready Dockerfile for: {description}
+Using stack: {stack}
+
+Include:
+- Multi-stage build
+- Non-root user
+- Health checks
+- Optimized layers
+- Build args for environment
+
+Output ONLY Dockerfile content.
+"""
+        dockerfile = self.router.chat(dockerfile_prompt, task_type="devops_deployment")
+        
+        # Generate docker-compose
+        compose_prompt = f"""Generate docker-compose.yml for: {description}
+Stack: {stack}
+
+Include:
+- App service with build context
+- Database service with volumes
+- Redis cache service
+- Nginx reverse proxy
+- Health checks
+- Environment variables
+- Networks and volumes
+
+Output ONLY YAML content.
+"""
+        compose = self.router.chat(compose_prompt, task_type="devops_deployment")
+        
+        # Generate nginx config
+        nginx_prompt = """Generate nginx.conf for a Node.js application with:
+- Gzip compression
+- Static file caching
+- Proxy to app service
+- Security headers
+- Rate limiting
+
+Output ONLY nginx.conf content.
+"""
+        nginx = self.router.chat(nginx_prompt, task_type="devops_deployment")
+        
+        # Generate CI/CD
+        cicd_prompt = f"""Generate GitHub Actions workflow for: {description}
+Stack: {stack}
+
+Include:
+- Build and test
+- Docker build and push
+- Deploy to container registry
+- Health check after deploy
+
+Output ONLY YAML workflow content.
+"""
+        cicd = self.router.chat(cicd_prompt, task_type="devops_deployment")
+        
         return {
-            "Dockerfile.app": self._dockerfile_app(),
-            "Dockerfile.db": self._dockerfile_db(),
-            "docker-compose.yml": self._docker_compose(),
-            "nginx.conf": self._nginx_conf(),
-            ".dockerignore": self._dockerignore(),
+            "Dockerfile": dockerfile,
+            "docker-compose.yml": compose,
+            "nginx.conf": nginx,
+            "deploy.yml": cicd,
         }
-    def _dockerfile_app(self) -> str:
-        return '''FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-FROM node:18-alpine AS production
-WORKDIR /app
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --chown=nodejs:nodejs . .
-USER nodejs
-EXPOSE 3000
-CMD ["node", "server.js"]'''
-    def _dockerfile_db(self) -> str:
-        return '''FROM postgres:15-alpine
-RUN apk add --no-cache postgresql-contrib
-COPY init.sql /docker-entrypoint-initdb.d/
-EXPOSE 5432
-ENV POSTGRES_DB=app
-ENV POSTGRES_USER=app
-ENV POSTGRES_PASSWORD=changeme'''
-    def _docker_compose(self) -> str:
-        return '''version: "3.8"
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgres://app:changeme@db:5432/app
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-  db:
-    image: postgres:15-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_DB=app
-      - POSTGRES_USER=app
-      - POSTGRES_PASSWORD=changeme
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    depends_on:
-      - app
-    restart: unless-stopped
-volumes:
-  pgdata:'''
-    def _nginx_conf(self) -> str:
-        return '''events { worker_connections 1024; }
-http {
-    upstream app { server app:3000; keepalive 32; }
-    server {
-        listen 80;
-        server_name localhost;
-        location / {
-            proxy_pass http://app;
-            proxy_http_version 1.1;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-}'''
-    def _dockerignore(self) -> str:
-        return '''node_modules
-npm-debug.log
-.env
-.git
-.vscode
-*.log'''
+
 
 def docker_deploy(description: str, stack: str = "node-react") -> Dict[str, Any]:
+    """Quick Docker deployment builder using real AI."""
     return DockerDeploy().build(description, stack)
