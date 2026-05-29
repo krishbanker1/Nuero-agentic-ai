@@ -251,6 +251,8 @@ CODE GENERATION PASS - Build the Actual Application
 
 CRITICAL: Generate COMPLETE, WORKING code files for the task.
 
+IMPORTANT: Use MULTILINE formatting with proper line breaks. NOT single-line minified code.
+
 If this is a "Build a todo app", create these files:
 - A frontend (HTML/CSS/JS or React)
 - Backend server if needed
