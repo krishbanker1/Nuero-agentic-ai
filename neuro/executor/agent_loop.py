@@ -420,23 +420,11 @@ class NeuroAgent:
                     parsed = json.loads(solution)
                     if "files" in parsed:
                         create_files_from_json(parsed)
-                        if files_created:
-                            # Continue to validation with files created
-                            pass
-                except Exception as e:
+                except json.JSONDecodeError as e:
                     if self.config.verbose:
                         print(f"⚠️ Raw JSON parse failed: {e}")
-                    # Try to find JSON in the text
-                    try:
-                        # Look for JSON block
-                        json_start = solution.find('{')
-                        json_end = solution.rfind('}') + 1
-                        if json_start >= 0 and json_end > json_start:
-                            parsed = json.loads(solution[json_start:json_end])
-                            if "files" in parsed:
-                                create_files_from_json(parsed)
-                    except:
-                        pass
+                    # Try to find JSON in markdown code blocks first
+                    pass  # Will be handled by markdown block parsing
             
             # First try to extract JSON from markdown code blocks
             json_match = None
@@ -449,8 +437,24 @@ class NeuroAgent:
                             create_files_from_json(parsed)
                             if files_created:
                                 break
-                except:
-                    continue
+                except json.JSONDecodeError:
+                    # Try fixing common issues in markdown JSON
+                    try:
+                        # Unescape content fields that might be double-escaped
+                        # Pattern: "content": "\n" should be "\n" in actual code
+                        import re
+                        fixed = re.sub(r'\\n', '\\\\n', candidate)
+                        # Also try replacing actual newlines with escaped ones
+                        lines = candidate.split('\n')
+                        if len(lines) > 1:
+                            # It's multiline content inside JSON - bad format
+                            pass  # Skip malformed
+                        else:
+                            parsed = json.loads(fixed)
+                            if "files" in parsed:
+                                create_files_from_json(parsed)
+                    except:
+                        continue
             
             # If no JSON, check if solution itself contains code blocks
             if not files_created:
@@ -534,6 +538,35 @@ class NeuroAgent:
             
             # Phase 2: Validation WITH skill invocation
             validation_passed = False
+            
+            # Fallback: If no JSON was parsed, try direct code block extraction
+            if not files_created:
+                code_blocks = re.findall(r'```(?:json|python|py|js|html|css)?\s*([\s\S]*?)```', solution)
+                if code_blocks and self.config.verbose:
+                    print(f"\n📁 No JSON found, extracting {len(code_blocks)} code blocks...")
+                
+                for i, code in enumerate(code_blocks):
+                    code = code.strip()
+                    if len(code) < 100:
+                        continue
+                    
+                    # Determine file type
+                    if 'flask' in code.lower() and 'app' in code.lower():
+                        fname = "app.py"
+                    elif 'html' in code.lower() or '<!doctype' in code.lower():
+                        fname = "index.html"
+                    elif 'css' in code.lower() or '{' in code:
+                        fname = "style.css"
+                    elif 'function' in code or 'const' in code or 'let' in code:
+                        fname = "app.js"
+                    else:
+                        fname = f"generated_{i+1}.py"
+                    
+                    fpath = Path(self.config.working_dir) / fname
+                    fpath.write_text(code)
+                    files_created.append(str(fpath))
+                    if self.config.verbose:
+                        print(f"   ✓ Created: {fname}")
             
             # Quality check: Verify files are not placeholders/TODOs
             files_valid = True
