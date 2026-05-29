@@ -219,7 +219,7 @@ Output a JSON structure with file paths and complete file content:
   "files": [
     {
       "path": "app.py",
-      "content": "# Complete file content here...\nimport flask\n# ... rest of file"
+      "content": "# Complete file content here...\\nimport flask\\n# ... rest of file"
     },
     {
       "path": "models.py", 
@@ -243,35 +243,39 @@ Based on your analysis:
 3. What dependencies are needed?
 
 Output the JSON with complete file content now.
-```
-
-Rules:
-1. Output ONLY the JSON structure, no additional text
-2. Include ALL necessary imports at the top of each file
-3. Include complete implementation - no placeholders or TODO
-4. Include docstrings and comments where helpful
-5. Make sure the code is syntactically correct and ready to run
-6. Create a requirements.txt with all dependencies
-
-Based on your analysis:
-1. What specific files will you create?
-2. What is the complete content of each file?
-3. What dependencies are needed?
-
-Output the JSON with complete file content now.
 """
         
         elif pass_type == PassType.VALIDATION:
             return base_prompt + """
-VALIDATION PASS - Verifying the Solution
+CODE GENERATION PASS - Build the Actual Application
 
-Before claiming success:
-1. What tests will you run to verify?
-2. What is the expected output?
-3. What edge cases should be checked?
-4. Are there any potential regressions?
+CRITICAL: Generate COMPLETE, WORKING code files for the task.
 
-Run your verification and report actual results.
+If this is a "Build a todo app", create these files:
+- A frontend (HTML/CSS/JS or React)
+- Backend server if needed
+- A simple in-memory or localStorage data store
+
+```json
+{
+  "files": [
+    {
+      "path": "index.html",
+      "content": "<!DOCTYPE html><html><head><title>Todo App</title></head><body>..."
+    },
+    {
+      "path": "styles.css",
+      "content": "body { font-family: sans-serif; } .todo-item { padding: 10px; }"
+    },
+    {
+      "path": "app.js",
+      "content": "// Todo app logic\\nconst todos = [];\\nfunction addTodo(text) {...}"
+    }
+  ]
+}
+```
+
+Generate a complete, working todo app now. Output ONLY the JSON block.
 """
         
         elif pass_type == PassType.DEBUGGING:

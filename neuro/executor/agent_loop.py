@@ -134,6 +134,11 @@ class NeuroAgent:
     
     def __init__(self, config: AgentConfig):
         self.config = config
+        
+        # Reload API keys from environment to ensure fresh load
+        from neuro.router.smart_router import reload_keys
+        reload_keys()
+        
         self.router = SmartRouter()
         self.fallback = create_fallback_handler(self.router)
         self.cot = ChainOfThought(CoTConfig(enabled=config.use_cot))
