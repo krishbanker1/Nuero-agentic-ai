@@ -8,9 +8,17 @@ from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
+# Import web research module
+try:
+    from neuro.reasoning.web_researcher import research_topic, WebResearcher
+    WEB_RESEARCH_AVAILABLE = True
+except ImportError:
+    WEB_RESEARCH_AVAILABLE = False
+
 
 class PassType(Enum):
     """Types of reasoning passes."""
+    RESEARCH = "research"  # NEW: Web research for unknown topics
     ANALYSIS = "analysis"
     IMPLEMENTATION = "implementation"
     VALIDATION = "validation"
@@ -85,7 +93,7 @@ class ThinkingLoop:
             
             # Execute pass
             start = time.time()
-            response = self._execute_pass(prompt, context)
+            response = self._execute_pass(prompt, context, pass_type)
             duration = (time.time() - start) * 1000
             
             # Score convergence
@@ -142,12 +150,14 @@ class ThinkingLoop:
     def _get_pass_type(self, pass_num: int, goal: str, context: Dict) -> PassType:
         """Determine the type of pass based on iteration."""
         if pass_num == 1:
-            return PassType.ANALYSIS
+            return PassType.RESEARCH  # NEW: Always research first
         elif pass_num == 2:
-            return PassType.IMPLEMENTATION
+            return PassType.ANALYSIS
         elif pass_num == 3:
-            return PassType.VALIDATION
+            return PassType.IMPLEMENTATION
         elif pass_num == 4:
+            return PassType.VALIDATION
+        elif pass_num == 5:
             return PassType.DEBUGGING
         else:
             return PassType.REFLECTION
@@ -201,7 +211,33 @@ Task: """ + f"{goal}\n\n"
             base_prompt += "\n"
         
         # Pass-specific instructions
-        if pass_type == PassType.ANALYSIS:
+        if pass_type == PassType.RESEARCH:
+            return base_prompt + """
+RESEARCH PASS - Understanding the Application Domain
+
+CRITICAL: Before building ANY application, you MUST research the topic.
+
+1. Use Tavily search to find information about: """ + goal + """
+2. Search GitHub for similar projects
+3. Identify key features and tech stack from real implementations
+4. Provide a comprehensive research summary
+
+Output your research findings in this format:
+```json
+{
+  "research": {
+    "summary": "What is this application about?",
+    "key_features": ["feature1", "feature2", ...],
+    "tech_stack": ["Python", "Flask", "React", ...],
+    "references": ["https://github.com/...", ...]
+  }
+}
+```
+
+If you cannot find specific information, research broadly about the domain.
+""" + f"\n\nTOPIC TO RESEARCH: {goal}\n"
+        
+        elif pass_type == PassType.ANALYSIS:
             return base_prompt + """
 ANALYSIS PASS - Understanding the Problem
 
@@ -216,10 +252,22 @@ Provide a clear analysis and initial plan.
 """
         
         elif pass_type == PassType.IMPLEMENTATION:
-            return base_prompt + """
+            # Include research context if available
+            research_info = ""
+            if context.get("research_context"):
+                research_info = f"""
+RESEARCH CONTEXT (USE THIS TO BUILD THE CORRECT APP):
+{context['research_context']}
+"""
+            
+            return base_prompt + research_info + """
 IMPLEMENTATION PASS - Creating Enterprise-Level Application
 
-CRITICAL: Build a PRODUCTION-READY, FULL-STACK application.
+CRITICAL: Build a PRODUCTION-READY, FULL-STACK application based on the research.
+
+1. Use the KEY FEATURES from research to guide your implementation
+2. Follow the RECOMMENDED TECH STACK from research
+3. Build the ACTUAL application domain, not a generic app
 
 Architecture Requirements:
 1. BACKEND: Flask/FastAPI with proper structure
@@ -272,6 +320,7 @@ Rules:
 2. Code must be syntactically correct and runnable
 3. Include proper error handling and input validation
 4. Use environment variables for secrets
+5. Match the domain features from research
 
 Build the complete application now. Output ONLY the JSON block.
 """
@@ -344,15 +393,45 @@ Final verification:
 Provide final status and summary.
 """
     
-    def _execute_pass(self, prompt: str, context: Dict) -> str:
+    def _execute_pass(self, prompt: str, context: Dict, pass_type: PassType = None) -> str:
         """Execute a single thinking pass."""
+        
+        # NEW: For RESEARCH pass, do actual web research
+        if pass_type == PassType.RESEARCH and WEB_RESEARCH_AVAILABLE:
+            print("🔍 Conducting web research...")
+            try:
+                researcher = WebResearcher()
+                # Extract topic from prompt
+                topic = context.get("goal", "")
+                if not topic:
+                    # Try to extract from prompt
+                    import re
+                    match = re.search(r"TOPIC TO RESEARCH: (.+)", prompt)
+                    if match:
+                        topic = match.group(1).strip()
+                
+                if topic:
+                    result = researcher.research(topic, depth="advanced")
+                    if result.success:
+                        research_context = researcher.build_research_context(result)
+                        print(f"✅ Research complete: {len(result.key_features)} features identified")
+                        return research_context
+                    else:
+                        print(f"⚠️ Research failed: {result.error}")
+                        return f"Could not research topic. Please provide details about: {topic}"
+            except Exception as e:
+                print(f"⚠️ Research error: {e}")
+                return f"Research error: {str(e)}"
+        
+        # Normal pass execution - use LLM
         messages = [
             {"role": "system", "content": self._get_system_prompt()},
             {"role": "user", "content": prompt}
         ]
         
         try:
-            result = self.router.complete(messages, temperature=0.1)
+            # Call with explicit max_tokens to ensure response
+            result = self.router.complete(messages, max_tokens=4096, temperature=0.1)
             if "error" in result:
                 return f"Error: {result['error']}"
             return result.get("content", "")
@@ -375,6 +454,8 @@ CRITICAL: Output ONLY a JSON code block with ESCAPED newlines (\\\\n), nothing e
 ```
 
 RULE: Inside "content" strings, use \\n for newlines. NOT actual line breaks.
+
+IMPORTANT: If research context was provided in a previous pass, use that information to build the correct application for the domain. Do NOT build generic apps.
 
 Follow this format EXACTLY. Replace content with your actual implementation.
 Include complete, working code. No explanations, just the JSON block."""

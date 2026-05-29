@@ -318,6 +318,7 @@ class NeuroAgent:
             
             # Build context with skill enrichment + learned patterns
             context = {
+                "goal": self.config.goal,  # NEW: Add goal for web research
                 "working_dir": self.config.working_dir,
                 "test_first": self.config.test_first,
                 "similar_tasks": self.similar_context,
@@ -345,6 +346,14 @@ class NeuroAgent:
             solution = thinking_result["solution"]
             passes_used = thinking_result["num_passes"]
             
+            # NEW: Extract research context from passes for next iteration
+            for p in thinking_result.get("passes", []):
+                if "KEY FEATURES IDENTIFIED" in p.get("response", ""):
+                    context["research_context"] = p["response"]
+                    if self.config.verbose:
+                        print("📚 Research context captured for implementation")
+                    break
+            
             if self.config.verbose:
                 print(f"\n✓ Thinking complete ({passes_used} passes)")
                 print(f"Convergence: {thinking_result['convergence_score']:.2f}")
@@ -355,17 +364,21 @@ class NeuroAgent:
             # NEW: Use the robust CodeParser
             from neuro.core.code_parser import parse_and_write_files
             
+            print(f"📄 Parsing solution ({len(solution)} chars)...")
+            
             # Try the robust parser first
             try:
                 parsed_files = parse_and_write_files(
                     solution, 
                     self.config.working_dir, 
-                    verbose=self.config.verbose
+                    verbose=True  # Always verbose for debugging
                 )
                 files_created = parsed_files
+                print(f"✅ Parser returned: {files_created}")
             except Exception as e:
-                if self.config.verbose:
-                    print(f"⚠️ Robust parser failed: {e}")
+                print(f"⚠️ Robust parser failed: {e}")
+                import traceback
+                traceback.print_exc()
             
             # If robust parser found files, we're done
             if files_created:

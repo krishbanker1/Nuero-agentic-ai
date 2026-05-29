@@ -562,6 +562,7 @@ class SmartRouter:
     def complete(self, messages: List[Dict], model: Optional[str] = None, 
                  preferred_provider: Optional[Provider] = None, 
                  skills: Optional[List[str]] = None,  # NEW: skills parameter
+                 max_tokens: int = 4096,  # Use 4096 for reliable provider support
                  **kwargs) -> Dict[str, Any]:
         """
         Complete a request with smart provider selection AND skill integration.
@@ -605,19 +606,20 @@ class SmartRouter:
                 config = self.PROVIDERS[provider]
                 selected_model = random.choice(config.models)
             
-            # Call provider
+            # Call provider with max_tokens
+            call_kwargs = {**kwargs, "max_tokens": max_tokens}
             if provider == Provider.GEMINI:
-                result = self._call_gemini(selected_model, messages, **kwargs)
+                result = self._call_gemini(selected_model, messages, **call_kwargs)
             elif provider == Provider.GROQ:
-                result = self._call_groq(selected_model, messages, **kwargs)
+                result = self._call_groq(selected_model, messages, **call_kwargs)
             elif provider == Provider.OPENROUTER:
-                result = self._call_openrouter(selected_model, messages, **kwargs)
+                result = self._call_openrouter(selected_model, messages, **call_kwargs)
             elif provider == Provider.HUGGINGFACE:
-                result = self._call_huggingface(selected_model, messages, **kwargs)
+                result = self._call_huggingface(selected_model, messages, **call_kwargs)
             elif provider == Provider.CLOUDFLARE:
-                result = self._call_cloudflare(selected_model, messages, **kwargs)
+                result = self._call_cloudflare(selected_model, messages, **call_kwargs)
             elif provider == Provider.TOGETHER:
-                result = self._call_together(selected_model, messages, **kwargs)
+                result = self._call_together(selected_model, messages, **call_kwargs)
             else:
                 continue
             
@@ -633,7 +635,7 @@ class SmartRouter:
         return {"error": "All providers failed or unavailable"}
     
     def chat(self, prompt: str, task_type: str = "code_generation",
-             max_tokens: int = 2000, system: str = None) -> str:
+             max_tokens: int = 4096, system: str = None) -> str:
         """
         Simple chat interface. Routes to best model for task type.
         Returns the response text string. Falls back through providers on failure.
