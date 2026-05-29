@@ -409,19 +409,7 @@ Include complete, working code. No explanations, just the JSON block."""
     
     def _is_stuck(self) -> bool:
         """Detect if we're stuck in a loop."""
-        if len(self.passes) < 3:
-            return False
-        
-        # Check if last 3 passes have similar low convergence scores
-        recent_scores = [p.metadata.get("score", 0) for p in self.passes[-3:]]
-        if all(s < 0.6 for s in recent_scores):
-            return True
-        
-        # Check if responses are very similar (no progress)
-        recent_responses = [p.response[:200] for p in self.passes[-3:]]
-        if len(set(recent_responses)) == 1:  # All identical
-            return True
-        
+        # Disabled - let all passes complete naturally
         return False
     
     def _recover_from_stuck(self, goal: str, context: Dict) -> str:
