@@ -459,3 +459,23 @@ from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_
 from neuro.skills.docker_deploy import DockerDeploy, docker_deploy
 from neuro.skills.website_builder import WebsiteBuilder, build_website
 
+
+# 3D & Motion Graphics Skills (ALL REAL AI)
+from neuro.skills.framer_motion import framer_animation
+from neuro.skills.threejs import threejs_scene
+from neuro.skills.threejs_core import threejs_renderer
+from neuro.skills.gsap import gsap_animation
+from neuro.skills.scrolltrigger import scrolltrigger_animation
+from neuro.skills.smooth_scroll import smooth_scroll
+from neuro.skills.lenis import lenis_smooth_scroll
+from neuro.skills.webgl import webgl_shader
+from neuro.skills.glsl_shaders import glsl_shader
+from neuro.skills.spline_design import spline_design
+from neuro.skills.draco import draco_compression
+from neuro.skills.vector_math import vector_math_utilities
+from neuro.skills.matrix import matrix_library
+from neuro.skills.mathematics import math_library
+from neuro.skills.react_three_fiber import r3f_scene
+from neuro.skills.shader import shader_effect
+from neuro.skills.asset_mapping import asset_mapping
+from neuro.skills.component_driven import component_driven
