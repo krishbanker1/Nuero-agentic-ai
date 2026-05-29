@@ -314,7 +314,7 @@ class SmartRouter:
             }
             
             response = client.chat.completions.create(
-                model=model if model else "llama-3.3-70b-versatile",
+                model=model.split("/")[-1] if model else "llama-3.3-70b-versatile",
                 messages=messages,
                 **clean_kwargs
             )
@@ -358,7 +358,7 @@ class SmartRouter:
             }
             
             response = client.chat.completions.create(
-                model=model if model else "qwen/qwen3-coder:free",
+                model=model.split("/")[-1] if model else "qwen/qwen3-coder:free",
                 messages=messages,
                 **clean_kwargs
             )
@@ -469,7 +469,7 @@ class SmartRouter:
             }
             
             response = client.chat.completions.create(
-                model=model if model else "meta-llama/Llama-3.3-70B-Instruct",
+                model=model.split("/")[-1] if model else "meta-llama/Llama-3.3-70B-Instruct",
                 messages=messages,
                 **clean_kwargs
             )

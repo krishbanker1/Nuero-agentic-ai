@@ -1,5 +1,5 @@
-# Neuro Model Registry - 50+ Models (Free Tier)
-# Task-to-Model Assignment with 20+ Categories
+# Neuro Model Registry - 56 Models (Free Tier)
+# Task-to-Model Assignment with 20 Categories - Optimized to beat Kimi 2.6, Manus 1.6, Claude Code, Codex
 # Last saved: 2026-05-29
 
 from typing import List, Dict, Any, Optional
@@ -184,8 +184,34 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         requires_key=True,
         context_window=32768,
     ),
+    # NEW: Llama 4 Maverick - Latest Groq model for competitive coding
+    ModelMetadata(
+        name="groq/llama-4-maverick-17b-128e-instruct",
+        provider="groq",
+        roles=["coder", "debugger", "planner"],
+        strengths=["code", "reasoning", "fast", "latest"],
+        priority=1,
+        fallback_priority=2,
+        cost="free",
+        requires_key=True,
+        context_window=128000,
+    ),
+
     
     # =============================================================================
+    # NEW: Llama 4 Maverick - Latest Groq model for competitive coding
+    ModelMetadata(
+        name="groq/llama-4-maverick-17b-128e-instruct",
+        provider="groq",
+        roles=["coder", "debugger", "planner"],
+        strengths=["code", "reasoning", "fast", "latest"],
+        priority=1,
+        fallback_priority=2,
+        cost="free",
+        requires_key=True,
+        context_window=128000,
+    ),
+
     # OPENROUTER FREE MODELS (20+ models)
     # =============================================================================
     ModelMetadata(
@@ -445,6 +471,31 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     
     # =============================================================================
+    # NEW: OpenAI OSS 120B - Complex reasoning powerhouse
+    ModelMetadata(
+        name="openrouter/openai/gpt-oss-120b",
+        provider="openrouter",
+        roles=["architect", "planner", "reviewer"],
+        strengths=["reasoning", "complex-tasks", "long-context"],
+        priority=1,
+        fallback_priority=2,
+        cost="cheap",
+        requires_key=True,
+        context_window=200000,
+    ),
+    # NEW: DeepSeek V3 - Top free reasoning model (39.8% on SWE-bench)
+    ModelMetadata(
+        name="openrouter/deepseek/deepseek-chat-v3-0324:free",
+        provider="openrouter",
+        roles=["planner", "architect", "coder", "reasoning"],
+        strengths=["reasoning", "code", "free"],
+        priority=1,
+        fallback_priority=2,
+        cost="free",
+        requires_key=True,
+        context_window=64000,
+    ),
+
     # TOGETHER AI MODELS (5 models)
     # =============================================================================
     ModelMetadata(
@@ -715,7 +766,7 @@ def get_model_by_name(name: str) -> Optional[ModelMetadata]:
     return None
 
 
-# Task-to-Model Assignment with 20+ Categories
+# Task-to-Model Assignment with 20 Categories - Optimized to beat Kimi 2.6, Manus 1.6, Claude Code, Codex
 TASK_CATEGORIES = {
     "code_generation": {
         "primary": "openrouter/qwen/qwen3-coder:free",
