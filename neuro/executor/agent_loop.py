@@ -374,17 +374,17 @@ class NeuroAgent:
                             return create_files_from_json(inner, verbose)
                         except:
                             pass
-                    # If content looks like Python code (has newlines), clean it up
-                    if isinstance(file_content, str) and ('\n' in file_content or '\\n' in file_content):
-                        # Clean up common JSON escaping issues
-                        file_content = file_content.strip()
-                        # Remove surrounding triple quotes if present
-                        if file_content.startswith('"""') and file_content.endswith('"""'):
-                            file_content = file_content[3:-3].strip()
-                        elif file_content.startswith('"') and file_content.endswith('"'):
-                            file_content = file_content[1:-1].strip()
-                        # Unescape common sequences
+                    # If content has escaped newlines, unescape them
+                    if isinstance(file_content, str) and ('\\n' in file_content):
                         file_content = file_content.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
+                    # If content looks like a Python/JS string literal wrapper (triple quotes), unwrap it
+                    if isinstance(file_content, str):
+                        stripped = file_content.strip()
+                        # Only unwrap if it's clearly a string literal wrapper, not actual code
+                        if stripped.startswith('"""') and stripped.endswith('"""') and stripped.count('"""') == 2:
+                            file_content = stripped[3:-3].strip()
+                        elif stripped.startswith("'''") and stripped.endswith("'''") and stripped.count("'''") == 2:
+                            file_content = stripped[3:-3].strip()
                     
                     if file_path and file_content:
                         full_path = Path(self.config.working_dir) / file_path
