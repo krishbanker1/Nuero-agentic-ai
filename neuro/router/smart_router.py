@@ -170,6 +170,7 @@ class SmartRouter:
                 "llama-3.1-8b-instant",
                 "qwen/qwen3-32b",
                 "meta-llama/llama-4-scout-17b-16e-instruct",
+                "llama-4-maverick-17b-128e-instruct",
                 "llama-3.2-90b-vision-instruct",
                 "mixtral-8x7b-32768",
             ],
@@ -180,29 +181,31 @@ class SmartRouter:
             base_url="https://openrouter.ai/api/v1",
             api_key_env="OPENROUTER_API_KEYS",
             models=[
+                # DeepSeek V3 - NEW Top coder (39.8% SWE-bench)
+                "deepseek/deepseek-chat-v3-0324:free",
                 "deepseek/deepseek-v4-flash:free",
+                # Qwen models - specialized coders
                 "qwen/qwen3-coder:free",
                 "qwen/qwen3-next-80b-a3b-instruct:free",
+                "qwen/qwen3-32b",
+                # Google Gemma - fast reasoning
                 "google/gemma-4-31b-it:free",
                 "google/gemma-4-26b-a4b-it:free",
+                # Meta Llama - versatile
                 "meta-llama/llama-3.3-70b-instruct:free",
                 "meta-llama/llama-3.2-3b-instruct:free",
+                # NVIDIA Nemotron - 120B reasoning
                 "nvidia/nemotron-3-super-120b-a12b:free",
-                "openai/gpt-oss-120b:free",
-                "openai/gpt-oss-20b:free",
-                "liquid/lfm-2.5-1.2b-thinking:free",
-                "poolside/laguna-m.1:free",
-                "baidu/cobuddy:free",
-                "z-ai/glm-4.5-air:free",
-                "inflection/inflection-3-pi:free",
+                # OpenAI OSS models - complex reasoning
+                "openai/gpt-oss-120b",
+                # Minimax - free alternative
+                "minimax/minimax-m2.5:free",
+                # Mistral - free versatile
                 "mistralai/mistral-nemo:free",
+                # Claude Haiku - free fallback
                 "anthropic/claude-3-haiku:free",
+                # Microsoft Phi - small but capable
                 "microsoft/phi-4:free",
-                # Qwen and DeepSeek via OpenRouter
-                "qwen/qwen3-32b",
-                "qwen/qwen2.5-72b-instruct",
-                "deepseek/deepseek-coder-v2",
-                "deepseek/deepseek-chat",
             ],
             rate_limit=60,
         ),
@@ -357,8 +360,10 @@ class SmartRouter:
                 if k in ["temperature", "max_tokens", "top_p", "stop"]
             }
             
+            # OpenRouter uses full model names like "deepseek/deepseek-chat-v3-0324:free"
+            openrouter_model = model if "/" in model else f"default/{model}"
             response = client.chat.completions.create(
-                model=model.split("/")[-1] if model else "qwen/qwen3-coder:free",
+                model=openrouter_model,
                 messages=messages,
                 **clean_kwargs
             )
