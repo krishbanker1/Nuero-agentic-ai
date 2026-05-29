@@ -529,6 +529,42 @@ Provide final status and summary.
                 print(f"⚠️ Research error: {e}")
                 return f"Research error: {str(e)}"
         
+        # NEW: For PROMPT_WRITE pass, use Gemini/Groq for creative prompting
+        elif pass_type == PassType.PROMPT_WRITE:
+            print("📝 AI writing optimized prompt...")
+            try:
+                messages = [
+                    {"role": "system", "content": """You are an ENTERPRISE SOFTWARE ARCHITECT and SENIOR PROMPT ENGINEER.
+
+Your job is to create PERFECT implementation prompts that will result in 
+PRODUCTION-READY, SELLABLE software.
+
+You will receive a goal and research context.
+You must output a JSON with:
+1. enhanced_prompt - The perfect, detailed prompt for code generation
+2. plan - Step-by-step implementation strategy
+3. tech_stack - Best technologies for this domain
+4. features - Key features prioritized
+
+Make the enhanced prompt SPECIFIC - impossible to create generic code from it."""},
+                    {"role": "user", "content": prompt}
+                ]
+                result = self.router.complete(
+                    messages, 
+                    max_tokens=4096, 
+                    temperature=0.7,  # Higher temp for creativity
+                    preferred_models=[
+                        "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.0-flash",
+                        "llama-3.3-70b-versatile", "llama-3.1-8b-instant"
+                    ],
+                    task_type="reasoning"
+                )
+                if "error" in result:
+                    return f"Error: {result['error']}"
+                return result.get("content", "")
+            except Exception as e:
+                return f"Prompt writing error: {str(e)}"
+        
         # Normal pass execution - use LLM
         messages = [
             {"role": "system", "content": self._get_system_prompt()},

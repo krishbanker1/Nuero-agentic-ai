@@ -1,6 +1,6 @@
 """
 Prompt Writer - Enterprise-grade prompt generation using FREE AI models
-Uses OpenRouter free models to convert research into perfect prompts
+Uses ONLY Gemini and Groq models (best for prompt writing)
 """
 
 import json
@@ -24,34 +24,28 @@ class PromptWriter:
     """
     Enterprise Prompt Writer - Converts research into perfect prompts.
     
-    Uses ONLY FREE models from OpenRouter, Groq, and Gemini.
+    Uses ONLY Gemini and Groq free models - best for prompt writing.
     """
     
     def __init__(self, router):
         self.router = router
         
-        # Free models good for prompt writing/reasoning (ordered by quality)
-        self.prompt_models = [
-            # DeepSeek - best for complex reasoning (free on OpenRouter)
-            "deepseek/deepseek-chat-v3-0324:free",
-            "deepseek/deepseek-v4-flash:free",
-            # Qwen - good for structured output
-            "qwen/qwen3-32b:free",
-            "qwen/qwen3-coder:free",
-            # Claude Haiku - structured thinking (free)
-            "anthropic/claude-3.5-haiku:free",
-            "anthropic/claude-3-haiku:free",
-            # Gemini - fast reasoning (free)
-            "gemini-3.5-flash",
-            "gemini-2.5-flash",
-            # Llama - versatile (free)
-            "meta-llama/llama-3.3-70b-instruct:free",
-            # Groq models (fast, free tier)
-            "llama-3.3-70b-versatile",
-            "llama-3.1-8b-instant",
-            # NVIDIA Nemotron
-            "nvidia/nemotron-3-super-120b-a12b:free",
+        # Gemini models (best for complex reasoning and structured output)
+        gemini_models = [
+            "gemini-3.5-flash",        # Latest Gemini 3
+            "gemini-2.5-flash",        # Gemini 2.5
+            "gemini-2.0-flash",        # Gemini 2.0
+            "gemini-flash-latest",    # Alias for latest
         ]
+        
+        # Groq models (fast, free tier)
+        groq_models = [
+            "llama-3.3-70b-versatile", # Groq's best model
+            "llama-3.1-8b-instant",    # Groq's fast model
+        ]
+        
+        # Combined priority list
+        self.prompt_models = gemini_models + groq_models
     
     def write_enterprise_prompt(
         self,
