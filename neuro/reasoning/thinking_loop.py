@@ -15,10 +15,18 @@ try:
 except ImportError:
     WEB_RESEARCH_AVAILABLE = False
 
+# Import prompt writer module
+try:
+    from neuro.reasoning.prompt_writer import PromptWriter, write_enterprise_prompt
+    PROMPT_WRITER_AVAILABLE = True
+except ImportError:
+    PROMPT_WRITER_AVAILABLE = False
+
 
 class PassType(Enum):
     """Types of reasoning passes."""
-    RESEARCH = "research"  # NEW: Web research for unknown topics
+    RESEARCH = "research"  # Web research for unknown topics
+    PROMPT_WRITE = "prompt_write"  # NEW: Use AI to write perfect prompts
     ANALYSIS = "analysis"
     IMPLEMENTATION = "implementation"
     VALIDATION = "validation"
@@ -59,6 +67,12 @@ class ThinkingLoop:
         self.config = config or LoopConfig()
         self.passes: List[ThinkingPass] = []
         self.convergence_score: float = 0.0
+        # Initialize extracted values from passes
+        self._enhanced_prompt: Optional[str] = None
+        self._plan: Optional[str] = None
+        self._tech_stack: Optional[list] = None
+        self._features: Optional[list] = None
+        self._architecture: Optional[str] = None
     
     def run(
         self,
@@ -110,8 +124,12 @@ class ThinkingLoop:
             )
             self.passes.append(thinking_pass)
             
+            # NEW: Extract enhanced_prompt and plan from PROMPT_WRITE pass
+            if pass_type == PassType.PROMPT_WRITE:
+                self._extract_enhanced_prompt(response, context)
+            
             # Only update best_solution if it contains JSON (actual code)
-            # Skip RESEARCH pass from best_solution consideration
+            # Skip RESEARCH and PROMPT_WRITE passes from best_solution
             has_json = '"files"' in response or '"path"' in response
             if has_json and score > best_score:
                 best_score = score
@@ -142,25 +160,41 @@ class ThinkingLoop:
                     print(f"   ❌ Validation failed: {validation_result.get('error', 'Unknown')}")
                     context["validation_error"] = validation_result
         
+        # Build the result with context including extracted values
+        result_context = {
+            "enhanced_prompt": getattr(self, '_enhanced_prompt', None),
+            "plan": getattr(self, '_plan', None),
+            "tech_stack": getattr(self, '_tech_stack', None),
+            "features": getattr(self, '_features', None),
+            "architecture": getattr(self, '_architecture', None),
+        }
+        # Add any context values that were set during execution
+        for key in ['enhanced_prompt', 'plan', 'tech_stack', 'features', 'architecture', 'research_context']:
+            if key in context:
+                result_context[key] = context[key]
+        
         return {
             "solution": best_solution,
             "passes": [self._pass_to_dict(p) for p in self.passes],
             "num_passes": len(self.passes),
             "convergence_score": best_score,
             "total_duration_ms": sum(p.duration_ms for p in self.passes),
+            "context": result_context,
         }
     
     def _get_pass_type(self, pass_num: int, goal: str, context: Dict) -> PassType:
         """Determine the type of pass based on iteration."""
         if pass_num == 1:
-            return PassType.RESEARCH  # NEW: Always research first
+            return PassType.RESEARCH  # Web research first
         elif pass_num == 2:
-            return PassType.ANALYSIS
+            return PassType.PROMPT_WRITE  # AI writes perfect prompt
         elif pass_num == 3:
-            return PassType.IMPLEMENTATION
+            return PassType.ANALYSIS
         elif pass_num == 4:
-            return PassType.VALIDATION
+            return PassType.IMPLEMENTATION
         elif pass_num == 5:
+            return PassType.VALIDATION
+        elif pass_num == 6:
             return PassType.DEBUGGING
         else:
             return PassType.REFLECTION
@@ -240,6 +274,50 @@ Output your research findings in this format:
 If you cannot find specific information, research broadly about the domain.
 """ + f"\n\nTOPIC TO RESEARCH: {goal}\n"
         
+        elif pass_type == PassType.PROMPT_WRITE:
+            # Use AI to write perfect prompts based on research
+            research_info = ""
+            if context.get("research_context"):
+                research_info = f"""
+RESEARCH RESULTS (Use these to create the perfect prompt):
+{context['research_context']}
+"""
+            
+            if context.get("goal"):
+                goal_for_prompt = context["goal"]
+            else:
+                goal_for_prompt = goal
+            
+            return base_prompt + research_info + f"""
+PROMPT WRITING PASS - Create Perfect Implementation Prompt
+
+Your task: Convert the user goal + research into a PERFECT prompt that will
+result in enterprise-grade, sellable software.
+
+GOAL: {goal_for_prompt}
+
+Steps:
+1. Analyze the domain and requirements
+2. Identify all must-have features
+3. Select the optimal tech stack
+4. Create a detailed implementation prompt
+5. Generate a step-by-step plan
+
+IMPORTANT: The prompt you create will be used to generate ACTUAL CODE.
+Make it specific enough that a code generator CANNOT produce generic code.
+
+Output format (JSON):
+```json
+{{
+  "enhanced_prompt": "The perfect, detailed prompt for code generation...",
+  "plan": "Step 1: ...\\nStep 2: ...\\nStep 3: ...",
+  "tech_stack": ["Python", "FastAPI", "React"],
+  "features": ["feature1", "feature2", "feature3"],
+  "architecture": "monolith|microservices|serverless"
+}}
+```
+"""
+        
         elif pass_type == PassType.ANALYSIS:
             return base_prompt + """
 ANALYSIS PASS - Understanding the Problem
@@ -255,7 +333,7 @@ Provide a clear analysis and initial plan.
 """
         
         elif pass_type == PassType.IMPLEMENTATION:
-            # Include research context if available
+            # Include research context and enhanced prompt if available
             research_info = ""
             if context.get("research_context"):
                 research_info = f"""
@@ -263,10 +341,35 @@ RESEARCH CONTEXT (USE THIS TO BUILD THE CORRECT APP):
 {context['research_context']}
 """
             
-            return base_prompt + research_info + """
+            # Use enhanced prompt from prompt writing pass
+            enhanced_prompt_info = ""
+            if context.get("enhanced_prompt"):
+                enhanced_prompt_info = f"""
+ENHANCED PROMPT (Created by AI Prompt Writer):
+{context['enhanced_prompt']}
+
+Use this enhanced prompt as your primary guide for building.
+"""
+            
+            # Use the enhanced plan if available
+            plan_info = ""
+            if context.get("plan"):
+                plan_info = f"""
+IMPLEMENTATION PLAN:
+{context['plan']}
+"""
+            
+            return base_prompt + research_info + enhanced_prompt_info + plan_info + """
 IMPLEMENTATION PASS - Creating Enterprise-Level Application
 
-CRITICAL: Build a PRODUCTION-READY, FULL-STACK application based on the research.
+CRITICAL: Build a PRODUCTION-READY, FULL-STACK application based on the
+ENHANCED PROMPT and RESEARCH provided above.
+
+Key Requirements:
+1. Follow the ENHANCED PROMPT exactly - it was crafted for this specific app
+2. Use the TECH STACK specified in the research
+3. Implement ALL features listed
+4. Follow the ARCHITECTURE pattern recommended
 
 1. Use the KEY FEATURES from research to guide your implementation
 2. Follow the RECOMMENDED TECH STACK from research
@@ -555,6 +658,84 @@ Output ONLY JSON block with complete files.
             summary += f"  Pass {i} ({p.pass_type.value}): {status} - {p.duration_ms/1000:.1f}s\n"
         
         return summary
+    
+    def _extract_enhanced_prompt(self, response: str, context: Dict) -> None:
+        """
+        Extract enhanced_prompt and plan from PROMPT_WRITE pass response.
+        Updates context in place with extracted values.
+        """
+        import re
+        import json
+        
+        try:
+            # Try to find JSON block
+            json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', response)
+            if json_match:
+                data = json.loads(json_match.group(1))
+            else:
+                # Try finding JSON object directly
+                json_match = re.search(r'\{[\s\S]*?"enhanced_prompt"[\s\S]*?\}', response)
+                if json_match:
+                    data = json.loads(json_match.group(0))
+                else:
+                    # Fallback: try to find the enhanced_prompt in plain text
+                    self._extract_from_plain_text(response, context)
+                    return
+            
+            # Extract and store in context and as instance attributes
+            if "enhanced_prompt" in data:
+                context["enhanced_prompt"] = data["enhanced_prompt"]
+                self._enhanced_prompt = data["enhanced_prompt"]
+                print(f"   📝 Enhanced prompt extracted ({len(data['enhanced_prompt'])} chars)")
+            
+            if "plan" in data:
+                context["plan"] = data["plan"]
+                self._plan = data["plan"]
+            
+            if "tech_stack" in data:
+                context["tech_stack"] = data["tech_stack"]
+                self._tech_stack = data["tech_stack"]
+            
+            if "features" in data:
+                context["features"] = data["features"]
+                self._features = data["features"]
+            
+            if "architecture" in data:
+                context["architecture"] = data["architecture"]
+                self._architecture = data["architecture"]
+                
+        except Exception as e:
+            print(f"   ⚠️ Could not parse enhanced prompt: {e}")
+            # Fallback: try plain text extraction
+            self._extract_from_plain_text(response, context)
+    
+    def _extract_from_plain_text(self, response: str, context: Dict) -> None:
+        """Extract enhanced prompt from plain text response."""
+        import re
+        
+        # Look for "ENHANCED PROMPT" or similar section
+        enhanced_match = re.search(
+            r'ENHANCED PROMPT[:\s]*(.*?)(?=\n\n|\nPLAN|\Z)',
+            response,
+            re.IGNORECASE | re.DOTALL
+        )
+        if enhanced_match:
+            prompt_text = enhanced_match.group(1).strip()
+            context["enhanced_prompt"] = prompt_text
+            self._enhanced_prompt = prompt_text
+            print(f"   📝 Enhanced prompt extracted from text ({len(prompt_text)} chars)")
+        
+        # Look for "PLAN" section
+        plan_match = re.search(
+            r'PLAN[:\s]*(.*?)(?=\n\n|\nTECH|\nFEATURES|\Z)',
+            response,
+            re.IGNORECASE | re.DOTALL
+        )
+        if plan_match:
+            plan_text = plan_match.group(1).strip()
+            context["plan"] = plan_text
+            self._plan = plan_text
+            print(f"   📋 Plan extracted from text")
 
 
 def run_thinking_loop(
