@@ -153,11 +153,9 @@ class SmartRouter:
             base_url="https://generativelanguage.googleapis.com/v1beta",
             api_key_env="GEMINI_API_KEYS",
             models=[
-                "gemini-3.5-flash",
                 "gemini-2.5-flash",
-                "gemini-2.5-flash-lite",
-                "gemini-3.1-flash-lite",
-                "gemini-2.0-flash-exp",
+                "gemini-flash-latest",
+                "gemini-2.0-flash",
             ],
             rate_limit=60,
         ),
@@ -170,10 +168,8 @@ class SmartRouter:
                 "llama-3.1-8b-instant",
                 "qwen/qwen3-32b",
                 "meta-llama/llama-4-scout-17b-16e-instruct",
-                "llama-4-maverick-17b-128e-instruct",
-                "llama-3.2-90b-vision-instruct",
-                "mixtral-8x7b-32768",
                 "openai/gpt-oss-120b",
+                "openai/gpt-oss-20b",
             ],
             rate_limit=30,
         ),
@@ -182,13 +178,11 @@ class SmartRouter:
             base_url="https://openrouter.ai/api/v1",
             api_key_env="OPENROUTER_API_KEYS",
             models=[
-                # DeepSeek V3 - NEW Top coder (39.8% SWE-bench)
-                "deepseek/deepseek-chat-v3-0324:free",
+                # DeepSeek - fast flash variant
                 "deepseek/deepseek-v4-flash:free",
                 # Qwen models - specialized coders
                 "qwen/qwen3-coder:free",
                 "qwen/qwen3-next-80b-a3b-instruct:free",
-                "qwen/qwen3-32b",
                 # Google Gemma - fast reasoning
                 "google/gemma-4-31b-it:free",
                 "google/gemma-4-26b-a4b-it:free",
@@ -197,16 +191,9 @@ class SmartRouter:
                 "meta-llama/llama-3.2-3b-instruct:free",
                 # NVIDIA Nemotron - 120B reasoning
                 "nvidia/nemotron-3-super-120b-a12b:free",
-                # OpenAI OSS models - complex reasoning
-
-                # Minimax - free alternative
-                "minimax/minimax-m2.5:free",
-                # Mistral - free versatile
-                "mistralai/mistral-nemo:free",
-                # Claude Haiku - free fallback
-                "anthropic/claude-3-haiku:free",
-                # Microsoft Phi - small but capable
-                "microsoft/phi-4:free",
+                "nvidia/nemotron-nano-9b-v2:free",
+                # Mistral - Dolphin variant
+                "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
             ],
             rate_limit=60,
         ),
