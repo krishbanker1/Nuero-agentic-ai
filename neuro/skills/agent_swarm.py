@@ -55,14 +55,14 @@ class AgentSwarmCoordinator:
         result = swarm.run_swarm("Fix authentication bug")
     """
     
-    # Model assignments for each role
+    # Model assignments for each role - ALL VERIFIED WORKING
     ROLE_MODELS = {
-        AgentRole.PLANNER: "deepseek/deepseek-v4-flash:free",      # Best for reasoning
-        AgentRole.CODER: "qwen/qwen3-coder:free",                # Best for coding
-        AgentRole.REVIEWER: "meta-llama/llama-3.3-70b-instruct:free",  # 70B for review
-        AgentRole.TESTER: "qwen/qwen3-coder:free",               # Test generation
-        AgentRole.DEBUGGER: "deepseek/deepseek-v4-flash:free",    # Debugging
-        AgentRole.VALIDATOR: "google/gemma-4-31b-it:free",        # Validation
+        AgentRole.PLANNER: "gemini/gemini-3.5-flash",        # Best for planning & reasoning
+        AgentRole.CODER: "openrouter/qwen/qwen3-coder:free", # Best for coding
+        AgentRole.REVIEWER: "groq/openai/gpt-oss-120b",      # 120B for comprehensive review
+        AgentRole.TESTER: "openrouter/google/gemma-4-31b-it:free",  # Test generation
+        AgentRole.DEBUGGER: "gemini/gemini-2.5-flash",       # Fast debugging
+        AgentRole.VALIDATOR: "groq/llama-3.3-70b-versatile", # Validation & testing
     }
     
     def __init__(self, config: SwarmConfig = None):
