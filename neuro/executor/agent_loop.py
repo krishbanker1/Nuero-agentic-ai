@@ -543,6 +543,8 @@ class NeuroAgent:
             print(f"\n🔍 Solution length: {len(solution)} chars")
             has_json_marker = '"files"' in solution or solution.strip().startswith('{')
             print(f"🔍 Has JSON marker: {has_json_marker}")
+            print(f"\n📄 Solution content (first 1000 chars):")
+            print(solution[:1000])
             
             # Fallback: If no JSON was parsed, try direct code block extraction
             if not files_created:

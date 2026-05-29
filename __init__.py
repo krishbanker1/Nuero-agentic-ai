@@ -1,28 +1,68 @@
-import pandas as pd
+class TodoItem:
+    def __init__(self, id, description):
+        self.id = id
+        self.description = description
+        self.completed = False
 
-class Portfolio:
-    def __init__(self, name):
-        self.name = name
-        self.assets = []
-        self.liabilities = []
-        self.investments = []
+class TodoList:
+    def __init__(self):
+        self.items = []
 
-    def add_asset(self, asset):
-        self.assets.append(asset)
+    def add_item(self, description):
+        id = len(self.items) + 1
+        item = TodoItem(id, description)
+        self.items.append(item)
+        print(f"Added item {id}: {description}")
 
-    def add_liability(self, liability):
-        self.liabilities.append(liability)
+    def view_items(self):
+        for item in self.items:
+            status = "Completed" if item.completed else "Not completed"
+            print(f"{item.id}: {item.description} ({status})")
 
-    def add_investment(self, investment):
-        self.investments.append(investment)
+    def mark_completed(self, id):
+        for item in self.items:
+            if item.id == id:
+                item.completed = True
+                print(f"Marked item {id} as completed")
+                return
+        print(f"Item {id} not found")
 
-    def calculate_net_worth(self):
-        total_assets = sum([asset.value for asset in self.assets])
-        total_liabilities = sum([liability.value for liability in self.liabilities])
-        return total_assets - total_liabilities
+    def delete_item(self, id):
+        for item in self.items:
+            if item.id == id:
+                self.items.remove(item)
+                print(f"Deleted item {id}")
+                return
+        print(f"Item {id} not found")
 
-# Example usage:
-portfolio = Portfolio("My Portfolio")
-portfolio.add_asset({"name": "Cash", "value": 1000})
-portfolio.add_liability({"name": "Credit Card", "value": 500})
-print(portfolio.calculate_net_worth())  # Output: 500
+def main():
+    todo_list = TodoList()
+
+    while True:
+        print("\nOptions:")
+        print("1. Add item")
+        print("2. View items")
+        print("3. Mark completed")
+        print("4. Delete item")
+        print("5. Quit")
+
+        choice = input("Choose an option: ")
+
+        if choice == "1":
+            description = input("Enter item description: ")
+            todo_list.add_item(description)
+        elif choice == "2":
+            todo_list.view_items()
+        elif choice == "3":
+            id = int(input("Enter item ID: "))
+            todo_list.mark_completed(id)
+        elif choice == "4":
+            id = int(input("Enter item ID: "))
+            todo_list.delete_item(id)
+        elif choice == "5":
+            break
+        else:
+            print("Invalid option")
+
+if __name__ == "__main__":
+    main()
