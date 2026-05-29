@@ -519,13 +519,15 @@ class SmartRouter:
             return {"error": "No Gemini API key found"}
         
         try:
+            from google.genai import types
+            
             client = genai.Client(api_key=api_key)
             
-            # Convert messages format for Gemini
+            # Convert messages format for Gemini using types
             contents = []
             for msg in messages:
                 role = "user" if msg["role"] == "user" else "model"
-                contents.append(genai.Content(role=role, parts=[genai.Part(text=msg["content"])]))
+                contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
             
             # Filter kwargs for Gemini API
             clean_kwargs = {
