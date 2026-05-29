@@ -33,7 +33,7 @@ class ThinkingPass:
 @dataclass
 class LoopConfig:
     """Configuration for thinking loop."""
-    max_passes: int = 4
+    max_passes: int = 6
     pass_timeout: int = 120  # seconds
     convergence_threshold: float = 0.8
     allow_stuck_detection: bool = True
@@ -487,7 +487,7 @@ def run_thinking_loop(
     router,
     goal: str,
     context: Optional[Dict[str, Any]] = None,
-    max_passes: int = 4,
+    max_passes: int = 6,
 ) -> Dict[str, Any]:
     """
     Convenience function to run a thinking loop.
