@@ -1341,10 +1341,10 @@ def get_task_chain(task_type: str) -> List[Tuple[Provider, str]]:
 
 
 # ============================================================================
-# SWE-bench SPECIFIC - Optimized for code repair tasks
+# CODE REPAIR ROLES - Optimized for code repair tasks
 # ============================================================================
 
-SWE_BENCH_ROLES = {
+CODE_REPAIR_ROLES = {
     "issue_understanding": TaskRole.DEBUGGER,
     "file_locating": TaskRole.FILE_INSPECTOR,
     "patch_generation": TaskRole.BACKEND_CODER,
@@ -1354,10 +1354,9 @@ SWE_BENCH_ROLES = {
 }
 
 
-def get_swe_bench_model_chain() -> List[Tuple[Provider, str]]:
+def get_code_repair_model_chain() -> List[Tuple[Provider, str]]:
     """
-    Get optimized model chain for SWE-bench tasks.
-    This is the primary chain for code repair/benchmarking.
+    Get optimized model chain for code repair tasks.
     """
     return [
         # Step 1: Understand the issue
@@ -1372,6 +1371,14 @@ def get_swe_bench_model_chain() -> List[Tuple[Provider, str]]:
         (Provider.GEMINI, "gemini-2.5-pro"),
     ]
 
+def run_code_repair_model_chain() -> List[Tuple[Provider, str]]:
+    """
+    Alias for get_code_repair_model_chain - for backwards compatibility.
+    """
+    return get_code_repair_model_chain()
+
+# Alias for backwards compatibility
+get_swe_bench_model_chain = get_code_repair_model_chain
 
 # ============================================================================
 # SUMMARY STATS
@@ -1416,6 +1423,7 @@ __all__ = [
     "get_best_free_model",
     "get_model_info",
     "get_task_chain",
-    "get_swe_bench_model_chain",
+    "get_code_repair_model_chain",
+    "run_code_repair_model_chain",
     "get_stats",
 ]

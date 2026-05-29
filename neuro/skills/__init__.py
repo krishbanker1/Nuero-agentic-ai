@@ -34,10 +34,8 @@ from neuro.skills.playwright_tester import PlaywrightTester, AppTestReport, test
 from neuro.skills.auto_fix_loop import AutoFixLoop, AutoFixConfig, AutoFixResult, quick_fix
 from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, stop_app
 
-# NEW: SWE-bench Competition skills
-from neuro.skills.swe_bench_runner import SWEBenchRunner, BenchmarkResult, BenchmarkReport, quick_benchmark
+# Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
-from neuro.skills.swe_bench_prompts import SWEBenchPrompts, SWE_BENCH_SYSTEM_PROMPT, get_prompt_for_role
 
 # Lazy imports for heavy skills
 _lazy_imports = {
@@ -168,14 +166,10 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "launch": AppLauncher,
     "start": AppLauncher,
     
-    # NEW: SWE-bench Competition
-    "swe_bench": SWEBenchRunner,
-    "benchmark": SWEBenchRunner,
+    # Agent swarm coordinator
     "agent_swarm": AgentSwarmCoordinator,
     "swarm": AgentSwarmCoordinator,
     "multi_agent_coordinator": AgentSwarmCoordinator,
-    "swe_prompts": SWEBenchPrompts,
-    "prompts": SWEBenchPrompts,
 
     # 3D & Graphics Skills
     "react_three_fiber": None,  # Will be imported lazily

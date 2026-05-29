@@ -57,7 +57,6 @@ class TestSkillRegistry:
             "python_patterns",
             "continuous_learning",
             "agent_shield",
-            "swe_bench",
             "shell_executor",
             "auto_fix",
         ]
@@ -151,20 +150,9 @@ class TestExecutor:
         assert callable(run_goal)
 
 
-class TestSWEBenchSkills:
-    """Test SWE-bench related functionality."""
-
-    def test_swe_bench_runner_exists(self):
-        """Test that SWEBenchRunner class exists."""
-        from neuro.skills.swe_bench_runner import SWEBenchRunner
-        assert SWEBenchRunner is not None
-
-    def test_swe_bench_prompts_exist(self):
-        """Test that SWE-bench prompts exist."""
-        from neuro.skills.swe_bench_prompts import SWE_BENCH_SYSTEM_PROMPT
-        assert isinstance(SWE_BENCH_SYSTEM_PROMPT, str)
-        assert len(SWE_BENCH_SYSTEM_PROMPT) > 0
-
+class TestAgentSkills:
+    """Test agent-related skills."""
+    
     def test_agent_swarm_exists(self):
         """Test that AgentSwarmCoordinator exists."""
         from neuro.skills.agent_swarm import AgentSwarmCoordinator
