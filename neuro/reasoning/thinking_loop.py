@@ -282,40 +282,40 @@ VALIDATION PASS - Final Code Generation - Build the Actual Application
 
 CRITICAL: Generate COMPLETE, WORKING code files for the task.
 
-IMPORTANT: Use MULTILINE formatting with proper line breaks. NOT single-line minified code.
-
-Output a JSON structure with ALL files needed for the project:
+OUTPUT FORMAT - STRICT JSON WITH ESCAPED NEWLINES:
+You MUST output valid JSON where the "content" field contains ESCAPED newlines (\\n), NOT actual newlines.
 
 ```json
 {
   "files": [
     {
       "path": "app.py",
-      "content": "import flask\napp = flask.Flask(__name__)\n# ... complete app code"
+      "content": "from flask import Flask\\napp = Flask(__name__)\\n\\n@app.route('/')\\ndef home():\\n    return 'Hello World'\\n\\nif __name__ == '__main__':\\n    app.run(debug=True)"
     },
     {
-      "path": "templates/index.html", 
-      "content": "<!DOCTYPE html>\n<html>\n<head><title>App</title></head>\n<body>...</body>\n</html>"
+      "path": "templates/index.html",
+      "content": "<!DOCTYPE html>\\n<html>\\n<head><title>Todo App</title></head>\\n<body><h1>My Todos</h1></body>\\n</html>"
     },
     {
       "path": "static/style.css",
-      "content": "body {\n  font-family: sans-serif;\n}\n.container {\n  max-width: 1200px;\n}"
+      "content": "body { font-family: sans-serif; }\\nh1 { color: #333; }"
     },
     {
       "path": "requirements.txt",
-      "content": "flask\nflask-cors\nrequests"
+      "content": "flask\\nflask-cors"
     }
   ]
 }
 ```
 
-General requirements:
+IMPORTANT: Use \\n for newlines inside the content strings. Do NOT use actual line breaks.
+
 1. For web apps: Create Flask/FastAPI backend with HTML templates
 2. Include requirements.txt with all dependencies
 3. Output COMPLETE code, not placeholders
 4. Use proper directory structure (templates/, static/)
-Generate properly formatted code with line breaks. Output ONLY the JSON block.
 
+Generate properly formatted code with ESCAPED newlines. Output ONLY the JSON block.
 """
         
         elif pass_type == PassType.DEBUGGING:
@@ -363,16 +363,18 @@ Provide final status and summary.
         """Get system prompt for thinking WITH skill awareness."""
         return """You are Neuro, an expert software engineering AI.
 
-CRITICAL: Output ONLY a JSON code block, nothing else.
+CRITICAL: Output ONLY a JSON code block with ESCAPED newlines (\\\\n), nothing else.
 
 ```json
 {
   "files": [
-    {"path": "app.py", "content": "from flask import Flask\\napp = Flask(__name__)\\n@app.route('/')\\ndef home(): return 'Hello World'\\nif __name__ == '__main__':\\n    app.run(debug=True)"},
+    {"path": "app.py", "content": "from flask import Flask\\napp = Flask(__name__)\\n\\nif __name__ == '__main__':\\n    app.run(debug=True)"},
     {"path": "requirements.txt", "content": "flask"}
   ]
 }
 ```
+
+RULE: Inside "content" strings, use \\n for newlines. NOT actual line breaks.
 
 Follow this format EXACTLY. Replace content with your actual implementation.
 Include complete, working code. No explanations, just the JSON block."""

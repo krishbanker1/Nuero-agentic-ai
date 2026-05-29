@@ -349,119 +349,82 @@ class NeuroAgent:
                 print(f"\n✓ Thinking complete ({passes_used} passes)")
                 print(f"Convergence: {thinking_result['convergence_score']:.2f}")
             
-            # Parse solution JSON to get file structure
+            # Parse solution JSON to get file structure - USE ROBUST PARSER
             files_created = []
-            import re
-            import json
             
-            # Helper to extract and create files from a JSON structure
-            def create_files_from_json(parsed, verbose=True):
-                """Extract file structure from JSON and create files."""
-                nonlocal files_created
-                files_to_create = parsed.get("files", [])
+            # NEW: Use the robust CodeParser
+            from neuro.core.code_parser import parse_and_write_files
+            
+            # Try the robust parser first
+            try:
+                parsed_files = parse_and_write_files(
+                    solution, 
+                    self.config.working_dir, 
+                    verbose=self.config.verbose
+                )
+                files_created = parsed_files
+            except Exception as e:
+                if self.config.verbose:
+                    print(f"⚠️ Robust parser failed: {e}")
+            
+            # If robust parser found files, we're done
+            if files_created:
+                if self.config.verbose:
+                    print(f"✅ Parsed {len(files_created)} files successfully")
+            else:
+                # Fallback: Try legacy JSON parsing
+                if self.config.verbose:
+                    print("🔄 Trying legacy JSON parsing...")
                 
-                if files_to_create and verbose:
-                    print(f"\n📁 Creating {len(files_to_create)} files...")
+                import re
+                import json
                 
-                for file_info in files_to_create:
-                    file_path = file_info.get("path", "")
-                    file_content = file_info.get("content", "")
+                def create_files_from_json(parsed, verbose=True):
+                    nonlocal files_created
+                    files_to_create = parsed.get("files", [])
                     
-                    # If content looks like it contains another JSON structure, try to parse it
-                    if isinstance(file_content, str) and file_content.strip().startswith('"files"'):
-                        try:
-                            inner = json.loads(file_content)
-                            return create_files_from_json(inner, verbose)
-                        except:
-                            pass
-                    # If content has escaped newlines, unescape them
-                    if isinstance(file_content, str) and ('\\n' in file_content):
-                        file_content = file_content.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
-                    # If content looks like a Python/JS string literal wrapper (triple quotes), unwrap it
-                    if isinstance(file_content, str):
-                        stripped = file_content.strip()
-                        # Only unwrap if it's clearly a string literal wrapper, not actual code
-                        if stripped.startswith('"""') and stripped.endswith('"""') and stripped.count('"""') == 2:
-                            file_content = stripped[3:-3].strip()
-                        elif stripped.startswith("'''") and stripped.endswith("'''") and stripped.count("'''") == 2:
-                            file_content = stripped[3:-3].strip()
+                    if files_to_create and verbose:
+                        print(f"\n📁 Creating {len(files_to_create)} files...")
                     
-                    if file_path and file_content:
-                        full_path = Path(self.config.working_dir) / file_path
-                        # Auto-create directory structure for enterprise apps
-                        target_dir = Path(self.config.working_dir)
-                        # Map common file names to proper directories
-                        if file_path.startswith("templates/") or file_path.endswith(".html"):
-                            target_dir = target_dir / "templates"
-                        elif file_path.startswith("static/"):
-                            target_dir = target_dir / "static"
-                        elif file_path.startswith("app/") or file_path.startswith("routes/"):
-                            target_dir = target_dir / "app"
+                    for file_info in files_to_create:
+                        file_path = file_info.get("path", "")
+                        file_content = file_info.get("content", "")
                         
-                        full_path = target_dir / Path(file_path).name
-                        full_path.parent.mkdir(parents=True, exist_ok=True)
-                        full_path.write_text(file_content)
-                        files_created.append(str(full_path))
-                        if verbose:
-                            print(f"   ✓ Created: {file_path}")
+                        if file_content and ('\\n' in str(file_content)):
+                            file_content = file_content.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
+                        
+                        if isinstance(file_content, str):
+                            stripped = file_content.strip()
+                            if stripped.startswith('"""') and stripped.endswith('"""') and stripped.count('"""') == 2:
+                                file_content = stripped[3:-3].strip()
+                            elif stripped.startswith("'''") and stripped.endswith("'''") and stripped.count("'''") == 2:
+                                file_content = stripped[3:-3].strip()
+                        
+                        if file_path and file_content:
+                            full_path = Path(self.config.working_dir) / file_path
+                            target_dir = Path(self.config.working_dir)
+                            if file_path.startswith("templates/") or file_path.endswith(".html"):
+                                target_dir = target_dir / "templates"
+                            elif file_path.startswith("static/"):
+                                target_dir = target_dir / "static"
+                            
+                            full_path = target_dir / Path(file_path).name
+                            full_path.parent.mkdir(parents=True, exist_ok=True)
+                            full_path.write_text(str(file_content))
+                            files_created.append(str(full_path))
+                            if verbose:
+                                print(f"   ✓ Created: {file_path}")
                 
-                # Create requirements.txt if mentioned
-                req_content = parsed.get("requirements", None)
-                if req_content:
-                    req_path = Path(self.config.working_dir) / "requirements.txt"
-                    req_path.write_text(req_content.strip())
-                    files_created.append(str(req_path))
-                    if verbose:
-                        print(f"   ✓ Created: requirements.txt")
-            
-            # If solution starts with '{' or contains JSON-like content, try parsing
-            if solution.strip().startswith('{') or '"files"' in solution:
-                try:
-                    parsed = json.loads(solution)
-                    if "files" in parsed:
-                        create_files_from_json(parsed)
-                except json.JSONDecodeError:
-                    # Not a simple JSON - look for markdown code blocks
-                    pass
-            
-            # First try to extract JSON from markdown code blocks
-            json_match = None
-            for match in re.finditer(r'```(?:json)?\s*([\s\S]*?)```', solution):
-                try:
-                    candidate = match.group(1).strip()
-                    if '"files"' in candidate or '"path"' in candidate:
-                        try:
-                            parsed = json.loads(candidate)
-                        except json.JSONDecodeError:
-                            # Fix double-escaped newlines - they come as actual newlines
-                            # Replace actual newlines in content strings with escaped version
-                            # Simple fix: replace unescaped newlines in the JSON with escaped ones
-                            import re
-                            # Pattern to match "content": "...content with newlines..."
-                            def fix_content(match):
-                                content = match.group(1)
-                                # Replace actual newlines with escaped form
-                                fixed = content.replace('\n', '\\n').replace('\r', '\\r')
-                                return f'"content": "{fixed}"'
-                            
-                            # Try escaping newlines in content values
-                            fixed = re.sub(r'"content": "([^"]*)"', fix_content, candidate)
-                            # If that didn't work, try a different approach
-                            # Just replace all newlines with \n
-                            lines = candidate.split('\n')
-                            if len(lines) > 2:  # Has actual newlines
-                                fixed = candidate.replace('\n', '\\n')
-                            
-                            parsed = json.loads(fixed)
-                        
-                        if "files" in parsed:
-                            create_files_from_json(parsed)
-                            if files_created:
-                                break
-                except Exception as e:
-                    if self.config.verbose:
-                        print(f"⚠️ Markdown block parse failed: {e}")
-                    continue
+                # Try parsing JSON from markdown blocks
+                json_blocks = re.findall(r'```(?:json)?\s*(\{[\s\S]*?\})\s*```', solution)
+                for block in json_blocks:
+                    try:
+                        data = json.loads(block)
+                        if "files" in data:
+                            create_files_from_json(data)
+                            break
+                    except:
+                        continue
             
             # If no JSON, check if solution itself contains code blocks
             if not files_created:
