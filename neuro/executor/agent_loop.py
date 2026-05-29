@@ -477,8 +477,10 @@ class NeuroAgent:
                             break
                     
                     if not file_name:
-                        # Use keyword detection
+                        # Use keyword detection - expanded for more file types
                         if "flask" in code.lower() and "route" in code.lower():
+                            file_name = "app.py"
+                        elif "kubernetes" in code.lower() or "k8s" in code.lower() or "kube" in code.lower():
                             file_name = "app.py"
                         elif "class User" in code or "classusers" in code.lower():
                             file_name = "models.py"
@@ -488,8 +490,18 @@ class NeuroAgent:
                             file_name = "auth.py"
                         elif "database" in solution.lower() or "sqlalchemy" in code.lower():
                             file_name = "database.py"
+                        elif "kind create cluster" in code or "#!/bin/bash" in code or "kubectl" in code:
+                            file_name = "setup.sh"
+                        elif "apiVersion:" in code and "kind:" in code:
+                            file_name = "deployment.yaml"
+                        elif "apiVersion:" in code and "metadata:" in code and "spec:" in code:
+                            file_name = "config.yaml"
                         elif "__init__" in code:
                             file_name = "__init__.py"
+                        elif "import" not in code and ("const " in code or "let " in code or "function" in code):
+                            file_name = "app.js"
+                        elif "{" in code and "}" in code and ":" in code and ";" not in code:
+                            file_name = "config.json"
                         else:
                             file_name = f"generated_{i+1}.py"
                     
