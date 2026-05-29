@@ -110,12 +110,15 @@ class ThinkingLoop:
             )
             self.passes.append(thinking_pass)
             
-            # Update best solution
-            if score > best_score:
+            # Only update best_solution if it contains JSON (actual code)
+            # Skip RESEARCH pass from best_solution consideration
+            has_json = '"files"' in response or '"path"' in response
+            if has_json and score > best_score:
                 best_score = score
                 best_solution = response
-            
-            print(f"   ✓ Pass {pass_num} complete (score: {score:.2f})")
+                print(f"   ✓ Pass {pass_num} complete (score: {score:.2f}) - JSON code found!")
+            else:
+                print(f"   ✓ Pass {pass_num} complete (score: {score:.2f})")
             
             # Check convergence
             if score >= self.config.convergence_threshold:
