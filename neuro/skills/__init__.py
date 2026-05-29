@@ -445,3 +445,17 @@ def store_memory(content: str, **kwargs) -> Any:
 def search_memory(query: str, **kwargs) -> List:
     """Quick memory recall"""
     return recall(query, **kwargs)
+
+# NEW: Code & API Builders
+from neuro.skills.code_generator import CodeGenerator, quick_generate
+from neuro.skills.rest_api_builder import RESTAPIBuilder, build_rest_api, Endpoint
+from neuro.skills.database_builder import DatabaseBuilder, build_database, Table
+
+# NEW: Frontend & Website Builders  
+from neuro.skills.frontend_builder import FrontendBuilder, build_frontend, Component
+from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_page, Section
+
+# NEW: DevOps & Deployment
+from neuro.skills.docker_deploy import DockerDeploy, docker_deploy
+from neuro.skills.website_builder import WebsiteBuilder, build_website
+
