@@ -433,9 +433,19 @@ Previous attempts haven't converged. Try a different approach:
 1. Re-read the original problem
 2. Consider if there's a simpler solution
 3. Try breaking down the problem differently
-4. Look at the error messages more carefully
 
-Provide a fresh perspective and new solution.
+IMPORTANT: Output complete, working code as JSON:
+```json
+{{
+  "files": [
+    {{"path": "app.py", "content": "FULL Python code"}},
+    {{"path": "templates/index.html", "content": "FULL HTML"}},
+    {{"path": "static/style.css", "content": "FULL CSS"}}
+  ]
+}}
+```
+
+Output ONLY JSON block with complete files.
 """
         
         messages = [{"role": "user", "content": recovery_prompt}]
