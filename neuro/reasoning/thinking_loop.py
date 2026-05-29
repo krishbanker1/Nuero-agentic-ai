@@ -253,31 +253,38 @@ CRITICAL: Generate COMPLETE, WORKING code files for the task.
 
 IMPORTANT: Use MULTILINE formatting with proper line breaks. NOT single-line minified code.
 
-If this is a "Build a todo app", create these files:
-- A frontend (HTML/CSS/JS or React)
-- Backend server if needed
-- A simple in-memory or localStorage data store
+Output a JSON structure with ALL files needed for the project:
 
 ```json
 {
   "files": [
     {
-      "path": "index.html",
-      "content": "<!DOCTYPE html><html><head><title>Todo App</title></head><body>..."
+      "path": "app.py",
+      "content": "import flask\napp = flask.Flask(__name__)\n# ... complete app code"
     },
     {
-      "path": "styles.css",
-      "content": "body { font-family: sans-serif; } .todo-item { padding: 10px; }"
+      "path": "templates/index.html", 
+      "content": "<!DOCTYPE html>\n<html>\n<head><title>App</title></head>\n<body>...</body>\n</html>"
     },
     {
-      "path": "app.js",
-      "content": "// Todo app logic\\nconst todos = [];\\nfunction addTodo(text) {...}"
+      "path": "static/style.css",
+      "content": "body {\n  font-family: sans-serif;\n}\n.container {\n  max-width: 1200px;\n}"
+    },
+    {
+      "path": "requirements.txt",
+      "content": "flask\nflask-cors\nrequests"
     }
   ]
 }
 ```
 
-Generate a complete, working todo app now. Output ONLY the JSON block.
+General requirements:
+1. For web apps: Create Flask/FastAPI backend with HTML templates
+2. Include requirements.txt with all dependencies
+3. Output COMPLETE code, not placeholders
+4. Use proper directory structure (templates/, static/)
+Generate properly formatted code with line breaks. Output ONLY the JSON block.
+
 """
         
         elif pass_type == PassType.DEBUGGING:
