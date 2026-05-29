@@ -162,7 +162,15 @@ class ThinkingLoop:
         """Create the prompt for this pass WITH skill enrichment."""
         
         # Base prompt with context
-        base_prompt = f"Task: {goal}\n\n"
+        base_prompt = """You are building ENTERPRISE-LEVEL applications. This means:
+
+- PRODUCTION-READY: Code that works out of the box
+- FULL-STACK: Backend API + Frontend UI + Database
+- STRUCTURED: Proper folder organization (app/, templates/, static/)
+- SECURE: Input validation, auth, error handling
+- COMPLETE: No TODOs, no placeholders, no "...rest of code"
+
+Task: """ + f"{goal}\n\n"
         
         # NEW: Include active skills context
         if context.get("active_skills"):
@@ -209,45 +217,68 @@ Provide a clear analysis and initial plan.
         
         elif pass_type == PassType.IMPLEMENTATION:
             return base_prompt + """
-IMPLEMENTATION PASS - Creating Actual Files
+IMPLEMENTATION PASS - Creating Enterprise-Level Application
 
-CRITICAL: You must output COMPLETE, WORKING code files that can be saved directly to disk.
-Output a JSON structure with file paths and complete file content:
+CRITICAL: Build a PRODUCTION-READY, FULL-STACK application.
+
+Architecture Requirements:
+1. BACKEND: Flask/FastAPI with proper structure
+   - app.py or main.py (entry point)
+   - models.py (database models)
+   - routes/ or endpoints/ (API routes)
+   - services/ (business logic)
+
+2. FRONTEND: Modern HTML/CSS/JS
+   - templates/ folder with Jinja2 templates
+   - static/ folder with CSS, JS
+   - Responsive design with CSS Grid/Flexbox
+
+3. DATABASE: SQLite/PostgreSQL with ORM
+   - SQLAlchemy models
+
+4. API STRUCTURE:
+   - RESTful endpoints (/api/v1/...)
+   - JSON request/response
+   - Authentication (JWT/Session)
+
+Output JSON with ALL files:
 
 ```json
 {
   "files": [
-    {
-      "path": "app.py",
-      "content": "# Complete file content here...\\nimport flask\\n# ... rest of file"
-    },
-    {
-      "path": "models.py", 
-      "content": "# Complete file content"
-    }
+    {"path": "app.py", "content": "import flask
+from flask import Flask, jsonify, request
+# Complete Flask app"},
+    {"path": "models.py", "content": "from flask_sqlalchemy import SQLAlchemy
+# All models"},
+    {"path": "templates/index.html", "content": "<!DOCTYPE html>
+<html>
+<head><title>App</title></head>
+<body>...</body>
+</html>"},
+    {"path": "static/style.css", "content": "/* Full CSS */"},
+    {"path": "static/app.js", "content": "// Complete JS with API calls"},
+    {"path": "requirements.txt", "content": "flask
+flask-sqlalchemy
+flask-cors"},
+    {"path": ".env.example", "content": "SECRET_KEY=xxx
+DATABASE_URL=sqlite:///app.db"}
   ]
 }
 ```
 
 Rules:
-1. Output ONLY the JSON structure, no additional text
-2. Include ALL necessary imports at the top of each file
-3. Include complete implementation - no placeholders or TODO
-4. Include docstrings and comments where helpful
-5. Make sure the code is syntactically correct and ready to run
-6. Create a requirements.txt with all dependencies
+1. EVERY file must be COMPLETE - no TODOs, no placeholders
+2. Code must be syntactically correct and runnable
+3. Include proper error handling and input validation
+4. Use environment variables for secrets
 
-Based on your analysis:
-1. What specific files will you create?
-2. What is the complete content of each file?
-3. What dependencies are needed?
-
-Output the JSON with complete file content now.
+Build the complete application now. Output ONLY the JSON block.
 """
         
         elif pass_type == PassType.VALIDATION:
             return base_prompt + """
-CODE GENERATION PASS - Build the Actual Application
+VALIDATION PASS - Final Code Generation - Build the Actual Application
 
 CRITICAL: Generate COMPLETE, WORKING code files for the task.
 

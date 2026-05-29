@@ -388,6 +388,17 @@ class NeuroAgent:
                     
                     if file_path and file_content:
                         full_path = Path(self.config.working_dir) / file_path
+                        # Auto-create directory structure for enterprise apps
+                        target_dir = Path(self.config.working_dir)
+                        # Map common file names to proper directories
+                        if file_path.startswith("templates/") or file_path.endswith(".html"):
+                            target_dir = target_dir / "templates"
+                        elif file_path.startswith("static/"):
+                            target_dir = target_dir / "static"
+                        elif file_path.startswith("app/") or file_path.startswith("routes/"):
+                            target_dir = target_dir / "app"
+                        
+                        full_path = target_dir / Path(file_path).name
                         full_path.parent.mkdir(parents=True, exist_ok=True)
                         full_path.write_text(file_content)
                         files_created.append(str(full_path))
@@ -524,12 +535,44 @@ class NeuroAgent:
             # Phase 2: Validation WITH skill invocation
             validation_passed = False
             
-            # Consider success if files were created (even without tests)
-            if files_created:
-                validation_passed = True
+            # Quality check: Verify files are not placeholders/TODOs
+            files_valid = True
+            for fpath in files_created:
+                try:
+                    fcontent = Path(fpath).read_text()
+                    # Check for placeholder patterns
+                    placeholder_patterns = ["TODO", "FIXME", "...", "rest of code", "..."]
+                    has_placeholder = any(p in fcontent for p in placeholder_patterns)
+                    # Check for minimum content (real code, not just headers)
+                    is_too_short = len(fcontent) < 200
+                    if has_placeholder or is_too_short:
+                        files_valid = False
+                        if self.config.verbose:
+                            print(f"⚠️ Invalid file: {fpath}")
+                except:
+                    pass
+
+            # Consider success if files were created and are valid
+            if files_created and files_valid:
+                # Enterprise check: Ensure full-stack structure
+                has_backend = any(f.endswith('.py') and f != 'test_*.py' for f in files_created)
+                has_frontend = any(f.endswith(('.html', '.js', '.css')) for f in files_created)
+                
+                if has_backend and has_frontend:
+                    validation_passed = True
+                    if self.config.verbose:
+                        print(f"\n✅ Full-stack application validated")
+                        print(f"   Created {len(files_created)} files (backend + frontend)")
+                else:
+                    if self.config.verbose:
+                        missing = []
+                        if not has_backend: missing.append("backend (.py)")
+                        if not has_frontend: missing.append("frontend (.html/.js/.css)")
+                        print(f"⚠️ Incomplete structure - missing: {', '.join(missing)}")
+                    validation_passed = False
+            elif files_created and not files_valid:
                 if self.config.verbose:
-                    print(f"\n✅ Files created successfully - solution validated")
-                    print(f"   Created {len(files_created)} files")
+                    print("⚠️ Files contain placeholders - need complete code")
             
             if self.config.test_first:
                 if self.config.verbose:
