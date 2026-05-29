@@ -173,6 +173,7 @@ class SmartRouter:
                 "llama-4-maverick-17b-128e-instruct",
                 "llama-3.2-90b-vision-instruct",
                 "mixtral-8x7b-32768",
+                "openai/gpt-oss-120b",
             ],
             rate_limit=30,
         ),
@@ -197,7 +198,7 @@ class SmartRouter:
                 # NVIDIA Nemotron - 120B reasoning
                 "nvidia/nemotron-3-super-120b-a12b:free",
                 # OpenAI OSS models - complex reasoning
-                "openai/gpt-oss-120b",
+
                 # Minimax - free alternative
                 "minimax/minimax-m2.5:free",
                 # Mistral - free versatile
@@ -316,8 +317,10 @@ class SmartRouter:
                 if k in ["temperature", "max_tokens", "top_p", "stop"]
             }
             
+            # Groq can use OpenAI-style model names like "openai/gpt-oss-120b"
+            groq_model = model.split("/")[-1] if "/" in model else model
             response = client.chat.completions.create(
-                model=model.split("/")[-1] if model else "llama-3.3-70b-versatile",
+                model=groq_model if groq_model else "llama-3.3-70b-versatile",
                 messages=messages,
                 **clean_kwargs
             )

@@ -303,39 +303,6 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/openai/gpt-oss-120b:free",
-        provider="openrouter",
-        roles=["planner", "architect"],
-        strengths=["reasoning", "free"],
-        priority=2,
-        fallback_priority=3,
-        cost="free",
-        requires_key=True,
-        context_window=32000,
-    ),
-    ModelMetadata(
-        name="openrouter/openai/gpt-oss-20b:free",
-        provider="openrouter",
-        roles=["coder", "frontend"],
-        strengths=["fast", "free"],
-        priority=3,
-        fallback_priority=4,
-        cost="free",
-        requires_key=True,
-        context_window=32000,
-    ),
-    ModelMetadata(
-        name="openrouter/liquid/lfm-2.5-1.2b-thinking:free",
-        provider="openrouter",
-        roles=["planner", "debugger"],
-        strengths=["reasoning", "fast", "free"],
-        priority=3,
-        fallback_priority=4,
-        cost="free",
-        requires_key=True,
-        context_window=32000,
-    ),
-    ModelMetadata(
         name="openrouter/poolside/laguna-m.1:free",
         provider="openrouter",
         roles=["coder"],
@@ -473,13 +440,13 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     # =============================================================================
     # NEW: OpenAI OSS 120B - Complex reasoning powerhouse
     ModelMetadata(
-        name="openrouter/openai/gpt-oss-120b",
+        name="groq/openai/gpt-oss-120b",
         provider="openrouter",
         roles=["architect", "planner", "reviewer"],
         strengths=["reasoning", "complex-tasks", "long-context"],
         priority=1,
         fallback_priority=2,
-        cost="cheap",
+        cost="free",
         requires_key=True,
         context_window=200000,
     ),
@@ -805,7 +772,7 @@ TASK_CATEGORIES = {
     
     # 4. CODE REVIEW - GPT-OSS 120B (complex analysis)
     "code_review": {
-        "primary": "openrouter/openai/gpt-oss-120b",
+        "primary": "groq/openai/gpt-oss-120b",
         "fallback": ["cohere/command-r-plus", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["reviewer", "architect"],
         "description": "PR reviews, quality assessment"
@@ -907,7 +874,7 @@ TASK_CATEGORIES = {
     
     # 13. SECURITY_AUDIT - GPT-OSS 120B (thorough analysis)
     "security_audit": {
-        "primary": "openrouter/openai/gpt-oss-120b",
+        "primary": "groq/openai/gpt-oss-120b",
         "fallback": ["openrouter/nvidia/nemotron-3-super-120b-a12b:free", "cohere/command-r-plus"],
         "roles": ["reviewer", "debugger"],
         "description": "Vulnerability scanning, fixes"
@@ -969,7 +936,7 @@ TASK_CATEGORIES = {
     
     # 20. ARCHITECTURE_DESIGN - GPT-OSS 120B (system design)
     "architecture_design": {
-        "primary": "openrouter/openai/gpt-oss-120b",
+        "primary": "groq/openai/gpt-oss-120b",
         "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-chat-v3-0324:free"],
         "roles": ["architect", "planner"],
         "description": "System design, microservices, patterns"
@@ -999,7 +966,7 @@ TASK_CATEGORIES = {
     
     # 23. REASONING_PLANNING - GPT-OSS 120B + Gemini Flash
     "reasoning_planning": {
-        "primary": "openrouter/openai/gpt-oss-120b",
+        "primary": "groq/openai/gpt-oss-120b",
         "fallback": ["gemini/gemini-2.0-flash-exp", "openrouter/deepseek/deepseek-chat-v3-0324:free"],
         "roles": ["planner", "architect"],
         "description": "Strategic planning, task decomposition"
