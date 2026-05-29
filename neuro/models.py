@@ -104,7 +104,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini/gemini-2.0-flash-exp",
+        name="gemini/gemini-2.0-flash",
         provider="gemini",
         roles=["planner", "architect", "debugger"],
         strengths=["reasoning", "long-context"],
@@ -207,7 +207,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1048576,
     ),
     ModelMetadata(
-        name="gemini/gemini-flash-latest",
+        name="gemini/gemini/gemini-3.5-flash-latest",
         provider="gemini",
         roles=["code_generator", "debugger", "general"],
         strengths=["fast", "alias", "free"],
@@ -218,7 +218,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1048576,
     ),
     ModelMetadata(
-        name="gemini/gemini-flash-lite-latest",
+        name="gemini/gemini/gemini-3.5-flash-lite-latest",
         provider="gemini",
         roles=["frontend", "general"],
         strengths=["fast", "lite", "alias", "free"],
@@ -279,7 +279,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=100000,
     ),
     ModelMetadata(
-        name="groq/llama-3.2-90b-vision-instruct",
+        name="groq/llama-3.3-70b-versatile",
         provider="groq",
         roles=["frontend", "architect", "reviewer"],
         strengths=["vision", "reasoning"],
@@ -302,7 +302,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     # NEW: Llama 4 Maverick - Latest Groq model for competitive coding
     ModelMetadata(
-        name="groq/llama-4-maverick-17b-128e-instruct",
+        name="groq/llama-3.3-70b-versatile",
         provider="groq",
         roles=["coder", "debugger", "planner"],
         strengths=["code", "reasoning", "fast", "latest"],
@@ -317,7 +317,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     # =============================================================================
     # NEW: Llama 4 Maverick - Latest Groq model for competitive coding
     ModelMetadata(
-        name="groq/llama-4-maverick-17b-128e-instruct",
+        name="groq/llama-3.3-70b-versatile",
         provider="groq",
         roles=["coder", "debugger", "planner"],
         strengths=["code", "reasoning", "fast", "latest"],
@@ -496,7 +496,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=16000,
     ),
     ModelMetadata(
-        name="openrouter/minimax/minimax-m2.5:free",
+        name="openrouter/google/gemma-4-31b-it:free",
         provider="openrouter",
         roles=["documentation", "frontend"],
         strengths=["fast", "free"],
@@ -568,7 +568,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     # NEW: DeepSeek V3 - Top free reasoning model (39.8% on SWE-bench)
     ModelMetadata(
-        name="openrouter/deepseek/deepseek-chat-v3-0324:free",
+        name="openrouter/deepseek/deepseek-v4-flash:free",
         provider="openrouter",
         roles=["planner", "architect", "coder", "reasoning"],
         strengths=["reasoning", "code", "free"],
@@ -858,15 +858,15 @@ TASK_CATEGORIES = {
     
     # 1. CODE GENERATION - DeepSeek V3 (39.8% SWE-bench winner)
     "code_generation": {
-        "primary": "openrouter/deepseek/deepseek-chat-v3-0324:free",
-        "fallback": ["groq/llama-4-maverick-17b-128e-instruct", "groq/llama-3.3-70b-versatile"],
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile"],
         "roles": ["coder", "planner"],
         "description": "Full app/feature implementation"
     },
     
     # 2. DEEP REASONING - Gemini 2.0 Flash Exp (best reasoning)
     "deep_reasoning": {
-        "primary": "gemini/gemini-2.0-flash-exp",
+        "primary": "gemini/gemini-2.0-flash",
         "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner", "architect"],
         "description": "Complex reasoning, planning, analysis"
@@ -961,7 +961,7 @@ TASK_CATEGORIES = {
     # 10. FRONTEND_REACT - Gemini 3.5 Flash (multimodal, fast)
     "frontend_react": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.2-90b-vision-instruct"],
+        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["frontend", "coder"],
         "description": "React, Next.js, Vue, Svelte"
     },
@@ -1030,13 +1030,13 @@ TASK_CATEGORIES = {
     
     # 18. PERFORMANCE_OPT - DeepSeek V3 (optimization expert)
     "performance_opt": {
-        "primary": "openrouter/deepseek/deepseek-chat-v3-0324:free",
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
         "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Profiling, caching, optimization"
     },
     "performance_optimization": {
-        "primary": "openrouter/deepseek/deepseek-chat-v3-0324:free",
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
         "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Performance tuning, benchmarks"
@@ -1053,7 +1053,7 @@ TASK_CATEGORIES = {
     # 20. ARCHITECTURE_DESIGN - GPT-OSS 120B (system design)
     "architecture_design": {
         "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-chat-v3-0324:free"],
+        "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["architect", "planner"],
         "description": "System design, microservices, patterns"
     },
@@ -1061,13 +1061,13 @@ TASK_CATEGORIES = {
     # 21. NATURAL_LANGUAGE - Gemini 3.5 Flash (NLP expert)
     "natural_language": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "openrouter/minimax/minimax-m2.5:free"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["planner"],
         "description": "Chatbots, summarization, NLP"
     },
     "office_document_generation": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "openrouter/minimax/minimax-m2.5:free"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["planner"],
         "description": "Word, Excel, PowerPoint generation"
     },
@@ -1075,7 +1075,7 @@ TASK_CATEGORIES = {
     # 22. MULTI_MODAL - Gemini 3.5 Flash (vision + text)
     "multi_modal": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.2-90b-vision-instruct"],
+        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["frontend", "coder"],
         "description": "Image understanding, file processing"
     },
@@ -1083,7 +1083,7 @@ TASK_CATEGORIES = {
     # 23. REASONING_PLANNING - GPT-OSS 120B + Gemini Flash
     "reasoning_planning": {
         "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini/gemini-2.0-flash-exp", "openrouter/deepseek/deepseek-chat-v3-0324:free"],
+        "fallback": ["gemini/gemini-2.0-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner", "architect"],
         "description": "Strategic planning, task decomposition"
     },
