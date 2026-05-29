@@ -5,6 +5,11 @@ Uses Tavily API and browser tools to research unknown topics
 
 import json
 import re
+import os
+import subprocess
+import tempfile
+import shutil
+from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 
@@ -32,6 +37,9 @@ class ResearchResult:
     tech_stack: List[str] = field(default_factory=list)
     references: List[str] = field(default_factory=list)
     raw_content: str = ""
+    code_patterns: List[str] = field(default_factory=list)  # NEW: actual code snippets
+    file_structure: Dict[str, str] = field(default_factory=dict)  # NEW: file -> language mapping
+    cloned_repos: List[str] = field(default_factory=list)  # NEW: cloned repo URLs
     success: bool = False
     error: str = ""
 
@@ -86,6 +94,12 @@ class WebResearcher:
             result.summary = github_info.get("description", "")
             result.success = True
             print(f"✅ GitHub research complete: {len(result.key_features)} features")
+            
+            # Always enrich with topic-based features for comprehensive coverage
+            topic_features = self._extract_features_from_topic(topic)
+            if topic_features:
+                result.key_features = list(set(result.key_features + topic_features))[:20]
+                print(f"✅ Enriched with {len(topic_features)} domain-specific features")
         
         # Step 2: Try Tavily search if available
         if self.tavily_client:
@@ -142,88 +156,181 @@ class WebResearcher:
     def _search_github(self, topic: str) -> Optional[Dict[str, Any]]:
         """Search GitHub for relevant repositories."""
         try:
-            import subprocess
             import urllib.parse
             
-            # Search GitHub API with proper encoding
-            encoded_topic = urllib.parse.quote(topic)
-            query = f"q={encoded_topic}&sort=stars&order=desc&per_page=5"
-            cmd = f'curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/search/repositories?{query}"'
+            # Extract key terms from topic for better search
+            search_terms = self._extract_search_terms(topic)
             
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
+            # Search for multiple related terms
+            all_features = []
+            all_tech = []
+            descriptions = []
+            repo_urls = []
             
-            if result.returncode == 0 and result.stdout:
-                data = json.loads(result.stdout)
-                repos = data.get("items", [])
+            for term in search_terms[:5]:  # Limit API calls
+                encoded_term = urllib.parse.quote(term)
+                query = f"q={encoded_term}&sort=stars&order=desc&per_page=3"
+                cmd = f'curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/search/repositories?{query}"'
                 
-                if repos:
-                    # Aggregate features from top repos
-                    all_features = []
-                    all_tech = []
-                    descriptions = []
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
+                
+                if result.returncode == 0 and result.stdout:
+                    data = json.loads(result.stdout)
+                    repos = data.get("items", [])
                     
-                    for repo in repos[:3]:
+                    for repo in repos:
                         desc = repo.get("description", "")
-                        if desc:
+                        if desc and desc not in descriptions:
                             descriptions.append(desc)
+                            repo_urls.append(repo.get("html_url", ""))
                         all_features.extend(self._extract_features_from_description(desc))
                         all_tech.extend(self._extract_tech_stack(repo))
-                    
-                    return {
-                        "name": repos[0].get("name", ""),
-                        "description": " | ".join([d for d in descriptions if d][:2]),
-                        "features": list(set(all_features))[:10],
-                        "tech_stack": list(set(all_tech))[:10],
-                        "url": repos[0].get("html_url", "")
-                    }
+            
+            if descriptions or all_features:
+                return {
+                    "name": topic,
+                    "description": " | ".join([d for d in descriptions if d][:3]),
+                    "features": list(set(all_features))[:15],
+                    "tech_stack": list(set(all_tech))[:10],
+                    "url": repo_urls[0] if repo_urls else ""
+                }
         except Exception as e:
             print(f"GitHub search error: {e}")
         return None
+    
+    def _extract_search_terms(self, topic: str) -> List[str]:
+        """Extract multiple search terms from topic for comprehensive research."""
+        # Base terms from the topic
+        terms = [topic.lower()]
+        
+        # Extract meaningful words
+        words = topic.lower().replace("-", " ").replace("_", " ").split()
+        
+        # Common domain patterns to expand search
+        domain_patterns = {
+            "tuner": ["piano tuning", "guitar tuner", "instrument tuner", "FFT tuning", "frequency analysis"],
+            "piano": ["piano tuning", "music production", "audio analysis", "instrument tuning"],
+            "music": ["audio processing", "music production", "sound analysis", "audio visualization"],
+            "chat": ["real-time messaging", "websocket chat", "messaging app", "chat application"],
+            "crm": ["customer management", "sales crm", "business crm", "enterprise crm"],
+            "cms": ["content management", "blog cms", "website cms", "enterprise cms"],
+            "ecommerce": ["online store", "shopping cart", "payment integration", "e-commerce platform"],
+            "social": ["social network", "user profiles", "social media", "community platform"],
+            "analytics": ["data visualization", "dashboard analytics", "business intelligence", "metrics"],
+            "automation": ["workflow automation", "process automation", "business rules", "triggers"],
+        }
+        
+        for word in words:
+            if word in domain_patterns:
+                terms.extend(domain_patterns[word])
+        
+        # Add generic tech search if we haven't found specific matches
+        if len(terms) < 3:
+            terms.extend(["open source", "github", "enterprise application"])
+        
+        return list(set(terms))[:10]
     
     def _extract_features_from_description(self, description: str) -> List[str]:
         """Extract key features from a description."""
         if not description:
             return []
         
-        # Look for common feature patterns
         features = []
+        desc_lower = description.lower()
+        
+        # Look for technical feature patterns
         patterns = [
-            r'(\w+\s+analysis)',
-            r'(\w+\s+tracking)',
-            r'(\w+\s+management)',
-            r'(\w+\s+generation)',
-            r'(\w+\s+automation)',
-            r'(\w+\s+processing)',
-            r'(\w+\s+tuning)',
-            r'(\w+\s+spectrum)',
-            r'(\w+\s+piano)',
-            r'(\w+\s+frequency)',
+            # Audio/signal processing
+            r'(fft|fast fourier|frequency analysis|pitch detection|autocorrelation)',
+            r'(spectrum analyzer|strobe|tuning fork|piano tuning|instrument tuner)',
+            r'(audio processing|sound analysis|dsp|signal processing)',
+            
+            # Enterprise features
+            r'(authentication|authorization|rbac|permissions|access control)',
+            r'(multi-tenant|saas|cloud deployment|scalable)',
+            r'(rest api|graphql|websockets|real-time|grpc)',
+            r'(database|orm|sql|no-sql|caching|redis|memcached)',
+            r'(docker|kubernetes|deployment|ci/cd|devops)',
+            r'(admin dashboard|reporting|analytics|business intelligence)',
+            r'(email|notifications|webhooks|integrations)',
+            r'(payments|stripe|billing|subscriptions|invoicing)',
+            r'(audit logging|audit trail|compliance|soc2|gdpr)',
+            r'(testing|unit tests|integration tests|test coverage)',
+            r'(security|encryption|ssl|tls|https|2fa|mfa)',
+            
+            # UI/UX
+            r'(responsive|mobile-first|pwa|progressive web app)',
+            r'(dashboard|data visualization|charts|graphs)',
+            r'(dark mode|theming|customization)',
+            r'(drag.drop|drag and drop|sortable|reorderable)',
+            r'(modal|toast|notification|alerts)',
+            r'(search|filter|pagination|sorting)',
+            r'(export|import|csv|excel|pdf)',
+            
+            # General features
+            r'(crud|create.read.update.delete|api endpoints)',
+            r'(crud|user management|role management|admin panel)',
+            r'(crud|file upload|media management|image processing)',
+            r'(crud|comments|reviews|ratings|feedback)',
+            r'(crud|messaging|notifications|activity feed)',
+            r'(crud|search|filter|analytics|reporting)',
         ]
         
         for pattern in patterns:
-            matches = re.findall(pattern, description, re.IGNORECASE)
+            matches = re.findall(pattern, desc_lower)
             features.extend(matches)
         
-        return list(set(features))[:5]
+        return list(set(features))[:10]
     
     def _extract_features_from_topic(self, topic: str) -> List[str]:
-        """Extract features from topic name."""
+        """Extract features from topic name for enterprise-level app."""
         words = topic.lower().replace("-", " ").replace("_", " ").split()
         
-        # Common feature keywords
-        feature_keywords = [
-            "analysis", "tracking", "management", "generation", "automation",
-            "processing", "tuning", "spectrum", "frequency", "audio",
-            "visualization", "dashboard", "crm", "cms", "api", "database"
+        features = []
+        topic_lower = topic.lower()
+        
+        # Audio/tuning specific features
+        if any(w in topic_lower for w in ['tuner', 'piano', 'music', 'audio', 'sound']):
+            features.extend([
+                'microphone input capture',
+                'FFT frequency analysis',
+                'pitch detection algorithm',
+                'real-time waveform display',
+                'spectrum analyzer visualization',
+                'strobe tuning mode',
+                'needle meter display',
+                'note identification (A0-C8)',
+                'cents deviation display',
+                'stretch tuning support',
+                'equal temperament',
+                'custom temperaments (Werckmeister, Kirnberger)',
+                'audio recording and playback',
+                'tuning history tracking',
+                'export tuning data'
+            ])
+        
+        # Generic enterprise features for any app
+        generic_enterprise = [
+            'user authentication (email/password, OAuth, 2FA)',
+            'role-based access control (admin, user, guest)',
+            'RESTful API with proper versioning',
+            'database with migrations',
+            'input validation and sanitization',
+            'error handling and logging',
+            'responsive mobile-first UI',
+            'dark mode support',
+            'export data (CSV, Excel, PDF)',
+            'email notifications',
+            'admin dashboard',
+            'audit logging',
+            'API documentation',
+            'Docker deployment',
+            'CI/CD pipeline',
+            'unit and integration tests'
         ]
         
-        features = []
-        for word in words:
-            if word in feature_keywords:
-                features.append(word)
-        
         if not features:
-            features = ["user management", "data storage", "api endpoints"]
+            features = generic_enterprise[:10]
         
         return features
     

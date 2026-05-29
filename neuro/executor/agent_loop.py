@@ -365,6 +365,7 @@ class NeuroAgent:
             from neuro.core.code_parser import parse_and_write_files
             
             print(f"📄 Parsing solution ({len(solution)} chars)...")
+            print(f"🔍 Solution preview: {solution[:200]}...")
             
             # Try the robust parser first
             try:
@@ -375,6 +376,14 @@ class NeuroAgent:
                 )
                 files_created = parsed_files
                 print(f"✅ Parser returned: {files_created}")
+                
+                # DEBUG: Verify files exist
+                import os
+                print(f"🔍 Verifying files exist:")
+                for f in files_created:
+                    exists = os.path.exists(f)
+                    size = os.path.getsize(f) if exists else 0
+                    print(f"   {'✓' if exists else '✗'} {f} ({size} bytes)")
             except Exception as e:
                 print(f"⚠️ Robust parser failed: {e}")
                 import traceback
