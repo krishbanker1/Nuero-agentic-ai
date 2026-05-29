@@ -49,6 +49,12 @@ from neuro.skills import (
     AppLauncher, launch_app,
 )
 
+# NEW: Import role-based agent swarm
+from neuro.executor.role_agents import run_agent_swarm
+
+# NEW: Import scenario detection
+from neuro.router.scenario_router import ScenarioRouter
+
 # NEW: Advanced optimizations for 80%+ scores
 try:
     from neuro.executor.optimized_agent import (
@@ -270,6 +276,27 @@ class NeuroAgent:
                 self.skill_orchestrator.detect_skills(self.config.goal, {
                     "working_dir": self.config.working_dir
                 })
+            
+            # NEW: Scenario Detection and Agent Swarm
+            scenario_router = ScenarioRouter()
+            scenario, confidence = scenario_router.detect_scenario(self.config.goal)
+            if self.config.verbose:
+                print(f"\n🎯 Detected scenario: {scenario.value} (confidence: {confidence:.2f})")
+            
+            # Run the multi-agent swarm and print trace
+            if self.config.verbose:
+                print("\n🤖 Running Agent Swarm (4 agents working)...")
+            swarm_task = {
+                "description": self.config.goal,
+                "type": scenario.value,
+                "codebase_root": self.config.working_dir,
+            }
+            swarm_result = run_agent_swarm(swarm_task)
+            if self.config.verbose and swarm_result.get("trace"):
+                print("\n📊 Agent Swarm Execution Trace:")
+                for agent_name, success, message in swarm_result["trace"]:
+                    status = "✓" if success else "✗"
+                    print(f"   {status} {agent_name}: {message}")
             
             # NEW: Task Decomposition (ECC's /plan)
             if self.decomposer and self.config.use_decomposer:

@@ -2,6 +2,7 @@
 from typing import Dict, Any, List
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from neuro.router.smart_router import SmartRouter
 
 class AppType(Enum):
@@ -25,8 +26,10 @@ class EnterpriseAppBuilder:
     def __init__(self):
         self.router = SmartRouter()
     
-    def build_app(self, goal: str, app_type: AppType = AppType.SAAS) -> Dict[str, Any]:
+    def build_app(self, goal: str, app_type: AppType = AppType.SAAS, output_dir: str = "./output") -> Dict[str, Any]:
         """Build COMPLETE enterprise application using REAL AI."""
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
         
         # Generate specification
         spec_prompt = f"""Create a detailed specification for: {goal}
@@ -108,6 +111,48 @@ Output ONLY code, no markdown.
 """
         deploy = self.router.chat(deploy_prompt, task_type="devops_deployment")
         
+        # Write files to disk
+        files_written = []
+        
+        # Write index.html
+        index_html_path = output_path / "index.html"
+        index_html_path.write_text(frontend)
+        files_written.append(str(index_html_path))
+        print(f"📄 Written: {index_html_path}")
+        
+        # Write App.jsx
+        app_jsx_path = output_path / "App.jsx"
+        app_jsx_path.write_text(frontend)
+        files_written.append(str(app_jsx_path))
+        print(f"📄 Written: {app_jsx_path}")
+        
+        # Write style.css
+        style_css_path = output_path / "style.css"
+        style_css_path.write_text("// Styles for " + goal)
+        files_written.append(str(style_css_path))
+        print(f"📄 Written: {style_css_path}")
+        
+        # Write backend
+        backend_path = output_path / "server.js"
+        backend_path.write_text(backend)
+        files_written.append(str(backend_path))
+        print(f"📄 Written: {backend_path}")
+        
+        # Write database schema
+        db_path = output_path / "schema.sql"
+        db_path.write_text(database)
+        files_written.append(str(db_path))
+        print(f"📄 Written: {db_path}")
+        
+        # Write deployment files
+        deploy_path = output_path / "docker-compose.yml"
+        deploy_path.write_text(deploy)
+        files_written.append(str(deploy_path))
+        print(f"📄 Written: {deploy_path}")
+        
+        print(f"\n✅ Enterprise app built in: {output_path}")
+        print(f"   Output files: {files_written}")
+        
         return {
             "spec": spec,
             "frontend": frontend,
@@ -115,10 +160,12 @@ Output ONLY code, no markdown.
             "database": database,
             "deploy": deploy,
             "app_type": app_type.value,
+            "output_dir": str(output_path),
+            "files_written": files_written,
         }
 
 
-def build_enterprise_app(goal: str, app_type: str = "saas") -> Dict[str, Any]:
+def build_enterprise_app(goal: str, app_type: str = "saas", output_dir: str = "./output") -> Dict[str, Any]:
     """Quick enterprise app builder using real AI."""
     builder = EnterpriseAppBuilder()
     app_types = {
@@ -129,4 +176,4 @@ def build_enterprise_app(goal: str, app_type: str = "saas") -> Dict[str, Any]:
         "cms": AppType.CMS,
         "api": AppType.API,
     }
-    return builder.build_app(goal, app_types.get(app_type, AppType.SAAS))
+    return builder.build_app(goal, app_types.get(app_type, AppType.SAAS), output_dir)

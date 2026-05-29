@@ -692,6 +692,8 @@ class SmartRouter:
                     result = self._call_cloudflare(model, messages, max_tokens=max_tokens)
                 elif provider_enum == Provider.TOGETHER:
                     result = self._call_together(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.GEMINI:
+                    result = self._call_gemini(model, messages, max_tokens=max_tokens)
                 else:
                     continue
                 
