@@ -478,9 +478,16 @@ class NeuroAgent:
                     
                     if not file_name:
                         # Use keyword detection - expanded for more file types
-                        if "flask" in code.lower() and "route" in code.lower():
+                        # Check YAML first (since it has distinct markers)
+                        if "apiVersion:" in code or "kind:" in code or ("---" in code and ":" in code):
+                            file_name = "k8s-config.yaml"
+                        elif "kind create cluster" in code or "#!/bin/bash" in code or "kubectl apply" in code or "kubectl create" in code:
+                            file_name = "setup.sh"
+                        elif code.strip().startswith("#") or code.strip().startswith("kubectl") or code.strip().startswith("kind"):
+                            file_name = "setup.sh"
+                        elif "flask" in code.lower() and "route" in code.lower():
                             file_name = "app.py"
-                        elif "kubernetes" in code.lower() or "k8s" in code.lower() or "kube" in code.lower():
+                        elif "kubernetes" in code.lower() and ("import" in code or "class" in code or "def " in code):
                             file_name = "app.py"
                         elif "class User" in code or "classusers" in code.lower():
                             file_name = "models.py"
@@ -490,19 +497,12 @@ class NeuroAgent:
                             file_name = "auth.py"
                         elif "database" in solution.lower() or "sqlalchemy" in code.lower():
                             file_name = "database.py"
-                        # YAML/Kubernetes detection - check content patterns
-                        elif "apiVersion:" in code or "kind:" in code or "---" in code:
-                            file_name = "k8s-config.yaml"
-                        elif "kind create cluster" in code or "#!/bin/bash" in code or "kubectl apply" in code or "kubectl create" in code:
-                            file_name = "setup.sh"
                         elif "__init__" in code:
                             file_name = "__init__.py"
                         elif "import" not in code and ("const " in code or "let " in code or "function" in code):
                             file_name = "app.js"
                         elif "{" in code and "}" in code and ":" in code and ";" not in code:
                             file_name = "config.json"
-                        elif code.strip().startswith("#") or code.strip().startswith("kubectl") or code.strip().startswith("kind"):
-                            file_name = "setup.sh"
                         else:
                             file_name = f"generated_{i+1}.py"
                     
