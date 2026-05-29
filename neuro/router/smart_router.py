@@ -37,22 +37,43 @@ class Provider(Enum):
 
 
 # =============================================================================
-# KEY MANAGEMENT - Supports singular and plural env vars
+# KEY MANAGEMENT - Generic format for all providers
+# Format: {PROVIDER}_API_KEYS (comma-separated for multiple keys)
+# Fallback: {PROVIDER}_API_KEY (singular)
 # =============================================================================
 
-def _get_env_keys(var_name: str, fallback_singular: str = None) -> List[str]:
+def _get_env_keys_for_provider(provider: Provider) -> List[str]:
     """
-    Get API keys from environment (supports comma-separated).
-    Checks both plural (KEYS) and singular (KEY) forms.
+    Get API keys from environment for any provider using generic format.
+    Supports comma-separated values: key1,key2,key3
     """
+    # Generic format: {PROVIDER}_API_KEYS, fallback: {PROVIDER}_API_KEY
+    env_plural = f"{provider.name.upper()}_API_KEYS"
+    env_singular = f"{provider.name.upper()}_API_KEY"
+    
     # Try plural first (comma-separated)
-    value = os.getenv(var_name, "")
+    value = os.getenv(env_plural, "")
     if value:
         keys = [k.strip() for k in value.split(",") if k.strip()]
         if keys:
             return keys
     
     # Try singular fallback
+    singular = os.getenv(env_singular, "")
+    if singular:
+        return [singular.strip()]
+    
+    return []
+
+# Legacy helper for backwards compatibility
+def _get_env_keys(var_name: str, fallback_singular: str = None) -> List[str]:
+    """Get API keys from environment (supports comma-separated)."""
+    value = os.getenv(var_name, "")
+    if value:
+        keys = [k.strip() for k in value.split(",") if k.strip()]
+        if keys:
+            return keys
+    
     if fallback_singular:
         singular = os.getenv(fallback_singular, "")
         if singular:
@@ -60,29 +81,12 @@ def _get_env_keys(var_name: str, fallback_singular: str = None) -> List[str]:
     
     return []
 
-
 def _init_provider_keys() -> Dict[str, List[str]]:
-    """Initialize API keys for all providers from environment."""
+    """Initialize API keys for all providers using generic format."""
     return {
-        # Gemini/Google - supports both singular and plural
-        "gemini": _get_env_keys("GEMINI_API_KEYS", "GEMINI_API_KEY"),
-        "google": _get_env_keys("GOOGLE_API_KEYS", "GOOGLE_API_KEY"),
-        
-        # Groq - supports both singular and plural
-        "groq": _get_env_keys("GROQ_API_KEYS", "GROQ_API_KEY"),
-        
-        # OpenRouter - supports both singular and plural
-        # QWEN and DEEPSEEK are routed through OpenRouter
-        "openrouter": _get_env_keys("OPENROUTER_API_KEYS", "OPENROUTER_API_KEY"),
-        
-        # HuggingFace
-        "huggingface": _get_env_keys("HF_TOKEN") or _get_env_keys("HUGGINGFACE_API_KEYS", "HUGGINGFACE_API_KEY"),
-        
-        # Together AI
-        "together": _get_env_keys("TOGETHER_API_KEYS", "TOGETHER_API_KEY"),
-        
-        # Cloudflare
-        "cloudflare": _get_env_keys("CLOUDFLARE_AI_API_TOKEN"),
+        # Use generic format: {PROVIDER}_API_KEYS
+        provider.value: _get_env_keys_for_provider(provider)
+        for provider in Provider
     }
 
 
