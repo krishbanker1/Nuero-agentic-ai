@@ -420,11 +420,9 @@ class NeuroAgent:
                     parsed = json.loads(solution)
                     if "files" in parsed:
                         create_files_from_json(parsed)
-                except json.JSONDecodeError as e:
-                    if self.config.verbose:
-                        print(f"⚠️ Raw JSON parse failed: {e}")
-                    # Try to find JSON in markdown code blocks first
-                    pass  # Will be handled by markdown block parsing
+                except json.JSONDecodeError:
+                    # Not a simple JSON - look for markdown code blocks
+                    pass
             
             # First try to extract JSON from markdown code blocks
             json_match = None
@@ -432,29 +430,38 @@ class NeuroAgent:
                 try:
                     candidate = match.group(1).strip()
                     if '"files"' in candidate or '"path"' in candidate:
-                        parsed = json.loads(candidate)
+                        try:
+                            parsed = json.loads(candidate)
+                        except json.JSONDecodeError:
+                            # Fix double-escaped newlines - they come as actual newlines
+                            # Replace actual newlines in content strings with escaped version
+                            # Simple fix: replace unescaped newlines in the JSON with escaped ones
+                            import re
+                            # Pattern to match "content": "...content with newlines..."
+                            def fix_content(match):
+                                content = match.group(1)
+                                # Replace actual newlines with escaped form
+                                fixed = content.replace('\n', '\\n').replace('\r', '\\r')
+                                return f'"content": "{fixed}"'
+                            
+                            # Try escaping newlines in content values
+                            fixed = re.sub(r'"content": "([^"]*)"', fix_content, candidate)
+                            # If that didn't work, try a different approach
+                            # Just replace all newlines with \n
+                            lines = candidate.split('\n')
+                            if len(lines) > 2:  # Has actual newlines
+                                fixed = candidate.replace('\n', '\\n')
+                            
+                            parsed = json.loads(fixed)
+                        
                         if "files" in parsed:
                             create_files_from_json(parsed)
                             if files_created:
                                 break
-                except json.JSONDecodeError:
-                    # Try fixing common issues in markdown JSON
-                    try:
-                        # Unescape content fields that might be double-escaped
-                        # Pattern: "content": "\n" should be "\n" in actual code
-                        import re
-                        fixed = re.sub(r'\\n', '\\\\n', candidate)
-                        # Also try replacing actual newlines with escaped ones
-                        lines = candidate.split('\n')
-                        if len(lines) > 1:
-                            # It's multiline content inside JSON - bad format
-                            pass  # Skip malformed
-                        else:
-                            parsed = json.loads(fixed)
-                            if "files" in parsed:
-                                create_files_from_json(parsed)
-                    except:
-                        continue
+                except Exception as e:
+                    if self.config.verbose:
+                        print(f"⚠️ Markdown block parse failed: {e}")
+                    continue
             
             # If no JSON, check if solution itself contains code blocks
             if not files_created:
