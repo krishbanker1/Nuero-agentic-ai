@@ -490,18 +490,19 @@ class NeuroAgent:
                             file_name = "auth.py"
                         elif "database" in solution.lower() or "sqlalchemy" in code.lower():
                             file_name = "database.py"
-                        elif "kind create cluster" in code or "#!/bin/bash" in code or "kubectl" in code:
+                        # YAML/Kubernetes detection - check content patterns
+                        elif "apiVersion:" in code or "kind:" in code or "---" in code:
+                            file_name = "k8s-config.yaml"
+                        elif "kind create cluster" in code or "#!/bin/bash" in code or "kubectl apply" in code or "kubectl create" in code:
                             file_name = "setup.sh"
-                        elif "apiVersion:" in code and "kind:" in code:
-                            file_name = "deployment.yaml"
-                        elif "apiVersion:" in code and "metadata:" in code and "spec:" in code:
-                            file_name = "config.yaml"
                         elif "__init__" in code:
                             file_name = "__init__.py"
                         elif "import" not in code and ("const " in code or "let " in code or "function" in code):
                             file_name = "app.js"
                         elif "{" in code and "}" in code and ":" in code and ";" not in code:
                             file_name = "config.json"
+                        elif code.strip().startswith("#") or code.strip().startswith("kubectl") or code.strip().startswith("kind"):
+                            file_name = "setup.sh"
                         else:
                             file_name = f"generated_{i+1}.py"
                     
