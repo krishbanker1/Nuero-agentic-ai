@@ -37,31 +37,31 @@ from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, sto
 # Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
 
-# Lazy imports for heavy skills
+# Lazy imports for heavy skills - map to actual class names in the repo
 _lazy_imports = {
-    "react_three_fiber": "neuro.skills.react_three_fiber.ReactThreeFiberSkill",
+    "react_three_fiber": "neuro.skills.react_three_fiber.ReactThreeFiber",
     "threejs_core": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
     "threejs": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
     "webgl": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
-    "spline_design": "neuro.skills.spline_design.SplineDesignSkill",
-    "glsl_shaders": "neuro.skills.glsl_shaders.GLSLShaderSkill",
-    "shader": "neuro.skills.glsl_shaders.GLSLShaderSkill",
+    "spline_design": "neuro.skills.spline_design.SplineDesign",
+    "glsl_shaders": "neuro.skills.glsl_shaders.GLSLShaders",
+    "shader": "neuro.skills.glsl_shaders.GLSLShaders",
     "draco_performance": "neuro.skills.draco_performance.DracoPerformanceSkill",
     "draco": "neuro.skills.draco_performance.DracoPerformanceSkill",
     "gsap_scroll": "neuro.skills.gsap_scroll.GSAPScrollSkill",
     "gsap": "neuro.skills.gsap_scroll.GSAPScrollSkill",
     "scrolltrigger": "neuro.skills.gsap_scroll.GSAPScrollSkill",
-    "framer_motion": "neuro.skills.framer_motion.FramerMotionSkill",
-    "framer": "neuro.skills.framer_motion.FramerMotionSkill",
+    "framer_motion": "neuro.skills.framer_motion.FramerMotion",
+    "framer": "neuro.skills.framer_motion.FramerMotion",
     "lenis_scroll": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
     "lenis": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
     "smooth_scroll": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
-    "vector_math": "neuro.skills.vector_math.VectorMathSkill",
-    "matrix": "neuro.skills.vector_math.VectorMathSkill",
-    "mathematics": "neuro.skills.vector_math.VectorMathSkill",
-    "component_driven": "neuro.skills.component_driven.ComponentDrivenSkill",
+    "vector_math": "neuro.skills.vector_math.VectorMath",
+    "matrix": "neuro.skills.vector_math.VectorMath",
+    "mathematics": "neuro.skills.vector_math.VectorMath",
+    "component_driven": "neuro.skills.component_driven.ComponentDriven",
     "system_prompt": "neuro.skills.system_prompt.SystemPromptScaffoldSkill",
-    "asset_mapping": "neuro.skills.asset_mapping.AssetMappingSkill",
+    "asset_mapping": "neuro.skills.asset_mapping.AssetMapping",
     
     # NEW: Cross-session features (from screenshots)
     "deep_research": "neuro.skills.deep_research.DeepResearchAgent",

@@ -88,8 +88,10 @@ class NeuroUltimateRegistry:
         "pal_mcp_server": {
             "repo": "BeehiveInnovations/pal-mcp-server",
             "stars": "11.6k",
-            "capabilities": ["claude_code_alternative", "gemini_cli", "codex_cli", 
-                           "multi_provider": ["gemini", "openai", "openrouter", "azure", "grok", "ollama"]],
+            "capabilities": [
+                "claude_code_alternative", "gemini_cli", "codex_cli",
+                "multi_provider", "gemini", "openai", "openrouter", "azure", "grok", "ollama"
+            ],
             "install": "pip install pal-mcp-server",
             "priority": 1
         },

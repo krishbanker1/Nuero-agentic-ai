@@ -600,7 +600,7 @@ install_pip() {
             desc = server["description"]
             
             script += f'''
-echo -e "\\n{YELLOW}Installing {name}: {desc}${NC}"
+echo -e "\\n${{YELLOW}}Installing {name}: {desc}${{NC}}"
 '''
             
             if "npx" in install:

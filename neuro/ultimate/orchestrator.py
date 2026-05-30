@@ -17,7 +17,7 @@ class TaskType(Enum):
     """Task type classification for smart routing."""
     CODING = "coding"
     DESIGN = "design"
-    3D_GRAPHICS = "3d_graphics"
+    THREE_D_GRAPHICS = "3d_graphics"
     ANIMATION = "animation"
     DEPLOYMENT = "deployment"
     TESTING = "testing"
