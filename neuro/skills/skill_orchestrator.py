@@ -10,6 +10,7 @@ from neuro.skills.agent_memory import get_context as get_memory_context
 # Import directly from modules to avoid circular imports
 from neuro.skills.automation import SkillAutomation
 from neuro.skills.open_design_skills import OpenDesignSkills
+from neuro.ultimate.skills_100 import auto_detect_skills
 
 # SKILL_REGISTRY will be set after all imports complete
 SKILL_REGISTRY = {}
@@ -20,7 +21,7 @@ class SkillOrchestrator:
     Orchestrates all 259+ skills across the agent lifecycle.
     Skills are auto-detected and invoked at appropriate stages.
     """
-    
+
     def __init__(self, verbose: bool = True):
         self.verbose = verbose
         self.active_skills: List[str] = []
@@ -29,7 +30,7 @@ class SkillOrchestrator:
         # Lazy import SKILL_REGISTRY to avoid circular imports
         self._registry = None
         self._enhanced_registry = None
-    
+
 
     @property
     def enhanced_registry(self):
@@ -52,7 +53,7 @@ class SkillOrchestrator:
             from neuro.skills import SKILL_REGISTRY as _reg
             self._registry = _reg
         return self._registry
-    
+
     def detect_skills(self, goal: str, context: Dict[str, Any] = None) -> List[str]:
         """Auto-detect which skills to invoke based on goal and context."""
         context = context or {}
@@ -112,7 +113,29 @@ class SkillOrchestrator:
         """Enrich context with skill-specific information."""
         enriched = context.copy()
         skill_hints = []
-        
+
+        skill_analysis = auto_detect_skills(goal)
+        selected_auto_skills = skill_analysis.get("selected_skills", [])[:5]
+        skill_instructions = []
+        for skill in selected_auto_skills:
+            name = skill.get("name", "unknown_skill")
+            capabilities = skill.get("capabilities", [])[:3]
+            capability_text = ", ".join(str(item) for item in capabilities)
+            instruction = f"- Use {name}"
+            if capability_text:
+                instruction += f": {capability_text}"
+            if skill.get("description"):
+                instruction += f" — {skill['description']}"
+            skill_instructions.append(instruction)
+            if name not in self.active_skills:
+                self.active_skills.append(name)
+
+        if skill_instructions:
+            enriched["skill_instructions"] = "\n".join(skill_instructions)
+            enriched["auto_detected_skills"] = [skill.get("name") for skill in selected_auto_skills]
+            enriched["auto_skill_task_type"] = skill_analysis.get("task_type")
+            skill_hints.extend(skill_instructions)
+
         for skill_name in self.active_skills:
             try:
                 # Get skill-specific context
@@ -132,7 +155,7 @@ class SkillOrchestrator:
                     if hasattr(skill_class, 'invoke'):
                         result = skill_class.invoke(goal, {"context": context})
                         self.skill_results[skill_name] = result
-                        
+
                         # Add skill-specific hints to context
                         if "capabilities" in result:
                             skill_hints.append(f"[{skill_name}]: {result.get('capabilities', [])[:3]}")
@@ -148,17 +171,17 @@ class SkillOrchestrator:
                             if result.get("prompt_block"):
                                 enriched["production_pipeline_prompt"] = result["prompt_block"]
                                 skill_hints.append(result["prompt_block"])
-                        
+
                         # Add MCP endpoint if available
                         if "endpoint" in result:
                             enriched[f"{skill_name}_endpoint"] = result["endpoint"]
-                        
+
                         # Add memory context if available
                         if skill_name in ["agent_memory", "swarmvault"]:
                             mem_context = get_memory_context(goal)
                             if mem_context:
                                 enriched["memory_context"] = mem_context
-                        
+
                         # Add browser config if available
                         if skill_name in ["browser_automation", "playwright"]:
                             if "config" in result:
@@ -166,7 +189,7 @@ class SkillOrchestrator:
             except Exception as e:
                 if self.verbose:
                     print(f"⚠️ Skill {skill_name} error: {e}")
-        
+
         if self.ultimate_analysis:
             enriched["ultimate_task_analysis"] = self.ultimate_analysis
             enriched["mcp_servers"] = self.ultimate_analysis.get("mcp_servers", [])
@@ -174,13 +197,14 @@ class SkillOrchestrator:
 
         if skill_hints:
             enriched["skill_hints"] = "\n".join(skill_hints)
+            enriched.setdefault("skill_instructions", enriched["skill_hints"])
 
         return enriched
-    
+
     def invoke_skills_for_stage(self, stage: str, data: Any) -> Dict[str, Any]:
         """Invoke relevant skills for a specific execution stage."""
         results = {}
-        
+
         # Stage-specific skill invocation
         stage_skills = {
             "analysis": ["code-review", "security", "code-simplifier"],
@@ -189,7 +213,7 @@ class SkillOrchestrator:
             "deployment": ["docker", "kubernetes", "vercel"],
             "monitoring": ["datadog", "slack-channel-monitor"],
         }
-        
+
         registry = self.skill_registry
         for skill_name in self.active_skills:
             if skill_name in stage_skills.get(stage, []):
@@ -212,9 +236,9 @@ class SkillOrchestrator:
                 except Exception as exc:
                     if self.verbose:
                         print(f"⚠️ Stage skill {skill_name} error: {exc}")
-        
+
         return results
-    
+
     def learn_from_task(self, goal: str, success: bool, context: Dict[str, Any]):
         """Store learning from task completion in agent memory."""
         try:
@@ -224,7 +248,7 @@ class SkillOrchestrator:
                 tags.append("success")
             else:
                 tags.append("failure")
-            
+
             remember(
                 content=summary,
                 memory_type=MemoryType.EPISODIC,

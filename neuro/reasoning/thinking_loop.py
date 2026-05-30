@@ -4,9 +4,9 @@ Multiple reasoning passes to converge on solution
 """
 
 import time
-from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 from neuro.reasoning.web_researcher import WebResearcher
 
@@ -51,7 +51,7 @@ class ThinkingLoop:
     Multi-pass thinking loop for robust problem solving.
     Key to improving reliability by catching errors early.
     """
-    
+
     def __init__(self, router, config: Optional[LoopConfig] = None):
         self.router = router
         self.config = config or LoopConfig()
@@ -63,7 +63,7 @@ class ThinkingLoop:
         self._tech_stack: Optional[list] = None
         self._features: Optional[list] = None
         self._architecture: Optional[str] = None
-    
+
     def run(
         self,
         goal: str,
@@ -72,12 +72,12 @@ class ThinkingLoop:
     ) -> Dict[str, Any]:
         """
         Run multi-pass thinking loop.
-        
+
         Args:
             goal: The task goal
             context: Optional context (code, files, errors)
             validate_fn: Optional validation function
-            
+
         Returns:
             Dict with solution, passes, and metadata
         """
@@ -85,24 +85,24 @@ class ThinkingLoop:
         context = context or {}
         best_solution = ""
         best_score = 0.0
-        
+
         for pass_num in range(1, self.config.max_passes + 1):
             print(f"🔄 Pass {pass_num}/{self.config.max_passes}")
-            
+
             # Determine pass type based on iteration
             pass_type = self._get_pass_type(pass_num, goal, context)
-            
+
             # Create pass prompt
             prompt = self._create_pass_prompt(pass_num, pass_type, goal, context)
-            
+
             # Execute pass
             start = time.time()
             response = self._execute_pass(prompt, context, pass_type)
             duration = (time.time() - start) * 1000
-            
+
             # Score convergence
             score = self._score_convergence(response, best_solution)
-            
+
             # Record pass
             thinking_pass = ThinkingPass(
                 pass_type=pass_type,
@@ -113,11 +113,11 @@ class ThinkingLoop:
                 metadata={"pass_num": pass_num, "score": score}
             )
             self.passes.append(thinking_pass)
-            
+
             # NEW: Extract enhanced_prompt and plan from PROMPT_WRITE pass
             if pass_type == PassType.PROMPT_WRITE:
                 self._extract_enhanced_prompt(response, context)
-            
+
             # Only update best_solution if it contains JSON (actual code)
             # Skip RESEARCH and PROMPT_WRITE passes from best_solution
             has_json = '"files"' in response or '"path"' in response
@@ -127,19 +127,19 @@ class ThinkingLoop:
                 print(f"   ✓ Pass {pass_num} complete (score: {score:.2f}) - JSON code found!")
             else:
                 print(f"   ✓ Pass {pass_num} complete (score: {score:.2f})")
-            
+
             # Check convergence
             if score >= self.config.convergence_threshold:
                 print(f"   🎯 Converged at pass {pass_num}!")
                 break
-            
+
             # Stuck detection
             if self.config.allow_stuck_detection and pass_num >= self.config.stuck_after_passes:
                 if self._is_stuck():
                     print("   ⚠️ Detected stuck pattern, attempting recovery...")
                     best_solution = self._recover_from_stuck(goal, context)
                     break
-            
+
             # Run validation if provided
             if validate_fn and pass_num >= 2:
                 validation_result = validate_fn(best_solution)
@@ -149,7 +149,7 @@ class ThinkingLoop:
                 else:
                     print(f"   ❌ Validation failed: {validation_result.get('error', 'Unknown')}")
                     context["validation_error"] = validation_result
-        
+
         # Build the result with context including extracted values
         result_context = {
             "enhanced_prompt": getattr(self, '_enhanced_prompt', None),
@@ -166,7 +166,7 @@ class ThinkingLoop:
         ]:
             if key in context:
                 result_context[key] = context[key]
-        
+
         return {
             "solution": best_solution,
             "passes": [self._pass_to_dict(p) for p in self.passes],
@@ -175,7 +175,7 @@ class ThinkingLoop:
             "total_duration_ms": sum(p.duration_ms for p in self.passes),
             "context": result_context,
         }
-    
+
     def _get_pass_type(self, pass_num: int, goal: str, context: Dict) -> PassType:
         """Determine the type of pass based on iteration."""
         if pass_num == 1:
@@ -192,7 +192,7 @@ class ThinkingLoop:
             return PassType.DEBUGGING
         else:
             return PassType.REFLECTION
-    
+
     def _create_pass_prompt(
         self,
         pass_num: int,
@@ -201,7 +201,7 @@ class ThinkingLoop:
         context: Dict[str, Any],
     ) -> str:
         """Create the prompt for this pass WITH skill enrichment."""
-        
+
         # Base prompt with context
         base_prompt = """You are building ENTERPRISE-LEVEL applications. This means:
 
@@ -212,21 +212,21 @@ class ThinkingLoop:
 - COMPLETE: No TODOs, no placeholders, no "...rest of code"
 
 Task: """ + f"{goal}\n\n"
-        
+
         # NEW: Include active skills context
         if context.get("active_skills"):
             skills_list = ", ".join(context["active_skills"])
             base_prompt += f"🎯 Available skills: {skills_list}\n\n"
-        
+
         if context.get("code_context"):
             base_prompt += f"Code context:\n{context['code_context'][:2000]}\n\n"
-        
+
         if context.get("error"):
             base_prompt += f"Error message:\n{context['error']}\n\n"
-        
+
         if context.get("validation_error"):
             base_prompt += f"Previous validation error:\n{context['validation_error']}\n\n"
-        
+
         if context.get("production_scaffold_prompt"):
             base_prompt += (
                 "Deterministic production scaffold to follow (free/local only):\n"
@@ -239,20 +239,25 @@ Task: """ + f"{goal}\n\n"
                 f"{context['production_pipeline_prompt']}\n\n"
             )
 
-        # NEW: Include skill hints from orchestrator
-        if context.get("skill_hints"):
+        # NEW: Include skill instructions/hints from orchestrator
+        if context.get("skill_instructions"):
+            base_prompt += f"ACTIVE SKILLS:\n{context['skill_instructions']}\n\n"
+        elif context.get("skill_hints"):
             base_prompt += f"Skill guidance:\n{context['skill_hints']}\n\n"
-        
+
+        if context.get("scenario_instructions"):
+            base_prompt += f"Scenario-specific instructions:\n{context['scenario_instructions']}\n\n"
+
         # NEW: Include memory context from swarmvault
         if context.get("memory_context"):
             base_prompt += f"Relevant memory:\n{context['memory_context'][:1000]}\n\n"
-        
+
         if self.passes and pass_num > 1:
             base_prompt += "Previous attempts:\n"
             for i, p in enumerate(self.passes[-2:], max(1, len(self.passes) - 1)):
                 base_prompt += f"Pass {i}: {p.response[:500]}...\n"
             base_prompt += "\n"
-        
+
         # Pass-specific instructions
         if pass_type == PassType.RESEARCH:
             return base_prompt + """
@@ -279,7 +284,7 @@ Output your research findings in this format:
 
 If you cannot find specific information, research broadly about the domain.
 """ + f"\n\nTOPIC TO RESEARCH: {goal}\n"
-        
+
         elif pass_type == PassType.PROMPT_WRITE:
             # Use AI to write perfect prompts based on research
             research_info = ""
@@ -288,12 +293,12 @@ If you cannot find specific information, research broadly about the domain.
 RESEARCH RESULTS (Use these to create the perfect prompt):
 {context['research_context']}
 """
-            
+
             if context.get("goal"):
                 goal_for_prompt = context["goal"]
             else:
                 goal_for_prompt = goal
-            
+
             return base_prompt + research_info + f"""
 PROMPT WRITING PASS - Create Perfect Implementation Prompt
 
@@ -323,7 +328,7 @@ Output format (JSON):
 }}
 ```
 """
-        
+
         elif pass_type == PassType.ANALYSIS:
             return base_prompt + """
 ANALYSIS PASS - Understanding the Problem
@@ -337,7 +342,7 @@ Think step by step:
 
 Provide a clear analysis and initial plan.
 """
-        
+
         elif pass_type == PassType.IMPLEMENTATION:
             # Include research context and enhanced prompt if available
             research_info = ""
@@ -346,7 +351,7 @@ Provide a clear analysis and initial plan.
 RESEARCH CONTEXT (USE THIS TO BUILD THE CORRECT APP):
 {context['research_context']}
 """
-            
+
             # Use enhanced prompt from prompt writing pass
             enhanced_prompt_info = ""
             if context.get("enhanced_prompt"):
@@ -356,7 +361,7 @@ ENHANCED PROMPT (Created by AI Prompt Writer):
 
 Use this enhanced prompt as your primary guide for building.
 """
-            
+
             # Use the enhanced plan if available
             plan_info = ""
             if context.get("plan"):
@@ -364,7 +369,7 @@ Use this enhanced prompt as your primary guide for building.
 IMPLEMENTATION PLAN:
 {context['plan']}
 """
-            
+
             return base_prompt + research_info + enhanced_prompt_info + plan_info + """
 IMPLEMENTATION PASS - Creating Enterprise-Level Application
 
@@ -436,7 +441,7 @@ Rules:
 
 Build the complete application now. Output ONLY the JSON block.
 """
-        
+
         elif pass_type == PassType.VALIDATION:
             return base_prompt + """
 VALIDATION PASS - Final Code Generation - Build the Actual Application
@@ -478,7 +483,7 @@ IMPORTANT: Use \\n for newlines inside the content strings. Do NOT use actual li
 
 Generate properly formatted code with ESCAPED newlines. Output ONLY the JSON block.
 """
-        
+
         elif pass_type == PassType.DEBUGGING:
             return base_prompt + """
 DEBUGGING PASS - Fixing Issues
@@ -491,7 +496,7 @@ If validation failed or there are issues:
 
 Provide an improved solution.
 """
-        
+
         else:  # REFLECTION
             return base_prompt + """
 REFLECTION PASS - Final Review
@@ -504,10 +509,10 @@ Final verification:
 
 Provide final status and summary.
 """
-    
+
     def _execute_pass(self, prompt: str, context: Dict, pass_type: PassType = None) -> str:
         """Execute a single thinking pass."""
-        
+
         # NEW: For RESEARCH pass, do actual web research
         if pass_type == PassType.RESEARCH and WEB_RESEARCH_AVAILABLE:
             print("🔍 Conducting web research...")
@@ -521,7 +526,7 @@ Provide final status and summary.
                     match = re.search(r"TOPIC TO RESEARCH: (.+)", prompt)
                     if match:
                         topic = match.group(1).strip()
-                
+
                 if topic:
                     result = researcher.research(topic, depth="advanced")
                     if result.success:
@@ -534,7 +539,7 @@ Provide final status and summary.
             except Exception as e:
                 print(f"⚠️ Research error: {e}")
                 return f"Research error: {str(e)}"
-        
+
         # NEW: For PROMPT_WRITE pass, use Gemini/Groq for creative prompting
         elif pass_type == PassType.PROMPT_WRITE:
             print("📝 AI writing optimized prompt...")
@@ -542,7 +547,7 @@ Provide final status and summary.
                 messages = [
                     {"role": "system", "content": """You are an ENTERPRISE SOFTWARE ARCHITECT and SENIOR PROMPT ENGINEER.
 
-Your job is to create PERFECT implementation prompts that will result in 
+Your job is to create PERFECT implementation prompts that will result in
 PRODUCTION-READY, SELLABLE software.
 
 You will receive a goal and research context.
@@ -556,8 +561,8 @@ Make the enhanced prompt SPECIFIC - impossible to create generic code from it.""
                     {"role": "user", "content": prompt}
                 ]
                 result = self.router.complete(
-                    messages, 
-                    max_tokens=4096, 
+                    messages,
+                    max_tokens=4096,
                     temperature=0.7,  # Higher temp for creativity
                     preferred_models=[
                         "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.0-flash",
@@ -570,13 +575,13 @@ Make the enhanced prompt SPECIFIC - impossible to create generic code from it.""
                 return result.get("content", "")
             except Exception as e:
                 return f"Prompt writing error: {str(e)}"
-        
+
         # Normal pass execution - use LLM
         messages = [
             {"role": "system", "content": self._get_system_prompt()},
             {"role": "user", "content": prompt}
         ]
-        
+
         try:
             # Call with explicit max_tokens to ensure response
             result = self.router.complete(messages, max_tokens=4096, temperature=0.1)
@@ -585,7 +590,7 @@ Make the enhanced prompt SPECIFIC - impossible to create generic code from it.""
             return result.get("content", "")
         except Exception as e:
             return f"Execution error: {str(e)}"
-    
+
     def _get_system_prompt(self) -> str:
         """Get system prompt for thinking WITH skill awareness."""
         return """You are Neuro, an expert software engineering AI.
@@ -607,7 +612,7 @@ IMPORTANT: If research context was provided in a previous pass, use that informa
 
 Follow this format EXACTLY. Replace content with your actual implementation.
 Include complete, working code. No explanations, just the JSON block."""
-    
+
     def _score_convergence(self, new_response: str, best_response: str) -> float:
         """
         Score how close we are to convergence.
@@ -615,34 +620,34 @@ Include complete, working code. No explanations, just the JSON block."""
         """
         if not best_response:
             return 0.5
-        
+
         # Count solution indicators
         positive = ["fix", "solution", "implemented", "complete", "verified", "pass", "success"]
         negative = ["error", "fail", "issue", "problem", "not sure", "cannot"]
-        
+
         new_lower = new_response.lower()
         best_lower = best_response.lower()
-        
+
         new_pos = sum(1 for w in positive if w in new_lower)
         new_neg = sum(1 for w in negative if w in new_lower)
         best_pos = sum(1 for w in positive if w in best_lower)
         best_neg = sum(1 for w in negative if w in best_lower)
-        
+
         # Score based on positive/negative ratio
         if new_pos + new_neg == 0:
             return 0.5
-        
+
         new_score = new_pos / (new_pos + new_neg)
         best_score = best_pos / (best_pos + best_neg) if best_pos + best_neg > 0 else 0.5
-        
+
         # Convergence means similar high score
         return (new_score + best_score) / 2
-    
+
     def _is_stuck(self) -> bool:
         """Detect if we're stuck in a loop."""
         # Disabled - let all passes complete naturally
         return False
-    
+
     def _recover_from_stuck(self, goal: str, context: Dict) -> str:
         """Recover from being stuck."""
         recovery_prompt = f"""I'm stuck on this task: {goal}
@@ -666,15 +671,15 @@ IMPORTANT: Output complete, working code as JSON:
 
 Output ONLY JSON block with complete files.
 """
-        
+
         messages = [{"role": "user", "content": recovery_prompt}]
-        
+
         try:
             result = self.router.complete(messages, temperature=0.3)
             return result.get("content", "Could not recover")
         except:
             return "Recovery failed"
-    
+
     def _pass_to_dict(self, p: ThinkingPass) -> Dict:
         """Convert ThinkingPass to dict."""
         return {
@@ -684,31 +689,31 @@ Output ONLY JSON block with complete files.
             "response_preview": p.response[:500] if p.response else "",
             "metadata": p.metadata,
         }
-    
+
     def get_summary(self) -> str:
         """Get a summary of the thinking loop."""
         if not self.passes:
             return "No passes completed"
-        
+
         summary = "Thinking Loop Summary:\n"
         summary += f"- Total passes: {len(self.passes)}\n"
         summary += f"- Convergence score: {self.convergence_score:.2f}\n"
         summary += f"- Total duration: {sum(p.duration_ms for p in self.passes)/1000:.1f}s\n"
-        
+
         for i, p in enumerate(self.passes, 1):
             status = "✓" if p.success else "✗"
             summary += f"  Pass {i} ({p.pass_type.value}): {status} - {p.duration_ms/1000:.1f}s\n"
-        
+
         return summary
-    
+
     def _extract_enhanced_prompt(self, response: str, context: Dict) -> None:
         """
         Extract enhanced_prompt and plan from PROMPT_WRITE pass response.
         Updates context in place with extracted values.
         """
-        import re
         import json
-        
+        import re
+
         try:
             # Try to find JSON block
             json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', response)
@@ -723,38 +728,38 @@ Output ONLY JSON block with complete files.
                     # Fallback: try to find the enhanced_prompt in plain text
                     self._extract_from_plain_text(response, context)
                     return
-            
+
             # Extract and store in context and as instance attributes
             if "enhanced_prompt" in data:
                 context["enhanced_prompt"] = data["enhanced_prompt"]
                 self._enhanced_prompt = data["enhanced_prompt"]
                 print(f"   📝 Enhanced prompt extracted ({len(data['enhanced_prompt'])} chars)")
-            
+
             if "plan" in data:
                 context["plan"] = data["plan"]
                 self._plan = data["plan"]
-            
+
             if "tech_stack" in data:
                 context["tech_stack"] = data["tech_stack"]
                 self._tech_stack = data["tech_stack"]
-            
+
             if "features" in data:
                 context["features"] = data["features"]
                 self._features = data["features"]
-            
+
             if "architecture" in data:
                 context["architecture"] = data["architecture"]
                 self._architecture = data["architecture"]
-                
+
         except Exception as e:
             print(f"   ⚠️ Could not parse enhanced prompt: {e}")
             # Fallback: try plain text extraction
             self._extract_from_plain_text(response, context)
-    
+
     def _extract_from_plain_text(self, response: str, context: Dict) -> None:
         """Extract enhanced prompt from plain text response."""
         import re
-        
+
         # Look for "ENHANCED PROMPT" or similar section
         enhanced_match = re.search(
             r'ENHANCED PROMPT[:\s]*(.*?)(?=\n\n|\nPLAN|\Z)',
@@ -766,7 +771,7 @@ Output ONLY JSON block with complete files.
             context["enhanced_prompt"] = prompt_text
             self._enhanced_prompt = prompt_text
             print(f"   📝 Enhanced prompt extracted from text ({len(prompt_text)} chars)")
-        
+
         # Look for "PLAN" section
         plan_match = re.search(
             r'PLAN[:\s]*(.*?)(?=\n\n|\nTECH|\nFEATURES|\Z)',
@@ -788,17 +793,17 @@ def run_thinking_loop(
 ) -> Dict[str, Any]:
     """
     Convenience function to run a thinking loop.
-    
+
     Usage:
         from neuro.reasoning.thinking_loop import run_thinking_loop
         from neuro.router import smart_router
-        
+
         result = run_thinking_loop(
             router=smart_router,
             goal="Fix the login bug",
             max_passes=4
         )
-        
+
         print(result["solution"])
     """
     config = LoopConfig(max_passes=max_passes)

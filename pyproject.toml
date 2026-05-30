@@ -33,6 +33,7 @@ classifiers = [
 dependencies = [
     "groq>=0.4.0",
     "openai>=1.0.0",
+    "json-repair>=0.39.0",
 ]
 
 [project.optional-dependencies]

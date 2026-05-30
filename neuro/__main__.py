@@ -9,10 +9,10 @@ Shows full agent loop with all 4 roles visible:
   - Executor: Runs and tests
 """
 
-import sys
-import os
 import argparse
 import json
+import os
+import sys
 from pathlib import Path
 
 # Add parent to path for imports
@@ -20,6 +20,35 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from neuro.executor.agent_loop import create_agent
 
+
+def _has_provider_key() -> bool:
+    """Return True when at least one free/provider key is configured."""
+    env_vars = [
+        "GROQ_API_KEYS", "GROQ_API_KEY",
+        "GEMINI_API_KEYS", "GEMINI_API_KEY",
+        "OPENROUTER_API_KEYS", "OPENROUTER_API_KEY",
+        "HUGGINGFACE_API_KEYS", "HUGGINGFACE_API_KEY", "HF_TOKEN",
+        "CLOUDFLARE_API_KEYS", "CLOUDFLARE_API_KEY", "CLOUDFLARE_AI_API_TOKEN",
+        "TOGETHER_API_KEYS", "TOGETHER_API_KEY",
+    ]
+    return any(os.getenv(name) for name in env_vars)
+
+
+def _print_provider_key_help() -> None:
+    """Print free-first provider setup help without exposing any secrets."""
+    print("⚠️  No AI provider keys found.", file=sys.stderr)
+    print("Set at least one free-tier provider environment variable:", file=sys.stderr)
+    print("  GROQ_API_KEY or GROQ_API_KEYS", file=sys.stderr)
+    print("  GEMINI_API_KEY or GEMINI_API_KEYS", file=sys.stderr)
+    print("  OPENROUTER_API_KEY or OPENROUTER_API_KEYS", file=sys.stderr)
+    print("  HF_TOKEN or HUGGINGFACE_API_KEY", file=sys.stderr)
+    print("  CLOUDFLARE_AI_API_TOKEN", file=sys.stderr)
+    print("  TOGETHER_API_KEY", file=sys.stderr)
+    print("Free key pages:", file=sys.stderr)
+    print("  Groq: https://console.groq.com/keys", file=sys.stderr)
+    print("  Gemini: https://aistudio.google.com/app/apikey", file=sys.stderr)
+    print("  OpenRouter: https://openrouter.ai/keys", file=sys.stderr)
+    print("  HuggingFace: https://huggingface.co/settings/tokens", file=sys.stderr)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -32,15 +61,15 @@ Examples:
   python -m neuro --mode debug --goal "Fix this app until it runs"
   python -m neuro --mode website --goal "Create a landing page"
   python -m neuro --dry-run -v
-  
+
   # With scenario routing
   python -m neuro --scenario bug_fix --goal "Fix the login error"
   python -m neuro --scenario web_app --goal "Build a dashboard"
-  
+
   # With parallel execution
   python -m neuro --max-steps 100 --goal "Build full-stack app"
   python -m neuro --no-parallel --goal "Sequential build"
-  
+
 Working Modes:
   auto        - Auto-detect mode from goal
   enterprise - Build full SaaS applications
@@ -71,56 +100,56 @@ Environment Variables:
   HF_TOKEN - HuggingFace token
         """
     )
-    
+
     parser.add_argument(
         "-g", "--goal",
         default=None,
         help="Task goal to accomplish (required unless using --version, --health, or --stats)"
     )
-    
+
     parser.add_argument(
         "-d", "--working-dir",
         default=".",
         help="Working directory (default: current directory)"
     )
-    
+
     parser.add_argument(
         "--max-steps",
         type=int,
         default=50,
         help="Maximum agent steps (default: 50)"
     )
-    
+
     parser.add_argument(
         "--max-passes",
         type=int,
         default=4,
         help="Maximum thinking passes (default: 4)"
     )
-    
+
     parser.add_argument(
         "--model",
         default=None,
         help="Model to use (e.g., groq/llama-3.3-70b-versatile)"
     )
-    
+
     parser.add_argument(
         "--provider",
         default=None,
         help="Preferred provider (groq, openrouter, huggingface, etc.)"
     )
-    
+
     parser.add_argument(
         "--temperature",
         type=float,
         default=0.1,
         help="Model temperature (default: 0.1)"
     )
-    
+
     # =========================================================================
     # NEW SECTION 10 FLAGS
     # =========================================================================
-    
+
     parser.add_argument(
         "--scenario",
         default=None,
@@ -131,93 +160,93 @@ Environment Variables:
         ],
         help="Force specific scenario handler (skip auto-detection)"
     )
-    
+
     parser.add_argument(
         "--dry-run",
         action="store_true",
         default=None,
         help="Show plan without executing"
     )
-    
+
     parser.add_argument(
         "--no-parallel",
         action="store_true",
         help="Disable parallel execution"
     )
-    
+
     parser.add_argument(
         "--verbose",
         action="store_true",
         help="Show all agent communications"
     )
-    
+
     parser.add_argument(
         "--json-output",
         metavar="FILE",
         help="Save results to JSON file"
     )
-    
+
     # =========================================================================
     # EXISTING FLAGS (preserved for compatibility)
     # =========================================================================
-    
+
     parser.add_argument(
         "--no-test-first",
         action="store_true",
         help="Disable test-first validation"
     )
-    
+
     parser.add_argument(
         "--no-cot",
         action="store_true",
         help="Disable chain-of-thought prompting"
     )
-    
+
     parser.add_argument(
         "--no-memory",
         action="store_true",
         help="Disable memory system"
     )
-    
+
     parser.add_argument(
         "--apply",
         action="store_true",
         help="Actually apply changes (disables dry-run)"
     )
-    
+
     parser.add_argument(
         "--confirm",
         action="store_true",
         help="Confirm before applying changes"
     )
-    
+
     parser.add_argument(
         "--version",
         action="store_true",
         help="Show version"
     )
-    
+
     parser.add_argument(
         "--health",
         action="store_true",
         help="Check API provider health"
     )
-    
+
     parser.add_argument(
         "--stats",
         action="store_true",
         help="Show router statistics"
     )
-    
+
     parser.add_argument(
         "--mode",
         default="auto",
         choices=["auto", "enterprise", "website", "debug", "presentation", "api", "refactor", "deploy"],
         help="Operation mode (default: auto-detect)"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Version
     if args.version:
         print("Neuro Autonomous Agent v2.0.0")
@@ -226,7 +255,7 @@ Environment Variables:
         print("Scenarios: bug_fix, web_app, api_build, etc.")
         print("Using free API providers")
         return 0
-    
+
     # Health check
     if args.health:
         from neuro.router import available_providers
@@ -236,7 +265,7 @@ Environment Variables:
             status = "✓" if count > 0 else "✗"
             print(f"  {provider}: {status} ({count} keys)")
         return 0
-    
+
     # Stats
     if args.stats:
         from neuro.router import available_providers
@@ -245,27 +274,12 @@ Environment Variables:
         for provider, count in providers.items():
             print(f"  {provider}: {count} key(s)")
         return 0
-    
-    # Check for API keys
-    has_keys = any([
-        os.getenv("GROQ_API_KEYS"),
-        os.getenv("OPENROUTER_API_KEYS"),
-        os.getenv("HF_TOKEN"),
-        os.getenv("TOGETHER_API_KEY"),
-    ])
-    
-    if not has_keys:
-        print("⚠️  Warning: No API keys found!", file=sys.stderr)
-        print("Set at least one of:", file=sys.stderr)
-        print("  GROQ_API_KEYS", file=sys.stderr)
-        print("  OPENROUTER_API_KEYS", file=sys.stderr)
-        print("  HF_TOKEN", file=sys.stderr)
-        print("", file=sys.stderr)
-        print("Get free keys:")
-        print("  Groq: https://console.groq.com/keys", file=sys.stderr)
-        print("  OpenRouter: https://openrouter.ai/keys", file=sys.stderr)
-        print("  HuggingFace: https://huggingface.co/settings/inference-tokens", file=sys.stderr)
-    
+
+    # Check for API keys before starting an LLM-backed run.
+    if args.goal and not _has_provider_key():
+        _print_provider_key_help()
+        return 2
+
     # Determine dry_run mode
     if args.apply:
         dry_run = False
@@ -273,7 +287,7 @@ Environment Variables:
         dry_run = args.dry_run
     else:
         dry_run = True  # Default to dry-run
-    
+
     # Show startup info
     if args.verbose or args.goal:
         print()
@@ -297,7 +311,7 @@ Environment Variables:
         print("║  └─────────┘ └─────────┘ └─────────┘ └─────────┘        ║")
         print("╚══════════════════════════════════════════════════════════╝")
         print()
-    
+
     # Show scenario routing info if specified
     if args.scenario:
         try:
@@ -313,12 +327,12 @@ Environment Variables:
         except Exception as e:
             print(f"⚠️  Scenario routing error: {e}")
             print()
-    
+
     # Show dry-run notice
     if dry_run:
         print("🔍 DRY-RUN MODE: Showing plan without executing")
         print()
-    
+
     try:
         agent = create_agent(
             goal=args.goal,
@@ -332,9 +346,9 @@ Environment Variables:
             dry_run=dry_run,
             verbose=args.verbose,
         )
-        
+
         result = agent.run()
-        
+
         # Output
         print()
         print("═" * 60)
@@ -345,20 +359,20 @@ Environment Variables:
         print(f"Steps: {result.steps}")
         print(f"Passes: {result.passes_used}")
         print(f"Duration: {result.duration_ms/1000:.1f}s")
-        
+
         if result.files_changed:
             print(f"Files changed: {', '.join(result.files_changed)}")
-        
+
         if result.error:
             print(f"Error: {result.error}")
-        
+
         if result.validation_passed:
             print("Validation: PASSED ✓")
         else:
             print("Validation: FAILED ✗")
-        
+
         print("═" * 60)
-        
+
         # JSON output
         if args.json_output:
             output = {
@@ -375,14 +389,14 @@ Environment Variables:
                 "provider_used": result.provider_used,
                 "test_results": result.test_results,
             }
-            
+
             with open(args.json_output, 'w') as f:
                 json.dump(output, f, indent=2)
-            
+
             print(f"\n📄 JSON output saved: {args.json_output}")
-        
+
         return 0 if result.success else 1
-        
+
     except KeyboardInterrupt:
         print("\n⚠️  Interrupted by user")
         return 130

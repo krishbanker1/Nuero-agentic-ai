@@ -5,11 +5,14 @@ Handles all edge cases: newlines, escaping, malformed JSON, code blocks
 This is the CORE FIX for Nuero - replaces ad-hoc parsing with proven strategies.
 """
 
-import re
+import importlib
+import importlib.util
 import json
-from typing import List, Any, Tuple
+import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, List, Tuple
+
 
 @dataclass
 class ParsedFile:
@@ -45,25 +48,39 @@ class CodeParser:
                 print(f"✅ Strategy 1 (strict JSON): {len(files)} files")
             return files
 
-        # Strategy 2: Flexible JSON with newline fixing
+        # Strategy 2: json-repair for malformed real-world LLM JSON
+        files = self._try_json_repair(response)
+        if files:
+            if self.verbose:
+                print(f"✅ Strategy 2 (json-repair): {len(files)} files")
+            return files
+
+        # Strategy 3: Flexible JSON with delimiter-aware newline fixing
         files = self._try_flexible_json(response)
         if files:
             if self.verbose:
-                print(f"✅ Strategy 2 (flexible JSON): {len(files)} files")
+                print(f"✅ Strategy 3 (flexible JSON): {len(files)} files")
             return files
 
-        # Strategy 3: Code blocks
+        # Strategy 4: Code blocks
         files = self._try_code_blocks(response)
         if files:
             if self.verbose:
-                print(f"✅ Strategy 3 (code blocks): {len(files)} files")
+                print(f"✅ Strategy 4 (code blocks): {len(files)} files")
             return files
 
-        # Strategy 4: Embedded JSON-like
+        # Strategy 5: Embedded JSON-like
         files = self._try_embedded_json(response)
         if files:
             if self.verbose:
-                print(f"✅ Strategy 4 (embedded JSON): {len(files)} files")
+                print(f"✅ Strategy 5 (embedded JSON): {len(files)} files")
+            return files
+
+        # Strategy 6: Plain filename/content blocks
+        files = self._try_plain_file_blocks(response)
+        if files:
+            if self.verbose:
+                print(f"✅ Strategy 6 (plain file blocks): {len(files)} files")
             return files
 
         return []
@@ -91,6 +108,54 @@ class CodeParser:
                 print(f"   Strategy 1 failed: {e}")
         return []
 
+
+    def _try_json_repair(self, text: str) -> List[ParsedFile]:
+        """Strategy 2: repair malformed JSON from real LLM responses.
+
+        The json-repair package handles common model mistakes such as literal
+        newlines in strings, dangling commas, and triple-quoted-ish content.
+        We keep the existing manual strategies as fallbacks for ad-hoc text.
+        """
+        if importlib.util.find_spec("json_repair") is None:
+            return []
+
+        repair_json = importlib.import_module("json_repair").repair_json
+        candidates = self._extract_json_candidates(text)
+
+        for candidate in candidates:
+            try:
+                repaired = repair_json(candidate)
+                if not repaired:
+                    continue
+                data = json.loads(repaired) if isinstance(repaired, str) else repaired
+                if files := self._extract_files_from_json(data):
+                    return files
+            except Exception as exc:
+                if self.verbose:
+                    print(f"   json-repair candidate failed: {exc}")
+
+        return []
+
+    def _extract_json_candidates(self, text: str) -> List[str]:
+        """Extract fenced and raw JSON candidates without truncating nested braces."""
+        candidates = []
+        for match in re.finditer(r"```(?:json)?\s*([\s\S]*?)```", text, re.IGNORECASE):
+            block = match.group(1).strip()
+            if block.startswith(("{", "[")):
+                candidates.append(block)
+
+        stripped = text.strip()
+        if stripped.startswith(("{", "[")):
+            candidates.append(stripped)
+
+        seen = set()
+        unique = []
+        for candidate in candidates:
+            if candidate not in seen:
+                seen.add(candidate)
+                unique.append(candidate)
+        return unique
+
     def _try_flexible_json(self, text: str) -> List[ParsedFile]:
         """Strategy 2: JSON with fixes for newlines.
 
@@ -107,19 +172,6 @@ class CodeParser:
                     data = json.loads(fixed)
                     if files := self._extract_files_from_json(data):
                         return files
-                except:
-                    pass
-
-                # Strategy 2b: Try with escaped newlines added
-                try:
-                    # Replace actual newlines with \n in the entire block
-                    lines = block.split('\n')
-                    if len(lines) > 2:
-                        # Check if this looks like a JSON with broken content
-                        fixed = block.replace('\n', '\\n')
-                        data = json.loads(fixed)
-                        if files := self._extract_files_from_json(data):
-                            return files
                 except:
                     pass
 
@@ -284,13 +336,16 @@ class CodeParser:
 
         for lang, content in code_blocks:
             content = content.strip()
-            if len(content) < 20:
+            if len(content) < 3:
                 continue
 
             if lang.lower() in ('json',) or content.startswith('{') or content.startswith('['):
                 continue
 
-            fname, ftype = self._detect_file_info(content, lang)
+            fname, content = self._extract_filename_header(content)
+            ftype = self._ext_to_type(Path(fname).suffix) if fname else "text"
+            if not fname:
+                fname, ftype = self._detect_file_info(content, lang)
 
             if fname:
                 files.append(ParsedFile(
@@ -300,6 +355,45 @@ class CodeParser:
                     confidence=0.7
                 ))
 
+        return files
+
+    def _extract_filename_header(self, content: str) -> Tuple[str, str]:
+        """Return filename/content when a code block starts with a filename header."""
+        lines = content.splitlines()
+        if not lines:
+            return "", content
+
+        header = lines[0].strip()
+        patterns = [
+            r"^#\s*(?:filename|file|path):\s*(.+)$",
+            r"^//\s*(?:filename|file|path):\s*(.+)$",
+            r"^<!--\s*(?:filename|file|path):\s*(.+?)\s*-->$",
+        ]
+        for pattern in patterns:
+            match = re.match(pattern, header, re.IGNORECASE)
+            if match:
+                return match.group(1).strip(), "\n".join(lines[1:]).strip()
+
+        return "", content
+
+    def _try_plain_file_blocks(self, text: str) -> List[ParsedFile]:
+        """Extract simple `filename: content` blocks outside markdown fences."""
+        files = []
+        pattern = re.compile(
+            r"(?m)^(?:file|filename|path):\s*(?P<path>[^\n]+)\n(?P<content>.*?)(?=^---\s*$|^file(?:name)?[:\s]|^path:|\Z)",
+            re.DOTALL | re.IGNORECASE,
+        )
+        for match in pattern.finditer(text):
+            path = match.group("path").strip().strip("`'")
+            content = match.group("content").strip()
+            if not path or not content:
+                continue
+            files.append(ParsedFile(
+                path=path,
+                content=self._clean_content(content),
+                file_type=self._ext_to_type(Path(path).suffix),
+                confidence=0.55,
+            ))
         return files
 
     def _try_embedded_json(self, text: str) -> List[ParsedFile]:
@@ -507,17 +601,32 @@ class CodeParser:
 
 
 def parse_and_write_files(response: str, output_dir: str = ".", verbose: bool = True) -> List[str]:
-    """Parse LLM response and write files."""
+    """Parse LLM response and write verified non-empty files inside output_dir."""
     parser = CodeParser(verbose=verbose)
     files = parser.parse_llm_response(response)
 
-    output_path = Path(output_dir)
+    output_path = Path(output_dir).resolve()
+    output_path.mkdir(parents=True, exist_ok=True)
     created = []
 
     for pf in files:
-        full_path = output_path / pf.path
+        if not pf.path or not pf.content.strip():
+            continue
+
+        full_path = (output_path / pf.path).resolve()
+        if output_path != full_path and output_path not in full_path.parents:
+            if verbose:
+                print(f"   ⚠️ Skipping unsafe path outside workspace: {pf.path}")
+            continue
+
         full_path.parent.mkdir(parents=True, exist_ok=True)
-        full_path.write_text(pf.content)
+        full_path.write_text(pf.content, encoding="utf-8")
+
+        if not full_path.exists() or full_path.stat().st_size == 0:
+            if verbose:
+                print(f"   ⚠️ Skipping zero-byte write: {pf.path}")
+            continue
+
         created.append(str(full_path))
 
         if verbose:

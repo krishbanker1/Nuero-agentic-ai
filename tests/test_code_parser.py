@@ -1,10 +1,12 @@
 """
 Tests for CodeParser - robust JSON extraction from LLM output
 """
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
+import pytest
+
 from neuro.core.code_parser import CodeParser, parse_and_write_files
 
 
@@ -75,32 +77,32 @@ class TestCodeParser:
     def test_various_json_shapes(self):
         """Test various JSON shapes supported."""
         parser = CodeParser()
-        
+
         # Shape 1: {"files": [{"path": ..., "content": ...}]}
         response1 = '{"files": [{"path": "a.py", "content": "x = 1"}]}'
         files1 = parser.parse_llm_response(response1)
         assert len(files1) >= 1
-        
+
         # Shape 2: {"path": ..., "content": ...}
         response2 = '{"path": "b.py", "content": "y = 2"}'
         files2 = parser.parse_llm_response(response2)
         assert len(files2) >= 1
-        
+
         # Shape 3: [{"path": ..., "content": ...}]
         response3 = '[{"path": "c.py", "content": "z = 3"}]'
         files3 = parser.parse_llm_response(response3)
         assert len(files3) >= 1
-        
+
         # Shape 4: {"filename": ..., "code": ...}
         response4 = '{"filename": "d.py", "code": "a = 4"}'
         files4 = parser.parse_llm_response(response4)
         assert len(files4) >= 1
-        
+
         # Shape 5: {"file_path": ..., "content": ...}
         response5 = '{"file_path": "e.py", "content": "b = 5"}'
         files5 = parser.parse_llm_response(response5)
         assert len(files5) >= 1
-        
+
         # Shape 6: {"target_file": ..., "code": ...}
         response6 = '{"target_file": "f.py", "code": "c = 6"}'
         files6 = parser.parse_llm_response(response6)
@@ -119,38 +121,38 @@ class TestCodeParser:
 }
 ```'''
             created = parse_and_write_files(response, tmpdir, verbose=False)
-            
+
             # Should write test.py but skip empty.txt
             assert len(created) >= 1
             assert any("test.py" in f for f in created)
-            
+
             # Verify file was actually created and has content
             test_file = Path(tmpdir) / "test.py"
             assert test_file.exists()
             assert test_file.stat().st_size > 0
-            
+
     def test_path_aliases(self):
         """Test that path aliases work correctly."""
         parser = CodeParser()
-        
+
         # Test path alias (primary)
         response = '{"path": "test.py", "content": "x = 1"}'
         files = parser.parse_llm_response(response)
         assert len(files) >= 1, "Should find file with 'path' key"
         assert files[0].path == "test.py"
-        
+
         # Test file_path alias
         response = '{"file_path": "test2.py", "content": "y = 2"}'
         files = parser.parse_llm_response(response)
         # file_path should work via _extract_files_from_json
         assert len(files) >= 1, "Should find file with 'file_path' key"
-        
+
         # Test target_file alias
         response = '{"target_file": "test3.py", "code": "z = 3"}'
         files = parser.parse_llm_response(response)
         # target_file with code should work
         assert len(files) >= 1, "Should find file with 'target_file' and 'code'"
-        
+
     def test_skips_empty_path(self):
         """Test that entries with no path are skipped."""
         parser = CodeParser()
@@ -170,3 +172,43 @@ class TestCodeParser:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+def test_json_repair_handles_literal_newlines_and_trailing_commas():
+    parser = CodeParser()
+    response = '''```json
+{
+  "files": [
+    {"path": "hello.py", "content": "print('hello')
+print('world')",},
+  ]
+}
+```'''
+    files = parser.parse_llm_response(response)
+    assert files
+    assert files[0].path == "hello.py"
+    assert "print('world')" in files[0].content
+
+
+def test_code_block_filename_header_and_plain_file_block(tmp_path):
+    parser = CodeParser()
+    fenced = '''```python
+# filename: scripts/run.py
+print("from fenced")
+```'''
+    files = parser.parse_llm_response(fenced)
+    assert files[0].path == "scripts/run.py"
+    assert "from fenced" in files[0].content
+
+    plain = '''filename: notes.txt
+hello from plain block
+---
+filename: app.py
+print("hello")
+'''
+    plain_files = parser.parse_llm_response(plain)
+    assert [file.path for file in plain_files] == ["notes.txt", "app.py"]
+
+    response = '{"files": [{"path": "../escape.py", "content": "bad"}, {"path": "safe.py", "content": "print(1)"}]}'
+    created = parse_and_write_files(response, tmp_path, verbose=False)
+    assert len(created) == 1
+    assert created[0].endswith("safe.py")
