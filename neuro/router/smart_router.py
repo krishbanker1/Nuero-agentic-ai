@@ -314,10 +314,9 @@ class SmartRouter:
                 if k in ["temperature", "max_tokens", "top_p", "stop"]
             }
             
-            # Groq can use OpenAI-style model names like "openai/gpt-oss-120b"
-            groq_model = model.split("/")[-1] if "/" in model else model
+            # Use full model ID as-is (Groq supports "openai/gpt-oss-120b", "qwen/qwen3-32b")
             response = client.chat.completions.create(
-                model=groq_model if groq_model else "llama-3.3-70b-versatile",
+                model=model,
                 messages=messages,
                 **clean_kwargs
             )
