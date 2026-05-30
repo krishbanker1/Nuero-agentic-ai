@@ -707,6 +707,20 @@ MODEL_REGISTRY: List[ModelMetadata] = [
 ]
 
 
+def _dedupe_model_registry(models: List[ModelMetadata]) -> List[ModelMetadata]:
+    """Remove duplicate model names while preserving first-seen routing order."""
+    seen = set()
+    deduped: List[ModelMetadata] = []
+    for model in models:
+        if model.name in seen:
+            continue
+        seen.add(model.name)
+        deduped.append(model)
+    return deduped
+
+
+MODEL_REGISTRY = _dedupe_model_registry(MODEL_REGISTRY)
+
 # Legacy string-based list for backward compatibility
 APPROVED_MODELS = [m.name for m in MODEL_REGISTRY]
 
