@@ -601,37 +601,42 @@ class SmartRouter:
             if self._is_cooldown(provider):
                 continue
             
-            # Select model
+            # Select models to try (in order, not random)
             if model:
-                selected_model = model
+                models_to_try = [model]
             else:
                 config = self.PROVIDERS[provider]
-                selected_model = random.choice(config.models)
+                models_to_try = list(config.models)  # Try in order, not random
             
-            # Call provider with max_tokens
-            call_kwargs = {**kwargs, "max_tokens": max_tokens}
-            if provider == Provider.GEMINI:
-                result = self._call_gemini(selected_model, messages, **call_kwargs)
-            elif provider == Provider.GROQ:
-                result = self._call_groq(selected_model, messages, **call_kwargs)
-            elif provider == Provider.OPENROUTER:
-                result = self._call_openrouter(selected_model, messages, **call_kwargs)
-            elif provider == Provider.HUGGINGFACE:
-                result = self._call_huggingface(selected_model, messages, **call_kwargs)
-            elif provider == Provider.CLOUDFLARE:
-                result = self._call_cloudflare(selected_model, messages, **call_kwargs)
-            elif provider == Provider.TOGETHER:
-                result = self._call_together(selected_model, messages, **call_kwargs)
-            else:
+            # Try each model for this provider
+            for selected_model in models_to_try:
+                # Call provider with max_tokens
+                call_kwargs = {**kwargs, "max_tokens": max_tokens}
+                if provider == Provider.GEMINI:
+                    result = self._call_gemini(selected_model, messages, **call_kwargs)
+                elif provider == Provider.GROQ:
+                    result = self._call_groq(selected_model, messages, **call_kwargs)
+                elif provider == Provider.OPENROUTER:
+                    result = self._call_openrouter(selected_model, messages, **call_kwargs)
+                elif provider == Provider.HUGGINGFACE:
+                    result = self._call_huggingface(selected_model, messages, **call_kwargs)
+                elif provider == Provider.CLOUDFLARE:
+                    result = self._call_cloudflare(selected_model, messages, **call_kwargs)
+                elif provider == Provider.TOGETHER:
+                    result = self._call_together(selected_model, messages, **call_kwargs)
+                else:
+                    continue
+                
+                if "error" not in result:
+                    # NEW: Apply skill middleware post-processing
+                    if MIDDLEWARE_AVAILABLE and self.middleware:
+                        result = self.middleware.postprocess(result)
+                    return result
+                
+                # Model failed, try next model from this provider
                 continue
             
-            if "error" not in result:
-                # NEW: Apply skill middleware post-processing
-                if MIDDLEWARE_AVAILABLE and self.middleware:
-                    result = self.middleware.postprocess(result)
-                return result
-            
-            # Try next provider on failure
+            # All models for this provider failed, try next provider
             continue
         
         return {"error": "All providers failed or unavailable"}
