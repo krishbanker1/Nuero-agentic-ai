@@ -2,7 +2,7 @@
 Neuro Ultimate - Complete System Integration
 =============================================
 Integrates all components: MCP servers, 3D graphics skills, 
-multi-agent orchestration, and competitor-beating capabilities.
+multi-agent orchestration, and production app-building capabilities.
 """
 
 from typing import Dict, List, Any, Optional
@@ -17,8 +17,8 @@ from neuro.ultimate.mcp_server_registry import MCPServerRegistry, MCPServerManag
 
 class NeuroUltimate:
     """
-    The ultimate AI coding system that combines all capabilities
-    to beat Kimi 2.6 Max, Manus 1.6 Max, Claude Code, and Codex.
+    A free-first AI coding system that combines MCP, graphics,
+    multi-agent orchestration, and production app-building capabilities.
     """
     
     def __init__(self, verbose: bool = True):
@@ -42,8 +42,8 @@ class NeuroUltimate:
         # Get 3D graphics matches
         graphics_matches = self.graphics.match_skills_for_task(task)
         
-        # Get competitor analysis
-        competitor_analysis = self._analyze_against_competitors(task)
+        # Get capability analysis
+        capability_analysis = self._analyze_capability_gaps(task)
         
         return {
             "task": task,
@@ -52,55 +52,55 @@ class NeuroUltimate:
             "mcp_servers": mcp_recs["servers"],
             "mcp_count": len(mcp_recs["servers"]),
             "graphics_skills": graphics_matches,
-            "competitor_advantages": competitor_analysis,
+            "capability_advantages": capability_analysis,
             "integration_config": self._generate_integration_config(skills, mcp_recs)
         }
     
-    def _analyze_against_competitors(self, task: str) -> Dict[str, List[str]]:
-        """Analyze how Neuro beats competitors for this specific task."""
+    def _analyze_capability_gaps(self, task: str) -> Dict[str, List[str]]:
+        """Analyze capability advantages for this specific task."""
         advantages = {
-            "vs_kimi": [],
-            "vs_manus": [],
-            "vs_claude_code": [],
-            "vs_codex": []
+            "context_and_model_routing": [],
+            "automation_and_tools": [],
+            "enterprise_workflow": [],
+            "full_stack_workflow": []
         }
         
         task_lower = task.lower()
         
         # Coding tasks
         if any(word in task_lower for word in ["code", "program", "develop", "implement"]):
-            advantages["vs_kimi"].append("Multi-model routing (not single provider)")
-            advantages["vs_manus"].append("500+ MCP servers vs limited tool set")
-            advantages["vs_claude_code"].append("Connect to Claude via OpenAI bridge")
-            advantages["vs_codex"].append("Broader context with Context7 integration")
+            advantages["context_and_model_routing"].append("Multi-model routing")
+            advantages["automation_and_tools"].append("Broad MCP/tool registry")
+            advantages["enterprise_workflow"].append("Enterprise workflow orchestration")
+            advantages["full_stack_workflow"].append("Broader context with docs integration")
         
         # 3D/Design tasks
         if any(word in task_lower for word in ["3d", "design", "animation", "graphic"]):
-            advantages["vs_kimi"].append("20+ dedicated 3D graphics skills")
-            advantages["vs_manus"].append("Blender MCP integration")
-            advantages["vs_claude_code"].append("GSAP, R3F, Spline integrations")
-            advantages["vs_codex"].append("Creative tools Codex lacks")
+            advantages["context_and_model_routing"].append("20+ dedicated 3D graphics skills")
+            advantages["automation_and_tools"].append("Blender MCP integration")
+            advantages["enterprise_workflow"].append("GSAP, R3F, Spline integrations")
+            advantages["full_stack_workflow"].append("Creative tool coverage")
         
         # Web/Browser tasks
         if any(word in task_lower for word in ["web", "browser", "scrape", "test"]):
-            advantages["vs_kimi"].append("Playwright MCP (33k stars)")
-            advantages["vs_manus"].append("Multi-browser automation")
-            advantages["vs_claude_code"].append("Better browser integration")
-            advantages["vs_codex"].append("Web capabilities beyond Codex")
+            advantages["context_and_model_routing"].append("Playwright MCP (33k stars)")
+            advantages["automation_and_tools"].append("Multi-browser automation")
+            advantages["enterprise_workflow"].append("Better browser integration")
+            advantages["full_stack_workflow"].append("Web workflow coverage")
         
         # Data tasks
         if any(word in task_lower for word in ["database", "sql", "query", "data"]):
-            advantages["vs_kimi"].append("Google MCP Toolbox (15k stars)")
-            advantages["vs_manus"].append("PostgreSQL, Redis, BigQuery integration")
-            advantages["vs_claude_code"].append("Database tools Claude lacks")
-            advantages["vs_codex"].append("Data layer Codex doesn't have")
+            advantages["context_and_model_routing"].append("Google MCP Toolbox (15k stars)")
+            advantages["automation_and_tools"].append("PostgreSQL, Redis, BigQuery integration")
+            advantages["enterprise_workflow"].append("Database tool integrations")
+            advantages["full_stack_workflow"].append("Data-layer workflow support")
         
         # Default advantages
         if not any(advantages.values()):
-            advantages["vs_kimi"] = ["500+ MCP servers", "Multi-model support", "Better context"]
-            advantages["vs_manus"] = ["More integrations", "20+ 3D skills", "Advanced orchestration"]
-            advantages["vs_claude_code"] = ["Multi-provider AI", "Enterprise tools", "Cloud deployment"]
-            advantages["vs_codex"] = ["Broader toolset", "Better context management", "Full workflow"]
+            advantages["context_and_model_routing"] = ["500+ MCP servers", "Multi-model support", "Better context"]
+            advantages["automation_and_tools"] = ["More integrations", "20+ 3D skills", "Advanced orchestration"]
+            advantages["enterprise_workflow"] = ["Multi-provider AI", "Enterprise tools", "Cloud deployment"]
+            advantages["full_stack_workflow"] = ["Broader toolset", "Better context management", "Full workflow"]
         
         return advantages
     
@@ -167,14 +167,14 @@ NEURO ULTIMATE - COMPREHENSIVE SYSTEM REPORT
 - 3D Graphics Skills: {overview['3d_graphics_skills']}
 - Enterprise Skills: {overview['enterprise_skills']}
 
-## Competitor Comparison
-| Feature | Kimi 2.6 | Manus 1.6 | Claude Code | Codex | Neuro Ultimate |
-|---------|----------|-----------|-------------|-------|----------------|
-| Context Window | 200k | 128k | 200k | 128k | 500k+ |
-| MCP Integration | Limited | 50+ | 10+ | 5+ | 500+ |
-| Multi-Model | No | Yes | Yes | No | Yes |
-| 3D Graphics | Basic | Basic | Basic | No | Advanced |
-| Enterprise Apps | Yes | Yes | Yes | Limited | Yes |
+## Capability Coverage
+| Capability | Neuro Ultimate |
+|------------|----------------|
+| Context Strategy | Large-context routing and compression |
+| MCP Integration | Broad MCP registry |
+| Multi-Model | Yes |
+| 3D Graphics | Advanced |
+| Enterprise Apps | Yes |
 
 ## Top Priority 1 MCP Servers
 """
@@ -196,29 +196,29 @@ NEURO ULTIMATE - COMPREHENSIVE SYSTEM REPORT
             report += f"\n   Triggers: {', '.join(skill['triggers'][:5])}\n"
         
         report += """
-## How Neuro Beats Each Competitor
+## Capability Strategy
 
-### vs Kimi 2.6 Max
-- 500+ MCP servers vs limited integration
-- Multi-model support (not locked to one provider)
+### Context and model routing
+- Broad MCP/tool integration
+- Multi-model support
 - 20+ dedicated 3D graphics skills
 - Advanced code generation with Context7
 
-### vs Manus 1.6 Max
-- More MCP servers (500+ vs 50+)
+### Automation and tools
+- Broad MCP/tool registry
 - Better 3D graphics support
 - Native code execution and debugging
 - Faster model routing with key pooling
 
-### vs Claude Code
-- Multi-provider AI support (not Anthropic-only)
-- 500+ MCP servers vs basic git integration
+### Enterprise workflow
+- Multi-provider AI support
+- Broad MCP/tool registry
 - Advanced 3D and motion design capabilities
 - Enterprise multi-agent orchestration
 
-### vs Codex
-- Connect to Codex via OpenAI bridge MCP
-- Multi-model layer (not Codex-only)
+### Full-stack workflow
+- Optional MCP bridge integrations
+- Multi-model layer
 - Full development workflow automation
 - Better context management
 

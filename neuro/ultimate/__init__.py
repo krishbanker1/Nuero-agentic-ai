@@ -1,8 +1,8 @@
 """
 Neuro Ultimate - Comprehensive AI Coding System
 =================================================
-The most powerful autonomous coding system that integrates all AI capabilities
-to beat Kimi 2.6 Max, Manus 1.6 Max, Claude Code, and Codex in every scenario.
+A free-first autonomous coding system that integrates local orchestration,
+MCP tools, graphics skills, and enterprise app-building capabilities.
 
 Features:
 - 500+ MCP servers integration
@@ -262,7 +262,7 @@ class NeuroUltimateRegistry:
                 "Presentation creation",
                 "Enterprise app development"
             ],
-            "beat_strategy": "Integrate more context windows, faster model routing, multi-provider support"
+            "integration_strategy": "Use larger context windows, faster model routing, and multi-provider support"
         },
         "manus_1_6_max": {
             "features": [
@@ -273,7 +273,7 @@ class NeuroUltimateRegistry:
                 "Memory persistence",
                 "Tool integration"
             ],
-            "beat_strategy": "More agents, better orchestration, wider tool support, 500+ MCP servers"
+            "integration_strategy": "Use more agents, stronger orchestration, wider tool support, and MCP servers"
         },
         "claude_code": {
             "features": [
@@ -283,7 +283,7 @@ class NeuroUltimateRegistry:
                 "Terminal execution",
                 "Context awareness"
             ],
-            "beat_strategy": "Multi-model support, better context, more tools, GitHub MCP integration"
+            "integration_strategy": "Use multi-model support, better context, more tools, and GitHub MCP integration"
         },
         "codex": {
             "features": [
@@ -292,7 +292,7 @@ class NeuroUltimateRegistry:
                 "Documentation generation",
                 "API integration"
             ],
-            "beat_strategy": "Connect to Codex via MCP, add multi-model layer, enhanced completions"
+            "integration_strategy": "Use MCP bridges, add a multi-model layer, and improve completions"
         }
     }
     

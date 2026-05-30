@@ -1,5 +1,5 @@
 # Neuro Model Registry - 56 Models (Free Tier)
-# Task-to-Model Assignment with 20 Categories - Optimized to beat Kimi 2.6, Manus 1.6, Claude Code, Codex
+# Task-to-Model Assignment with 20 Categories - Free-first production app routing
 # Last saved: 2026-05-29
 
 from typing import List, Dict, Any, Optional
