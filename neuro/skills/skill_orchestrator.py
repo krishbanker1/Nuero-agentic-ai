@@ -67,6 +67,9 @@ class SkillOrchestrator:
             if skill["name"] not in detected:
                 detected.append(skill["name"])
 
+        if self._needs_production_scaffold(goal) and "production_scaffolder" not in detected:
+            detected.append("production_scaffolder")
+
         # Wire in the ultimate registry without changing model/provider selection.
         enhanced_registry = self.enhanced_registry
         if enhanced_registry:
@@ -91,6 +94,17 @@ class SkillOrchestrator:
             print(f"🎯 Skills detected: {', '.join(self.active_skills)}")
 
         return self.active_skills
+
+    @staticmethod
+    def _needs_production_scaffold(goal: str) -> bool:
+        """Return True for build requests that benefit from deterministic scaffolds."""
+        goal_lower = goal.lower()
+        triggers = [
+            "app", "website", "dashboard", "saas", "crm", "cms", "api",
+            "full stack", "full-stack", "enterprise", "landing", "presentation",
+            "slides", "deck", "admin", "portal", "ecommerce", "e-commerce",
+        ]
+        return any(trigger in goal_lower for trigger in triggers)
 
     def enrich_context(self, goal: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Enrich context with skill-specific information."""
@@ -120,6 +134,12 @@ class SkillOrchestrator:
                         # Add skill-specific hints to context
                         if "capabilities" in result:
                             skill_hints.append(f"[{skill_name}]: {result.get('capabilities', [])[:3]}")
+
+                        if "production_scaffold" in result:
+                            enriched["production_scaffold"] = result["production_scaffold"]
+                            if result.get("prompt_block"):
+                                enriched["production_scaffold_prompt"] = result["prompt_block"]
+                                skill_hints.append(result["prompt_block"])
                         
                         # Add MCP endpoint if available
                         if "endpoint" in result:

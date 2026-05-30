@@ -8,19 +8,9 @@ from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
-# Import web research module
-try:
-    from neuro.reasoning.web_researcher import research_topic, WebResearcher
-    WEB_RESEARCH_AVAILABLE = True
-except ImportError:
-    WEB_RESEARCH_AVAILABLE = False
+from neuro.reasoning.web_researcher import WebResearcher
 
-# Import prompt writer module
-try:
-    from neuro.reasoning.prompt_writer import PromptWriter, write_enterprise_prompt
-    PROMPT_WRITER_AVAILABLE = True
-except ImportError:
-    PROMPT_WRITER_AVAILABLE = False
+WEB_RESEARCH_AVAILABLE = True
 
 
 class PassType(Enum):
@@ -146,7 +136,7 @@ class ThinkingLoop:
             # Stuck detection
             if self.config.allow_stuck_detection and pass_num >= self.config.stuck_after_passes:
                 if self._is_stuck():
-                    print(f"   ⚠️ Detected stuck pattern, attempting recovery...")
+                    print("   ⚠️ Detected stuck pattern, attempting recovery...")
                     best_solution = self._recover_from_stuck(goal, context)
                     break
             
@@ -169,7 +159,10 @@ class ThinkingLoop:
             "architecture": getattr(self, '_architecture', None),
         }
         # Add any context values that were set during execution
-        for key in ['enhanced_prompt', 'plan', 'tech_stack', 'features', 'architecture', 'research_context']:
+        for key in [
+            'enhanced_prompt', 'plan', 'tech_stack', 'features', 'architecture',
+            'research_context', 'production_scaffold', 'production_scaffold_prompt'
+        ]:
             if key in context:
                 result_context[key] = context[key]
         
@@ -233,6 +226,12 @@ Task: """ + f"{goal}\n\n"
         if context.get("validation_error"):
             base_prompt += f"Previous validation error:\n{context['validation_error']}\n\n"
         
+        if context.get("production_scaffold_prompt"):
+            base_prompt += (
+                "Deterministic production scaffold to follow (free/local only):\n"
+                f"{context['production_scaffold_prompt']}\n\n"
+            )
+
         # NEW: Include skill hints from orchestrator
         if context.get("skill_hints"):
             base_prompt += f"Skill guidance:\n{context['skill_hints']}\n\n"
@@ -242,7 +241,7 @@ Task: """ + f"{goal}\n\n"
             base_prompt += f"Relevant memory:\n{context['memory_context'][:1000]}\n\n"
         
         if self.passes and pass_num > 1:
-            base_prompt += f"Previous attempts:\n"
+            base_prompt += "Previous attempts:\n"
             for i, p in enumerate(self.passes[-2:], max(1, len(self.passes) - 1)):
                 base_prompt += f"Pass {i}: {p.response[:500]}...\n"
             base_prompt += "\n"
@@ -684,7 +683,7 @@ Output ONLY JSON block with complete files.
         if not self.passes:
             return "No passes completed"
         
-        summary = f"Thinking Loop Summary:\n"
+        summary = "Thinking Loop Summary:\n"
         summary += f"- Total passes: {len(self.passes)}\n"
         summary += f"- Convergence score: {self.convergence_score:.2f}\n"
         summary += f"- Total duration: {sum(p.duration_ms for p in self.passes)/1000:.1f}s\n"
@@ -771,7 +770,7 @@ Output ONLY JSON block with complete files.
             plan_text = plan_match.group(1).strip()
             context["plan"] = plan_text
             self._plan = plan_text
-            print(f"   📋 Plan extracted from text")
+            print("   📋 Plan extracted from text")
 
 
 def run_thinking_loop(

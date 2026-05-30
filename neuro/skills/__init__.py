@@ -33,6 +33,7 @@ from neuro.skills.shell_executor import ShellExecutor, ExecutionResult, ShellErr
 from neuro.skills.playwright_tester import PlaywrightTester, AppTestReport, test_created_app
 from neuro.skills.auto_fix_loop import AutoFixLoop, AutoFixConfig, AutoFixResult, quick_fix
 from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, stop_app
+from neuro.skills.production_scaffolder import ProductionScaffolder, ScaffoldPlan, ScaffoldFile
 
 # Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
@@ -129,7 +130,6 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "memory": AgentMemorySkill,
     "browser": BrowserAutomation,
     "browser_automation": BrowserAutomation,
-    "playwright": BrowserAutomation,
     
     # NEW: ECC-inspired skills
     "verification_loop": VerificationLoop,
@@ -163,6 +163,10 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "fix_loop": AutoFixLoop,
     "self_heal": AutoFixLoop,
     "app_launcher": AppLauncher,
+    "production_scaffolder": ProductionScaffolder,
+    "production_scaffold": ProductionScaffolder,
+    "enterprise_scaffold": ProductionScaffolder,
+    "app_scaffolder": ProductionScaffolder,
     "launch": AppLauncher,
     "start": AppLauncher,
     
@@ -300,7 +304,6 @@ class SkillManager:
                 "gitlab": ["gitlab", "merge request"],
                 "code-review": ["code review", "review", "pr review"],
                 "iterate": ["iterate", "verify", "ci", "tests"],
-                "security": ["security", "auth", "vulnerability"],
                 "docker": ["docker", "container", "containerize"],
                 "kubernetes": ["kubernetes", "k8s", "deploy"],
                 "jupyter": ["jupyter", "notebook", "data science"],
