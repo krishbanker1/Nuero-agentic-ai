@@ -162,7 +162,8 @@ class ThinkingLoop:
         for key in [
             'enhanced_prompt', 'plan', 'tech_stack', 'features', 'architecture',
             'research_context', 'production_scaffold', 'production_scaffold_prompt',
-            'production_build_plan', 'production_pipeline_prompt'
+            'production_build_plan', 'production_pipeline_prompt',
+            'firecrawl_prompt', 'firecrawl_context', 'firecrawl_status',
         ]:
             if key in context:
                 result_context[key] = context[key]
@@ -237,6 +238,18 @@ Task: """ + f"{goal}\n\n"
             base_prompt += (
                 "Stage-by-stage production build pipeline:\n"
                 f"{context['production_pipeline_prompt']}\n\n"
+            )
+
+        if context.get("firecrawl_prompt"):
+            base_prompt += (
+                "Optional Firecrawl research guidance (free/self-hosted first):\n"
+                f"{context['firecrawl_prompt']}\n\n"
+            )
+
+        if context.get("firecrawl_context"):
+            base_prompt += (
+                "Firecrawl web research context:\n"
+                f"{context['firecrawl_context'][:3000]}\n\n"
             )
 
         # NEW: Include skill instructions/hints from orchestrator

@@ -73,6 +73,10 @@ class SkillOrchestrator:
                 if scaffold_skill not in detected:
                     detected.append(scaffold_skill)
 
+        if self._needs_live_web_research(goal):
+            if "firecrawl_research" not in detected:
+                detected.append("firecrawl_research")
+
         # Wire in the ultimate registry without changing model/provider selection.
         enhanced_registry = self.enhanced_registry
         if enhanced_registry:
@@ -106,6 +110,17 @@ class SkillOrchestrator:
             "app", "website", "dashboard", "saas", "crm", "cms", "api",
             "full stack", "full-stack", "enterprise", "landing", "presentation",
             "slides", "deck", "admin", "portal", "ecommerce", "e-commerce",
+        ]
+        return any(trigger in goal_lower for trigger in triggers)
+
+    @staticmethod
+    def _needs_live_web_research(goal: str) -> bool:
+        """Return True when optional clean web/docs scraping context is useful."""
+        goal_lower = goal.lower()
+        triggers = [
+            "http://", "https://", "scrape", "crawl", "firecrawl", "live docs",
+            "official docs", "web research", "research github", "extract website",
+            "current docs", "latest docs", "documentation from",
         ]
         return any(trigger in goal_lower for trigger in triggers)
 
@@ -171,6 +186,15 @@ class SkillOrchestrator:
                             if result.get("prompt_block"):
                                 enriched["production_pipeline_prompt"] = result["prompt_block"]
                                 skill_hints.append(result["prompt_block"])
+
+                        if skill_name == "firecrawl_research":
+                            if result.get("prompt_block"):
+                                enriched["firecrawl_prompt"] = result["prompt_block"]
+                                skill_hints.append(result["prompt_block"])
+                            if result.get("firecrawl_context"):
+                                enriched["firecrawl_context"] = result["firecrawl_context"]
+                            enriched["firecrawl_status"] = result.get("status", "unknown")
+                            enriched["firecrawl_enabled"] = result.get("enabled", False)
 
                         # Add MCP endpoint if available
                         if "endpoint" in result:
