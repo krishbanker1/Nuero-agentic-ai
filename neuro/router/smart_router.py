@@ -1,7 +1,6 @@
 """
-Smart Router - Rotates across multiple FREE API providers
-Improves reliability via intelligent model selection
-NOW WITH SKILL MIDDLEWARE INTEGRATION
+Smart Router - Rotating provider with circuit breaker
+Now with skill middleware integration and improved reliability
 """
 
 import os
@@ -10,13 +9,7 @@ from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import threading
-
-# Import skill middleware
-try:
-    from neuro.skills.skill_middleware import get_middleware
-    MIDDLEWARE_AVAILABLE = True
-except ImportError:
-    MIDDLEWARE_AVAILABLE = False
+from neuro.errors import NeuroErrorCode, ProviderError
 
 
 # =============================================================================
@@ -152,6 +145,17 @@ class RouterStats:
     avg_latency: Dict[str, float] = field(default_factory=dict)
     last_used: Dict[str, float] = field(default_factory=dict)
     lock: threading.Lock = field(default_factory=threading.Lock)
+    # Circuit breaker state
+    failures_since_success: Dict[str, int] = field(default_factory=dict)
+    circuit_open_until: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
+class CircuitBreakerConfig:
+    """Circuit breaker configuration."""
+    failure_threshold: int = 3   # Open circuit after N failures
+    recovery_timeout: int = 30  # Seconds before trying again
+    half_open_max_calls: int = 1  # Max calls in half-open state
 
 
 class SmartRouter:
@@ -320,8 +324,40 @@ class SmartRouter:
         self.stats = RouterStats()
         self.cooldowns: Dict[str, float] = {}
         self._local = threading.local()
-        # NEW: Initialize skill middleware
-        self.middleware = get_middleware() if MIDDLEWARE_AVAILABLE else None
+        self.circuit_config = CircuitBreakerConfig()
+        # Skill middleware
+        try:
+            from neuro.skills.skill_middleware import get_middleware
+            self.middleware = get_middleware()
+        except ImportError:
+            self.middleware = None
+    
+    def _is_circuit_open(self, provider: Provider) -> bool:
+        """Check if circuit breaker is open for provider."""
+        key = provider.value
+        if key in self.stats.circuit_open_until:
+            if time.time() < self.stats.circuit_open_until[key]:
+                return True
+            # Recovery timeout passed, try half-open
+            del self.stats.circuit_open_until[key]
+        return False
+    
+    def _record_success(self, provider: Provider, model: str):
+        """Record success and reset circuit breaker."""
+        key = provider.value
+        self.stats.failures_since_success[key] = 0
+        if key in self.stats.circuit_open_until:
+            del self.stats.circuit_open_until[key]
+    
+    def _record_failure(self, provider: Provider, model: str = None, error: str = None):
+        """Record failure and potentially open circuit."""
+        key = provider.value
+        self.stats.failures_since_success[key] = self.stats.failures_since_success.get(key, 0) + 1
+        self.stats.failures[key] = self.stats.failures.get(key, 0) + 1
+        
+        if self.stats.failures_since_success[key] >= self.circuit_config.failure_threshold:
+            self.stats.circuit_open_until[key] = time.time() + self.circuit_config.recovery_timeout
+            self.stats.failures_since_success[key] = 0  # Reset counter after circuit opens
     
     def _get_api_key(self, provider: Provider) -> Optional[str]:
         """Get API key from environment using new key management system."""
@@ -343,7 +379,11 @@ class SmartRouter:
         return keys[idx]
     
     def _is_cooldown(self, provider: Provider) -> bool:
-        """Check if provider is in cooldown."""
+        """Check if provider is unavailable (cooldown or circuit open)."""
+        # Check circuit breaker first
+        if self._is_circuit_open(provider):
+            return True
+        
         key = provider.value
         if key not in self.cooldowns:
             return False
