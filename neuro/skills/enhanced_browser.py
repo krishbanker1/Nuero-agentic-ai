@@ -9,9 +9,7 @@ Features:
 - Error recovery and retry logic
 """
 
-import json
 import time
-import asyncio
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
@@ -297,31 +295,31 @@ class EnhancedBrowserAgent:
             'def fill_form(page):',
         ]
         
-        for field in form.fields:
-            field_name = field.name
+        for form_field in form.fields:
+            field_name = form_field.name
             value = values.get(field_name, '')
             
-            selector = field.selector
+            selector = form_field.selector
             
-            if field.element_type == FormElementType.TEXT_INPUT:
+            if form_field.element_type == FormElementType.TEXT_INPUT:
                 lines.append(f'    page.fill("{selector}", "{value}")')
             
-            elif field.element_type == FormElementType.TEXTAREA:
+            elif form_field.element_type == FormElementType.TEXTAREA:
                 lines.append(f'    page.fill("{selector}", "{value}")')
             
-            elif field.element_type == FormElementType.SELECT:
+            elif form_field.element_type == FormElementType.SELECT:
                 lines.append(f'    page.select_option("{selector}", "{value}")')
             
-            elif field.element_type == FormElementType.CHECKBOX:
+            elif form_field.element_type == FormElementType.CHECKBOX:
                 if value:
                     lines.append(f'    page.check("{selector}")')
                 else:
                     lines.append(f'    page.uncheck("{selector}")')
             
-            elif field.element_type == FormElementType.RADIO:
+            elif form_field.element_type == FormElementType.RADIO:
                 lines.append(f'    page.check("{selector}")')
             
-            elif field.element_type == FormElementType.FILE_UPLOAD:
+            elif form_field.element_type == FormElementType.FILE_UPLOAD:
                 lines.append(f'    page.set_input_files("{selector}", "{value}")')
         
         lines.extend([
@@ -403,13 +401,13 @@ def create_form_workflow(
         {'action': 'wait', 'duration': 1, 'description': 'Wait for form to load'},
     ]
     
-    for field in form_definition.fields:
-        value = values.get(field.name)
+    for form_field in form_definition.fields:
+        value = values.get(form_field.name)
         if value is not None:
-            action_type = 'select' if field.element_type == FormElementType.SELECT else 'type'
+            action_type = 'select' if form_field.element_type == FormElementType.SELECT else 'type'
             steps.append({
                 'action': action_type,
-                'selector': field.selector,
+                'selector': form_field.selector,
                 'value': value,
                 'description': f"Fill {field.name}"
             })
@@ -439,10 +437,10 @@ def enhanced_browser_task(
     Returns:
         Task definition with progress tracking enabled
     """
-    agent = EnhancedBrowserAgent()
+    EnhancedBrowserAgent()
     
     if workflow:
-        browser_workflow = BrowserWorkflow(
+        BrowserWorkflow(
             name=task,
             steps=workflow
         )

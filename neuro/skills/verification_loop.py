@@ -4,7 +4,6 @@
 
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-import json
 
 @dataclass
 class VerificationCheckpoint:

@@ -12,15 +12,12 @@
 import os
 import time
 import json
-from typing import Dict, Any, Optional, List, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
+from typing import Dict, Any, Optional, List
+from dataclasses import dataclass
 from collections import Counter
-import difflib
 
-from neuro.router.smart_router import SmartRouter, Provider
+from neuro.router.smart_router import SmartRouter
 from neuro.reasoning.chain_of_thought import ChainOfThought, CoTConfig
-from neuro.reasoning.thinking_loop import ThinkingLoop
 from neuro.validation.test_runner import TestRunner
 from neuro.validation.patch_guard import PatchGuard, UnifiedDiffParser
 from neuro.memory.task_store import TaskStore
@@ -185,7 +182,7 @@ ANALYSIS: [brief comparison]"""
                 "reasoning": reasoning,
                 "similarity": confidence,
             }
-        except Exception as e:
+        except Exception:
             return None
 
 
@@ -750,7 +747,7 @@ class OptimizedNeuroAgent:
                         return self._create_success_result(voting_result, fix, time.time() - start_time)
                 else:
                     if self.config.verbose:
-                        print(f"   ✅ TESTS PASSED")
+                        print("   ✅ TESTS PASSED")
                     return self._create_success_result(test_result, fix, time.time() - start_time)
             
             # Failed - analyze and reflect
@@ -786,7 +783,7 @@ class OptimizedNeuroAgent:
     
     def _analyze_with_cot(self, context: str) -> str:
         """Run chain-of-thought analysis."""
-        cot = ChainOfThought(CoTConfig(enabled=True))
+        ChainOfThought(CoTConfig(enabled=True))
         analysis_prompt = f"""Analyze this production repair issue:
 
 {context}

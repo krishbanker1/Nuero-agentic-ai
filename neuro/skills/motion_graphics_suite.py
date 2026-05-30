@@ -1,5 +1,4 @@
 """Motion Graphics Suite - 3D, Animation, Visual Effects using REAL AI"""
-from typing import Dict, Any
 from dataclasses import dataclass
 from neuro.router.smart_router import SmartRouter
 

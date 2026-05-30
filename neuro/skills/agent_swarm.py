@@ -2,7 +2,6 @@
 # Multi-agent orchestration for +23% boost
 
 import time
-import json
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
@@ -234,7 +233,7 @@ class AgentSwarmCoordinator:
                 }
                 
                 for future in as_completed(futures):
-                    task = futures[future]
+                    futures[future]
                     result_task = future.result()
                     
                     if result_task.status == "completed":

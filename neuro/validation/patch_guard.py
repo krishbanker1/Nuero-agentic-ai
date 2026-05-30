@@ -11,7 +11,7 @@ import re
 import hashlib
 import json
 import difflib
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime
@@ -276,7 +276,7 @@ class PatchGuard:
         - diff: Verify diff is valid
         - safety: Check for dangerous patterns
         """
-        start = datetime.now()
+        datetime.now()
         
         if validation_type == "syntax":
             return self._validate_syntax(patch)

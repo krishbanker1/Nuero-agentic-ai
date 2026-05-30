@@ -11,17 +11,6 @@ class FrontendBuilder:
     def build(self, description: str, framework: str = "react") -> Dict[str, Any]:
         """Build complete frontend using REAL AI."""
         
-        prompt = f"""Generate complete {framework} code for: {description}
-
-Include:
-- App.jsx with routing
-- Dashboard component
-- Forms with validation
-- API integration
-- Tailwind/Bootstrap styling
-
-Output ONLY the React code, no markdown blocks.
-"""
         
         components_prompt = f"""Generate these React components for: {description}
 1. Button.jsx - Reusable button with variants

@@ -10,16 +10,13 @@ Features:
 - Error highlighting
 """
 
-import os
 import json
 import time
-import base64
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from enum import Enum
-import asyncio
 from neuro.skills.skill_middleware import register_skill
 
 

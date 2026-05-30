@@ -6,11 +6,10 @@ multi-agent orchestration, and production app-building capabilities.
 """
 
 from typing import Dict, List, Any, Optional
-import json
 
 from neuro.ultimate import NeuroUltimateRegistry
-from neuro.ultimate.orchestrator import UltimateOrchestrator, get_orchestrator
-from neuro.ultimate.skill_registry import EnhancedSkillRegistry, get_enhanced_registry
+from neuro.ultimate.orchestrator import get_orchestrator
+from neuro.ultimate.skill_registry import get_enhanced_registry
 from neuro.ultimate.graphics_skills import Neuro3DGraphicsSkills, SKILL_CATEGORIES
 from neuro.ultimate.mcp_server_registry import MCPServerRegistry, MCPServerManager
 

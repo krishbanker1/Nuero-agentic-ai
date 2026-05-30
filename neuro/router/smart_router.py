@@ -6,15 +6,14 @@ NOW WITH SKILL MIDDLEWARE INTEGRATION
 
 import os
 import time
-import random
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import threading
 
 # Import skill middleware
 try:
-    from neuro.skills.skill_middleware import SkillMiddleware, get_middleware, set_active_skills
+    from neuro.skills.skill_middleware import get_middleware
     MIDDLEWARE_AVAILABLE = True
 except ImportError:
     MIDDLEWARE_AVAILABLE = False
@@ -841,7 +840,7 @@ class SmartRouter:
                 "huggingface": Provider.HUGGINGFACE, "cloudflare": Provider.CLOUDFLARE,
                 "together": Provider.TOGETHER, "deepseek": Provider.OPENROUTER,
                 "qwen": Provider.OPENROUTER, "cohere": Provider.OPENROUTER,
-                "nvidia": Provider.OPENROUTER, "google": Provider.GEMINI,
+                "nvidia": Provider.OPENROUTER,
             }
             return provider_map.get(provider_name, Provider.OPENROUTER)
         
@@ -962,7 +961,7 @@ class SmartRouter:
                 if "error" not in result and "content" in result:
                     return result["content"]
                     
-            except Exception as e:
+            except Exception:
                 continue
         
         return ""  # All providers failed

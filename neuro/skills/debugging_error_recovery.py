@@ -1,5 +1,5 @@
 """Debugging & Error Recovery - Systematic root-cause debugging using REAL AI"""
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class DebuggingErrorRecovery:

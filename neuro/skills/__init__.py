@@ -34,6 +34,7 @@ from neuro.skills.playwright_tester import PlaywrightTester, AppTestReport, test
 from neuro.skills.auto_fix_loop import AutoFixLoop, AutoFixConfig, AutoFixResult, quick_fix
 from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, stop_app
 from neuro.skills.production_scaffolder import ProductionScaffolder, ScaffoldPlan, ScaffoldFile
+from neuro.skills.production_build_pipeline import ProductionBuildPipeline, ProductionBuildPlan, BuildStage
 
 # Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
@@ -167,6 +168,10 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "production_scaffold": ProductionScaffolder,
     "enterprise_scaffold": ProductionScaffolder,
     "app_scaffolder": ProductionScaffolder,
+    "production_pipeline": ProductionBuildPipeline,
+    "build_pipeline": ProductionBuildPipeline,
+    "enterprise_pipeline": ProductionBuildPipeline,
+    "quality_pipeline": ProductionBuildPipeline,
     "launch": AppLauncher,
     "start": AppLauncher,
     

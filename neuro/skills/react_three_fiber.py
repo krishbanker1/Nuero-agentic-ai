@@ -1,5 +1,4 @@
 """React Three Fiber - React 3D using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class ReactThreeFiber:
@@ -25,7 +24,7 @@ Output as complete React code with imports. No markdown.
     
     def generate_model(self, format: str = "glb") -> str:
         """Generate 3D model loader."""
-        prompt = f"""Generate React Three Fiber GLTF/GLB model loader with:
+        prompt = """Generate React Three Fiber GLTF/GLB model loader with:
 - useGLTF hook
 - OrbitControls
 - Environment lighting

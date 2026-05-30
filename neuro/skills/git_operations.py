@@ -4,12 +4,9 @@
 
 import subprocess
 import re
-import os
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
-from datetime import datetime
 from neuro.skills.skill_middleware import register_skill
 
 
@@ -119,7 +116,7 @@ def detect_changed_files(root_dir: str = ".") -> Dict[str, List[str]]:
         )
         result['deleted'] = [f for f in proc.stdout.strip().split('\n') if f]
         
-    except Exception as e:
+    except Exception:
         pass
     
     return result
@@ -192,9 +189,9 @@ def _generate_short_description(analysis: Dict[str, Any]) -> str:
     elif ft['js'] + ft['ts'] + ft['jsx'] + ft['tsx'] > 0:
         return f"update {count} JavaScript file{'s' if count > 1 else ''}"
     elif ft['md'] > 0:
-        return f"update documentation"
+        return "update documentation"
     elif ft['json'] + ft['yaml'] + ft['yml'] > 0:
-        return f"update configuration"
+        return "update configuration"
     else:
         return f"update {count} file{'s' if count > 1 else ''}"
 
@@ -273,7 +270,7 @@ class GitOperations:
                 is_clean=len(staged) == 0 and len(modified) == 0 and len(untracked) == 0
             )
             
-        except Exception as e:
+        except Exception:
             return GitStatus(branch="unknown", is_clean=True)
     
     def list_branches(self, remote: bool = False) -> List[GitBranch]:
@@ -540,7 +537,7 @@ class GitOperations:
                                 'summary': current_summary
                             })
                         # Start new blame entry
-                        proc2 = subprocess.run(
+                        subprocess.run(
                             ['git', 'log', '-1', '--format=%H', current_commit],
                             cwd=self.repo_path, capture_output=True, text=True
                         )

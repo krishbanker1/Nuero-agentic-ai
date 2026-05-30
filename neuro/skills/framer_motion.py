@@ -1,5 +1,4 @@
 """Framer Motion - React animations using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class FramerMotion:

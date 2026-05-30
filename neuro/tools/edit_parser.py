@@ -454,7 +454,7 @@ class SafeFileWriterLite:
             full_path.write_text(content)
             self.written_files.append(path)
             return True
-        except Exception as e:
+        except Exception:
             return False
     
     def write(self, path: str, content: str) -> bool:
@@ -571,7 +571,7 @@ class ErrorRepairLoop:
         if not match:
             return None
         
-        module = match.group(1)
+        match.group(1)
         
         # Could add pip install command, but that's dangerous
         return None

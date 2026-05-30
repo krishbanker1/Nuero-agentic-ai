@@ -1,5 +1,5 @@
 """REST API Builder - Complete API generation using real AI"""
-from typing import Dict, Any, List
+from typing import Dict, Any
 from dataclasses import dataclass
 
 @dataclass

@@ -18,7 +18,7 @@ from pathlib import Path
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from neuro.executor.agent_loop import create_agent, run_goal
+from neuro.executor.agent_loop import create_agent
 
 
 def main():
@@ -287,7 +287,7 @@ Environment Variables:
         if args.scenario:
             print(f"║ Scenario: {args.scenario:<47}║")
         if args.no_parallel:
-            print(f"║ Parallel: DISABLED                                      ║")
+            print("║ Parallel: DISABLED                                      ║")
         print("╠══════════════════════════════════════════════════════════╣")
         print("║  4-ROLE AGENT LOOP                                       ║")
         print("║  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐        ║")

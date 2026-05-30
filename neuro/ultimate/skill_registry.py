@@ -6,8 +6,8 @@ for the ultimate autonomous coding system.
 """
 
 from typing import Dict, List, Any, Optional
-from neuro.ultimate import NeuroUltimateRegistry, TaskType
-from neuro.ultimate.orchestrator import UltimateOrchestrator, get_orchestrator
+from neuro.ultimate import NeuroUltimateRegistry
+from neuro.ultimate.orchestrator import get_orchestrator
 
 
 # =============================================================================

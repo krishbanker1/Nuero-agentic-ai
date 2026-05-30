@@ -3,7 +3,7 @@ Neuro Open Design Skills Integration (259+ skills)
 OpenHands skill library integration for extended capabilities
 """
 
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 

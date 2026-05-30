@@ -3,8 +3,7 @@ Lenis Smooth Scroll Skill - Smooth Scrolling
 Lenis integration with GSAP, Locomotive Scroll alternative
 """
 
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
+from typing import Dict, Any, Optional
 
 
 class LenisSmoothScrollSkill:

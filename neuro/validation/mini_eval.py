@@ -6,13 +6,11 @@ Local smoke tests to prove Neuro can really act
 import os
 import tempfile
 import shutil
-import subprocess
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
 from neuro.tools.edit_parser import (
-    StructuredEdit,
     CommandRunner,
     parse_structured_edit,
 )

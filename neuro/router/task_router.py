@@ -11,10 +11,9 @@ Usage:
     task_type = classify_task("Build a React login page")
 """
 
-from typing import Optional, List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any
 from enum import Enum
 import random
-import os
 
 
 class TaskRole(Enum):

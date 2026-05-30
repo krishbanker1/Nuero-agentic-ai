@@ -62,6 +62,18 @@ Note: Qwen and DeepSeek models are accessed via OpenRouter keys.
 - **Memory System**: Stores task history, model performance, fallback events
 - **Smoke Eval Harness**: Local smoke tests for autonomous coding capability
 
+
+### Production App Builder Layer
+
+Neuro now adds deterministic structure before asking the current free models to write code:
+
+- **ProductionScaffolder** chooses a local/free scaffold for full-stack apps, APIs, websites, presentations, or Python packages.
+- **ProductionBuildPipeline** splits generation into spec, backend/data, frontend, and tests/deployment stages.
+- Each stage includes required files, validation commands, and targeted repair prompts so small/free models can work on smaller verified slices.
+- Quality gates require non-empty files, local run/test instructions, no paid/card-required services, and no hardcoded secrets.
+
+This keeps the existing model/provider configuration as the brain while adding stronger deterministic engineering scaffolding around it.
+
 ## Usage
 
 ### Basic Autonomous Coding

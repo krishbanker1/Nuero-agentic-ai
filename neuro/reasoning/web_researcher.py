@@ -7,9 +7,6 @@ import json
 import re
 import os
 import subprocess
-import tempfile
-import shutil
-from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 
@@ -68,7 +65,6 @@ class WebResearcher:
     
     def _get_tavily_key(self) -> Optional[str]:
         """Get Tavily API key from environment."""
-        import os
         return os.environ.get("TAVILY_API_KEY")
     
     def research(self, topic: str, depth: str = "basic") -> ResearchResult:
@@ -284,7 +280,7 @@ class WebResearcher:
     
     def _extract_features_from_topic(self, topic: str) -> List[str]:
         """Extract features from topic name for enterprise-level app."""
-        words = topic.lower().replace("-", " ").replace("_", " ").split()
+        topic.lower().replace("-", " ").replace("_", " ").split()
         
         features = []
         topic_lower = topic.lower()
@@ -389,14 +385,14 @@ KEY FEATURES IDENTIFIED:
             context += f"{i}. {feature}\n"
         
         if result.tech_stack:
-            context += f"""
+            context += """
 RECOMMENDED TECH STACK:
 """
             for tech in result.tech_stack:
                 context += f"- {tech}\n"
         
         if result.references:
-            context += f"""
+            context += """
 REFERENCES:
 """
             for ref in result.references[:5]:

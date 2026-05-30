@@ -3,7 +3,7 @@ Chain of Thought Prompting - Simulates reasoning mode
 Key component for improving autonomous coding reliability
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
 from dataclasses import dataclass
 
 

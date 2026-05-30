@@ -13,9 +13,7 @@ Provides safe, structured access to codebase operations with:
 import os
 import re
 import subprocess
-import difflib
-import tempfile
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -207,7 +205,7 @@ class AgentCodingInterface:
             search_path = self.workspace_root
         
         results = []
-        symbol_lower = symbol_name.lower()
+        symbol_name.lower()
         
         # Common patterns for function/class definitions
         patterns = [
@@ -222,9 +220,6 @@ class AgentCodingInterface:
             
             for file in py_files:
                 file_path = Path(root) / file
-                start_line = 0
-                in_multiline_def = False
-                multiline_content = []
                 
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
@@ -670,7 +665,7 @@ class AgentCodingInterface:
         try:
             # Get git log for file
             cmd = [
-                'git', 'log', f'--oneline', f'-{commits}',
+                'git', 'log', '--oneline', f'-{commits}',
                 '--', str(target)
             ]
             
@@ -930,7 +925,6 @@ class AgentCodingInterface:
             output = result.stdout + result.stderr
             
             # Parse pytest output
-            current_test = None
             
             for line in output.split('\n'):
                 # Parse test result line

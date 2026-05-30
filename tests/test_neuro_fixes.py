@@ -363,7 +363,7 @@ class TestCommandRunner:
     def test_capture_stderr(self):
         """Test stderr is captured."""
         runner = CommandRunner("/tmp")
-        result = runner.run("ls /nonexistent_dir_12345")
+        runner.run("ls /nonexistent_dir_12345")
         # May or may not fail, but should capture output
     
     def test_command_timeout(self):
@@ -391,7 +391,7 @@ class TestCommandRunner:
         (tmp_path / "test_foo.py").write_text("def test_pass(): assert True")
         
         runner = CommandRunner(str(tmp_path))
-        result = runner.run_test()
+        runner.run_test()
         # May detect pytest or not, but should run something
 
 

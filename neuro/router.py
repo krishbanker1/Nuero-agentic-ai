@@ -7,7 +7,7 @@ import os
 import time
 from typing import List, Optional
 
-from neuro.models import APPROVED_MODELS, MODEL_ROLES
+from neuro.models import MODEL_ROLES
 
 
 # =============================================================================

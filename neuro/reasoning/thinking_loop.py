@@ -161,7 +161,8 @@ class ThinkingLoop:
         # Add any context values that were set during execution
         for key in [
             'enhanced_prompt', 'plan', 'tech_stack', 'features', 'architecture',
-            'research_context', 'production_scaffold', 'production_scaffold_prompt'
+            'research_context', 'production_scaffold', 'production_scaffold_prompt',
+            'production_build_plan', 'production_pipeline_prompt'
         ]:
             if key in context:
                 result_context[key] = context[key]
@@ -230,6 +231,12 @@ Task: """ + f"{goal}\n\n"
             base_prompt += (
                 "Deterministic production scaffold to follow (free/local only):\n"
                 f"{context['production_scaffold_prompt']}\n\n"
+            )
+
+        if context.get("production_pipeline_prompt"):
+            base_prompt += (
+                "Stage-by-stage production build pipeline:\n"
+                f"{context['production_pipeline_prompt']}\n\n"
             )
 
         # NEW: Include skill hints from orchestrator

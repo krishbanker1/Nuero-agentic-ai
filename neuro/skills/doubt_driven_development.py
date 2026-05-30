@@ -1,5 +1,4 @@
 """Doubt-Driven Development - Adversarial review before committing using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class DoubtDrivenDevelopment:

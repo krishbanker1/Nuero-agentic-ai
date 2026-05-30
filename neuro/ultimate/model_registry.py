@@ -22,7 +22,7 @@ API PROVIDERS (User's API Keys - ALL FREE):
 TOTAL: 56 LOCKED MODELS
 """
 
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 

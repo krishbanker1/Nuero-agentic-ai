@@ -5,27 +5,18 @@ Integrates all 100+ skills with auto-trigger system.
 Nothing remains unused - everything activates when needed.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 
 # Import all skill modules
 from neuro.ultimate.skills_100 import (
     ULTIMATE_SKILLS,
-    SkillAutoTrigger,
-    UltimateSkill,
     SkillCategory,
     get_auto_trigger,
-    auto_detect_skills,
-    get_all_skills,
     get_skill_count
 )
 
 from neuro.ultimate.auto_invocation import (
-    SkillOrchestrator,
-    TaskAnalyzer,
-    SkillInvoker,
-    orchestrate_task,
     execute_with_orchestration,
-    get_all_100_skills,
     analyze_and_show,
     get_skill_orchestrator
 )
@@ -34,7 +25,6 @@ from neuro.ultimate.mcp_server_registry import MCPServerRegistry, MCPServerManag
 
 from neuro.ultimate.graphics_skills import Neuro3DGraphicsSkills
 
-from neuro.ultimate.integration import NeuroUltimate as BaseNeuroUltimate
 
 
 # =============================================================================
@@ -171,7 +161,7 @@ NEURO ULTIMATE 100+ - COMPREHENSIVE SKILL REPORT
     
     def quick_learn(self) -> str:
         """Quick learning about the system."""
-        return f"""
+        return """
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║              NEURO ULTIMATE 100+ - QUICK START                         ║
 ╚══════════════════════════════════════════════════════════════════════════╝

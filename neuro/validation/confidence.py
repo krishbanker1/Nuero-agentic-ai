@@ -78,7 +78,7 @@ class ConfidenceChecker:
         # Extract test metrics
         passed = test_results.get("passed", 0)
         failed = test_results.get("failed", 0)
-        skipped = test_results.get("skipped", 0)
+        test_results.get("skipped", 0)
         total = test_results.get("total", 1)
         duration = test_results.get("duration_ms", 0)
         

@@ -67,8 +67,10 @@ class SkillOrchestrator:
             if skill["name"] not in detected:
                 detected.append(skill["name"])
 
-        if self._needs_production_scaffold(goal) and "production_scaffolder" not in detected:
-            detected.append("production_scaffolder")
+        if self._needs_production_scaffold(goal):
+            for scaffold_skill in ("production_scaffolder", "production_pipeline"):
+                if scaffold_skill not in detected:
+                    detected.append(scaffold_skill)
 
         # Wire in the ultimate registry without changing model/provider selection.
         enhanced_registry = self.enhanced_registry
@@ -139,6 +141,12 @@ class SkillOrchestrator:
                             enriched["production_scaffold"] = result["production_scaffold"]
                             if result.get("prompt_block"):
                                 enriched["production_scaffold_prompt"] = result["prompt_block"]
+                                skill_hints.append(result["prompt_block"])
+
+                        if "production_build_plan" in result:
+                            enriched["production_build_plan"] = result["production_build_plan"]
+                            if result.get("prompt_block"):
+                                enriched["production_pipeline_prompt"] = result["prompt_block"]
                                 skill_hints.append(result["prompt_block"])
                         
                         # Add MCP endpoint if available

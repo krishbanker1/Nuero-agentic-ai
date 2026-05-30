@@ -3,7 +3,7 @@ Skill Middleware for Smart Router
 Intercepts and enhances LLM calls with skill context
 """
 
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Callable
 from functools import wraps
 
 

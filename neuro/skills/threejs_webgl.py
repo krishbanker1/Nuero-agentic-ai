@@ -3,7 +3,7 @@ Three.js Core & WebGL Skill - 3D Graphics Engine
 Pure Three.js, WebGL shaders, geometries, materials, rendering
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
 
