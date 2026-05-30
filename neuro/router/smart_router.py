@@ -563,8 +563,9 @@ class SmartRouter:
     
     def complete(self, messages: List[Dict], model: Optional[str] = None, 
                  preferred_provider: Optional[Provider] = None, 
-                 skills: Optional[List[str]] = None,  # NEW: skills parameter
-                 max_tokens: int = 4096,  # Use 4096 for reliable provider support
+                 task_type: Optional[str] = None,  # NEW: task-based routing
+                 skills: Optional[List[str]] = None,  
+                 max_tokens: int = 4096,  
                  **kwargs) -> Dict[str, Any]:
         """
         Complete a request with smart provider selection AND skill integration.
@@ -573,12 +574,23 @@ class SmartRouter:
             messages: Chat messages
             model: Preferred model (optional, will auto-select if not provided)
             preferred_provider: Provider preference (optional)
+            task_type: Task category for model selection (optional, uses TASK_CATEGORIES)
             skills: Active skills for middleware (optional)
             **kwargs: Additional API parameters
             
         Returns:
             Dict with content, provider, model, usage info
         """
+        from neuro.models import TASK_CATEGORIES
+        
+        # Get models based on task_type
+        models_to_try = []
+        if task_type and task_type in TASK_CATEGORIES:
+            config = TASK_CATEGORIES[task_type]
+            models_to_try = [config["primary"]] + config.get("fallback", [])
+        elif model:
+            models_to_try = [model]
+        
         # NEW: Apply skill middleware pre-processing
         if MIDDLEWARE_AVAILABLE and self.middleware:
             if skills:
@@ -596,48 +608,59 @@ class SmartRouter:
         else:
             providers_to_try = available
         
-        # Try each provider
-        for provider in providers_to_try:
+        # Map model configs to providers (extract provider from model string)
+        def get_provider_from_model(model_config: str) -> Provider:
+            if "/" in model_config:
+                parts = model_config.split("/")
+                provider_name = parts[0].lower()
+            else:
+                return Provider.OPENROUTER
+            
+            provider_map = {
+                "gemini": Provider.GEMINI, "google": Provider.GEMINI,
+                "groq": Provider.GROQ, "openrouter": Provider.OPENROUTER,
+                "huggingface": Provider.HUGGINGFACE, "cloudflare": Provider.CLOUDFLARE,
+                "together": Provider.TOGETHER, "deepseek": Provider.OPENROUTER,
+                "qwen": Provider.OPENROUTER, "cohere": Provider.OPENROUTER,
+                "nvidia": Provider.OPENROUTER, "google": Provider.GEMINI,
+            }
+            return provider_map.get(provider_name, Provider.OPENROUTER)
+        
+        # Try each model in task-based order
+        for model_config in models_to_try:
+            provider = get_provider_from_model(model_config)
+            
+            if provider not in providers_to_try:
+                continue
             if self._is_cooldown(provider):
                 continue
             
-            # Select models to try (in order, not random)
-            if model:
-                models_to_try = [model]
+            # Extract model name from config
+            if "/" in model_config:
+                model = "/".join(model_config.split("/")[1:])
             else:
-                config = self.PROVIDERS[provider]
-                models_to_try = list(config.models)  # Try in order, not random
+                model = model_config
             
-            # Try each model for this provider
-            for selected_model in models_to_try:
-                # Call provider with max_tokens
-                call_kwargs = {**kwargs, "max_tokens": max_tokens}
-                if provider == Provider.GEMINI:
-                    result = self._call_gemini(selected_model, messages, **call_kwargs)
-                elif provider == Provider.GROQ:
-                    result = self._call_groq(selected_model, messages, **call_kwargs)
-                elif provider == Provider.OPENROUTER:
-                    result = self._call_openrouter(selected_model, messages, **call_kwargs)
-                elif provider == Provider.HUGGINGFACE:
-                    result = self._call_huggingface(selected_model, messages, **call_kwargs)
-                elif provider == Provider.CLOUDFLARE:
-                    result = self._call_cloudflare(selected_model, messages, **call_kwargs)
-                elif provider == Provider.TOGETHER:
-                    result = self._call_together(selected_model, messages, **call_kwargs)
-                else:
-                    continue
-                
-                if "error" not in result:
-                    # NEW: Apply skill middleware post-processing
-                    if MIDDLEWARE_AVAILABLE and self.middleware:
-                        result = self.middleware.postprocess(result)
-                    return result
-                
-                # Model failed, try next model from this provider
+            call_kwargs = {**kwargs, "max_tokens": max_tokens}
+            if provider == Provider.GEMINI:
+                result = self._call_gemini(model, messages, **call_kwargs)
+            elif provider == Provider.GROQ:
+                result = self._call_groq(model, messages, **call_kwargs)
+            elif provider == Provider.OPENROUTER:
+                result = self._call_openrouter(model, messages, **call_kwargs)
+            elif provider == Provider.HUGGINGFACE:
+                result = self._call_huggingface(model, messages, **call_kwargs)
+            elif provider == Provider.CLOUDFLARE:
+                result = self._call_cloudflare(model, messages, **call_kwargs)
+            elif provider == Provider.TOGETHER:
+                result = self._call_together(model, messages, **call_kwargs)
+            else:
                 continue
             
-            # All models for this provider failed, try next provider
-            continue
+            if "error" not in result:
+                if MIDDLEWARE_AVAILABLE and self.middleware:
+                    result = self.middleware.postprocess(result)
+                return result
         
         return {"error": "All providers failed or unavailable"}
     
