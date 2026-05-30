@@ -1,6 +1,6 @@
 """
 Self-Reflection - Critical for error correction
-Part of multi-pass reasoning for 75-80% performance
+Part of multi-pass reasoning for production-quality reliability
 """
 
 from typing import Dict, Any, List, Optional
@@ -21,7 +21,7 @@ class ReflectionResult:
 class SelfReflector:
     """
     Self-reflection to catch errors and improve solutions.
-    Key component for achieving high SWE-bench scores.
+    Key component for achieving high production repair reliability.
     """
     
     def __init__(self):

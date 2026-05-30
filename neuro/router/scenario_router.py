@@ -269,7 +269,7 @@ SCENARIO_KEYWORDS: Dict[ScenarioType, Tuple[List[str], List[str]]] = {
     ),
     ScenarioType.RESEARCH_TASK: (
         ["research", "investigate", "find out", "explore", "study", "analyze"],
-        ["compare", "benchmark"]
+        ["compare", "quality check"]
     ),
     ScenarioType.LONG_HORIZON: (
         ["large", "big", "complex", "enterprise", "saas", "system"],

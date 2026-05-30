@@ -1,6 +1,6 @@
 """
 Test Runner - Execute tests to validate fixes
-Critical for achieving high SWE-bench scores
+Critical for production-grade validation
 """
 
 import os

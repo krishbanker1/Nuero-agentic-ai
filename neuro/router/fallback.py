@@ -1,6 +1,6 @@
 """
 Fallback Handler - Automatic failover on provider failures
-Part of Smart Router for 75-80% reliability
+Part of Smart Router reliability
 """
 
 import time
@@ -44,7 +44,7 @@ class ProviderHealth:
 class FallbackHandler:
     """
     Handles automatic fallback when providers fail.
-    Ensures 75-80% success rate through intelligent failover.
+    Improves success through intelligent failover.
     """
     
     # Default fallback rules

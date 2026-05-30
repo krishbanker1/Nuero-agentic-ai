@@ -90,7 +90,7 @@ MAIN_BRAIN_TASKS: List[TaskBrainConfig] = [
         primary_model="openrouter-deepseek-v4-flash",
         fallback_1="gemini-3.5-flash",
         fallback_2="together-qwen-2.5-coder-32b",
-        primary_reason="Best coding model (39.8% on SWE-bench), 1M context, agentic",
+        primary_reason="Best coding model (strong code-repair performance), 1M context, agentic",
         is_gemini_primary=False
     ),
     

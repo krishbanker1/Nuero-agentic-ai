@@ -1,6 +1,6 @@
 """
 Chain of Thought Prompting - Simulates reasoning mode
-Key component for achieving 75-80% on SWE-bench
+Key component for improving autonomous coding reliability
 """
 
 from typing import List, Dict, Any, Optional
@@ -176,7 +176,7 @@ LESSONS LEARNED (for memory):
 class ChainOfThought:
     """
     Chain-of-Thought prompting to simulate reasoning mode.
-    Critical for achieving high SWE-bench scores with free models.
+    Critical for production-grade validation with free models.
     """
     
     def __init__(self, config: Optional[CoTConfig] = None):

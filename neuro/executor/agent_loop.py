@@ -1,5 +1,5 @@
 """
-Main Agent Loop - Orchestrates all components for 75-80% performance
+Main Agent Loop - Orchestrates components for production app builds
 Integrates: Router, Reasoning, Validation, Memory, Skills (259+)
 NOW WITH ECC-INSPIRED COMPONENTS:
 - Task Decomposer (planning)
@@ -10,15 +10,13 @@ NOW WITH ECC-INSPIRED COMPONENTS:
 - Autonomous Loops (self-improvement)
 """
 
-import os
 import time
-import json
-from typing import Dict, Any, Optional, List
+from typing import Dict, Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from neuro.router.smart_router import SmartRouter, _router
-from neuro.router.fallback import FallbackHandler, create_fallback_handler
+from neuro.router.smart_router import SmartRouter
+from neuro.router.fallback import create_fallback_handler
 from neuro.reasoning.chain_of_thought import ChainOfThought, CoTConfig
 from neuro.reasoning.thinking_loop import ThinkingLoop, LoopConfig
 from neuro.validation.test_runner import TestRunner
@@ -27,26 +25,13 @@ from neuro.memory.task_store import TaskStore
 
 # IMPORT ALL SKILLS FOR INTEGRATION
 from neuro.skills import (
-    SkillAutomation, SkillTrigger, SkillTriggerType,
-    MCPSkill, OpenDesignSkills, AgentMemorySkill, BrowserAutomation,
-    invoke_skill, mcp_connect, browse_web, store_memory, recall, 
-    get_context as get_memory_context, MemoryType, SKILL_REGISTRY,
-    SkillOrchestrator,  # Import from separate file
+    get_context as get_memory_context, SkillOrchestrator,  # Import from separate file
     
     # NEW: ECC-inspired skills
-    VerificationLoop, run_verification,
-    PythonPatternsSkill,
-    ContinuousLearning, get_learning_system,
-    AgentShieldSkill, run_security_scan,
-    MultiAgentOrchestrator, quick_orchestrate,
-    TaskDecomposer, create_plan,
-    AutonomousLoop, run_autonomous_loop,
-    
-    # NEW: Shell Executor & Self-Healing
-    ShellExecutor, quick_execute,
-    PlaywrightTester, test_created_app,
-    AutoFixLoop, AutoFixConfig, quick_fix,
-    AppLauncher, launch_app,
+    VerificationLoop, PythonPatternsSkill,
+    get_learning_system,
+    AgentShieldSkill, MultiAgentOrchestrator, TaskDecomposer, create_plan,
+    AutonomousLoop, ShellExecutor, PlaywrightTester, AutoFixLoop, AppLauncher,
 )
 
 # NEW: Import role-based agent swarm
@@ -55,7 +40,7 @@ from neuro.executor.role_agents import run_agent_swarm
 # NEW: Import scenario detection
 from neuro.router.scenario_router import ScenarioRouter
 
-# NEW: Advanced optimizations for 80%+ scores
+# Advanced production-quality orchestration features
 try:
     from neuro.executor.optimized_agent import (
         ModelEnsemble,
@@ -87,14 +72,14 @@ class AgentConfig:
     use_decomposer: bool = True  # ECC-style task planning
     use_verification: bool = True  # ECC verification loops
     use_security: bool = True  # AgentShield security
-    use_orchestration: bool = True  # ✅ Multi-agent ENABLED (critical for 80%+)
+    use_orchestration: bool = True  # ✅ Multi-agent ENABLED
     use_autonomous_loop: bool = True  # NEW: Self-improvement loops
     # NEW: Shell Executor & Self-Healing
     use_shell_executor: bool = True  # Execute shell commands
     use_auto_fix: bool = True  # Auto-fix errors
     use_playwright_test: bool = True  # Test UI/apps
     use_app_launcher: bool = True  # Launch apps/servers
-    # NEW: Advanced optimizations for 80%+ scores
+    # Advanced production-quality orchestration features
     use_test_voting: bool = True  # Run tests 3x for reliability
     use_ensemble_voting: bool = True  # Multiple models vote
     use_reflection_loop: bool = True  # Learn from failures
@@ -128,7 +113,7 @@ class AgentResult:
 class NeuroAgent:
     """
     Main Neuro Autonomous Agent.
-    Orchestrates all components for high SWE-bench performance.
+    Orchestrates all components for production-grade autonomous engineering.
     NOW WITH FULL 259+ SKILLS + ECC-INSPIRED COMPONENTS.
     """
     
@@ -202,7 +187,7 @@ class NeuroAgent:
         else:
             self.app_launcher = None
         
-        # NEW: Initialize advanced optimization components for 80%+
+        # Initialize advanced optimization components
         if OPTIMIZATIONS_AVAILABLE:
             self.model_ensemble = ModelEnsemble(self.router) if config.use_ensemble_voting else None
             self.test_voting = TestVoting(self.test_runner) if config.use_test_voting else None
@@ -331,6 +316,11 @@ class NeuroAgent:
                 learned_context = self.learning.get_context_for_task(self.config.goal)
                 if learned_context:
                     context["learned_patterns"] = learned_context
+
+            # Enrich thinking context with detected skills, ultimate task analysis,
+            # MCP recommendations, and enterprise/3D capability hints.
+            if self.skill_orchestrator:
+                context = self.skill_orchestrator.enrich_context(self.config.goal, context)
             
             # Invoke analysis-stage skills
             if self.skill_orchestrator:
@@ -379,7 +369,7 @@ class NeuroAgent:
                 
                 # DEBUG: Verify files exist
                 import os
-                print(f"🔍 Verifying files exist:")
+                print("🔍 Verifying files exist:")
                 for f in files_created:
                     exists = os.path.exists(f)
                     size = os.path.getsize(f) if exists else 0
@@ -535,7 +525,7 @@ class NeuroAgent:
             print(f"\n🔍 Solution length: {len(solution)} chars")
             has_json_marker = '"files"' in solution or solution.strip().startswith('{')
             print(f"🔍 Has JSON marker: {has_json_marker}")
-            print(f"\n📄 Solution content (first 1000 chars):")
+            print("\n📄 Solution content (first 1000 chars):")
             print(solution[:1000])
             
             # Fallback: If no JSON was parsed, try direct code block extraction
@@ -589,7 +579,7 @@ class NeuroAgent:
                 validation_passed = True
                 if self.config.verbose:
                     # Show what was created
-                    print(f"\n✅ Files created successfully")
+                    print("\n✅ Files created successfully")
                     print(f"   Created {len(files_created)} files:")
                     for f in files_created:
                         print(f"      - {f}")

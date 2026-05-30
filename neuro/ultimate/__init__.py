@@ -14,7 +14,26 @@ Features:
 - Advanced code generation and optimization
 """
 
-from typing import Dict, List, Optional, Any
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+# =============================================================================
+# TASK CLASSIFICATION
+# =============================================================================
+
+class TaskType(Enum):
+    """Task type classification shared by ultimate registries and orchestrators."""
+
+    CODING = "coding"
+    DESIGN = "design"
+    THREE_D_GRAPHICS = "3d_graphics"
+    ANIMATION = "animation"
+    DEPLOYMENT = "deployment"
+    TESTING = "testing"
+    RESEARCH = "research"
+    BUSINESS = "business"
+    CREATIVE = "creative"
+
 
 # =============================================================================
 # ULTIMATE SYSTEM REGISTRY
@@ -89,8 +108,16 @@ class NeuroUltimateRegistry:
             "repo": "BeehiveInnovations/pal-mcp-server",
             "stars": "11.6k",
             "capabilities": [
-                "claude_code_alternative", "gemini_cli", "codex_cli",
-                "multi_provider", "gemini", "openai", "openrouter", "azure", "grok", "ollama"
+                "claude_code_alternative",
+                "gemini_cli",
+                "codex_cli",
+                "multi_provider_cli",
+                "gemini",
+                "openai",
+                "openrouter",
+                "azure",
+                "grok",
+                "ollama",
             ],
             "install": "pip install pal-mcp-server",
             "priority": 1

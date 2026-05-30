@@ -892,7 +892,7 @@ TASK_ASSIGNMENTS: List[TaskAssignment] = [
         primary_model="openrouter-deepseek-v4-flash",
         secondary_model="gemini-3.5-flash",
         tertiary_model="together-qwen-2.5-coder-32b",
-        why_primary="Best coding model (39.8% on SWE-bench), 1M context, agentic",
+        why_primary="Best coding model (strong code-repair performance), 1M context, agentic",
         why_fallback="Gemini 3.5 Flash for reasoning + Qwen for specialized coding"
     ),
     

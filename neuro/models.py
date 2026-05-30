@@ -566,7 +566,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         requires_key=True,
         context_window=200000,
     ),
-    # NEW: DeepSeek V3 - Top free reasoning model (39.8% on SWE-bench)
+    # NEW: DeepSeek V3 - Top free reasoning model (strong code-repair performance)
     ModelMetadata(
         name="openrouter/deepseek/deepseek-v4-flash:free",
         provider="openrouter",

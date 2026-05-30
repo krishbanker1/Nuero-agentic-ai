@@ -1,6 +1,6 @@
 """
 Smart Router - Rotates across multiple FREE API providers
-Ensures 75-80% performance via intelligent model selection
+Improves reliability via intelligent model selection
 NOW WITH SKILL MIDDLEWARE INTEGRATION
 """
 

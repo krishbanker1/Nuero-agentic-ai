@@ -15,7 +15,7 @@ class TestExecutionWiring:
         """Test EngineerAgent chunk schema includes all path aliases."""
         from neuro.executor.role_agents import EngineerAgent
         
-        agent = EngineerAgent()
+        assert EngineerAgent().name == "EngineerAgent"
         
         # Verify the chunk schema supports path aliases
         # Engineer should create chunks with these fields
@@ -55,11 +55,11 @@ class TestExecutionWiring:
             
             # Run validator
             result = agent.run(task)
-            
-            # Check file was written to tmpdir, not cwd
             test_file = Path(tmpdir) / "test.py"
-            # The validator should write to configured working_dir
-            # Note: actual behavior depends on implementation
+
+            assert result.data["test_results"]["total"] >= 1
+            assert test_file.exists()
+            assert not (Path.cwd() / "test.py").exists()
 
 
 class TestLazySkills:
@@ -88,8 +88,7 @@ class TestLazySkills:
         for skill_name in lazy_skills:
             try:
                 # Should not raise AttributeError about wrong class name
-                skill_class = _lazy_get_skill(skill_name)
-                # skill_class may be None if module doesn't exist, but should not raise
+                assert _lazy_get_skill(skill_name) is not None
             except AttributeError as e:
                 if "Skill" in str(e):
                     pytest.fail(f"Lazy import uses wrong class name suffix for {skill_name}: {e}")
@@ -127,7 +126,7 @@ class TestReadmeContent:
     """Test that README doesn't advertise unproven benchmark claims."""
 
     def test_readme_no_unproven_benchmark_claims(self):
-        """Test README doesn't advertise SWE-bench/benchmark dependency or leaderboard."""
+        """Test README doesn't advertise benchmark dependency or competitive claims."""
         readme_path = Path(__file__).parent.parent / "README.md"
         
         if readme_path.exists():

@@ -1,5 +1,5 @@
 """
-Multi-Pass Thinking Loop - Core for 75-80% performance
+Multi-Pass Thinking Loop - Core for production-quality reliability
 Multiple reasoning passes to converge on solution
 """
 
@@ -59,7 +59,7 @@ class LoopConfig:
 class ThinkingLoop:
     """
     Multi-pass thinking loop for robust problem solving.
-    Key to achieving 75-80% by catching errors early.
+    Key to improving reliability by catching errors early.
     """
     
     def __init__(self, router, config: Optional[LoopConfig] = None):

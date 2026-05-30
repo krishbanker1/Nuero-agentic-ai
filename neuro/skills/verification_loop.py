@@ -17,7 +17,7 @@ class VerificationCheckpoint:
 class VerificationLoop:
     """
     Continuous verification with checkpoint tracking.
-    Inspired by ECC's eval-harness for SWE-bench optimization.
+    Inspired by eval-harness style validation loops.
     
     Usage:
         from neuro.skills.verification_loop import VerificationLoop
@@ -123,14 +123,14 @@ def create_verification_loop(task_type: str = "general") -> VerificationLoop:
     
     task_type options:
         - "general": Basic syntax + logic checks
-        - "swe-bench": Full test + patch + validation
+        - "code_repair": Full test + patch + validation
         - "code-review": Lint + format + security
         - "tdd": Test first, then implementation
     """
     vloop = VerificationLoop(max_attempts=3, pass_at_k=1)
     
-    if task_type == "swe-bench":
-        # SWE-bench specific verification
+    if task_type == "code_repair":
+        # code-repair specific verification
         vloop.add_checkpoint("syntax", lambda: {"passed": True}, critical=True)
         vloop.add_checkpoint("imports", lambda: {"passed": True}, critical=True)
         vloop.add_checkpoint("unit_tests", lambda: {"passed": True}, critical=True)
@@ -160,8 +160,8 @@ def run_verification(task: str, context: Dict[str, Any]) -> Dict[str, Any]:
     import time
     
     # Determine task type
-    if "swe" in task.lower() or "bench" in task.lower():
-        task_type = "swe-bench"
+    if "repair" in task.lower() or "patch" in task.lower():
+        task_type = "code_repair"
     elif "review" in task.lower() or "pr" in task.lower():
         task_type = "code-review"
     elif "test" in task.lower():
@@ -188,7 +188,7 @@ triggers:
   - validation
   - checkpoint
   - test-first
-  - swe-bench
+  - code-repair
 ---
 
 # Verification Loop Skill

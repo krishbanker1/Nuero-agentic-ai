@@ -2,12 +2,14 @@
 Skill Orchestrator - Coordinates 259+ skills across agent lifecycle
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List
+
+from neuro.skills.agent_memory import MemoryType, remember
+from neuro.skills.agent_memory import get_context as get_memory_context
 
 # Import directly from modules to avoid circular imports
 from neuro.skills.automation import SkillAutomation
 from neuro.skills.open_design_skills import OpenDesignSkills
-from neuro.skills.agent_memory import remember, recall, get_context as get_memory_context, MemoryType
 
 # SKILL_REGISTRY will be set after all imports complete
 SKILL_REGISTRY = {}
@@ -23,9 +25,26 @@ class SkillOrchestrator:
         self.verbose = verbose
         self.active_skills: List[str] = []
         self.skill_results: Dict[str, Any] = {}
+        self.ultimate_analysis: Dict[str, Any] = {}
         # Lazy import SKILL_REGISTRY to avoid circular imports
         self._registry = None
+        self._enhanced_registry = None
     
+
+    @property
+    def enhanced_registry(self):
+        """Lazy load the ultimate registry so core skills and MCP hints are wired in."""
+        if self._enhanced_registry is None:
+            try:
+                from neuro.ultimate.skill_registry import get_enhanced_registry
+
+                self._enhanced_registry = get_enhanced_registry()
+            except Exception as exc:
+                if self.verbose:
+                    print(f"⚠️ Ultimate registry unavailable: {exc}")
+                self._enhanced_registry = False
+        return self._enhanced_registry or None
+
     @property
     def skill_registry(self):
         """Lazy load SKILL_REGISTRY to avoid circular imports."""
@@ -37,24 +56,42 @@ class SkillOrchestrator:
     def detect_skills(self, goal: str, context: Dict[str, Any] = None) -> List[str]:
         """Auto-detect which skills to invoke based on goal and context."""
         context = context or {}
-        
+
         # Use SkillAutomation for keyword-based detection
         trigger_result = SkillAutomation.auto_trigger(goal, context)
         detected = trigger_result.get("detected_skills", [])
-        
+
         # Also check OpenDesignSkills for specific matches
         open_result = OpenDesignSkills.invoke(goal, context)
         for skill in open_result.get("matched_skills", []):
             if skill["name"] not in detected:
                 detected.append(skill["name"])
-        
-        self.active_skills = list(set(detected))
-        
+
+        # Wire in the ultimate registry without changing model/provider selection.
+        enhanced_registry = self.enhanced_registry
+        if enhanced_registry:
+            try:
+                self.ultimate_analysis = enhanced_registry.get_skills_for_task(goal, context)
+                for skill in self.ultimate_analysis.get("selected_skills", []):
+                    if skill["name"] not in detected:
+                        detected.append(skill["name"])
+                for skill in self.ultimate_analysis.get("matched_3d_skills", []):
+                    if skill["name"] not in detected:
+                        detected.append(skill["name"])
+                for skill in self.ultimate_analysis.get("matched_enterprise_skills", []):
+                    if skill["name"] not in detected:
+                        detected.append(skill["name"])
+            except Exception as exc:
+                if self.verbose:
+                    print(f"⚠️ Ultimate skill detection error: {exc}")
+
+        self.active_skills = sorted(set(detected))
+
         if self.verbose and self.active_skills:
             print(f"🎯 Skills detected: {', '.join(self.active_skills)}")
-        
+
         return self.active_skills
-    
+
     def enrich_context(self, goal: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Enrich context with skill-specific information."""
         enriched = context.copy()
@@ -66,6 +103,16 @@ class SkillOrchestrator:
                 registry = self.skill_registry
                 if skill_name in registry:
                     skill_class = registry[skill_name]
+                    if skill_class is None:
+                        try:
+                            from neuro.skills import _lazy_get_skill
+
+                            skill_class = _lazy_get_skill(skill_name)
+                            registry[skill_name] = skill_class
+                        except Exception as exc:
+                            if self.verbose:
+                                print(f"⚠️ Lazy skill {skill_name} unavailable: {exc}")
+                            skill_class = None
                     if hasattr(skill_class, 'invoke'):
                         result = skill_class.invoke(goal, {"context": context})
                         self.skill_results[skill_name] = result
@@ -92,9 +139,14 @@ class SkillOrchestrator:
                 if self.verbose:
                     print(f"⚠️ Skill {skill_name} error: {e}")
         
+        if self.ultimate_analysis:
+            enriched["ultimate_task_analysis"] = self.ultimate_analysis
+            enriched["mcp_servers"] = self.ultimate_analysis.get("mcp_servers", [])
+            enriched["task_type"] = self.ultimate_analysis.get("task_type")
+
         if skill_hints:
             enriched["skill_hints"] = "\n".join(skill_hints)
-        
+
         return enriched
     
     def invoke_skills_for_stage(self, stage: str, data: Any) -> Dict[str, Any]:
@@ -116,11 +168,22 @@ class SkillOrchestrator:
                 try:
                     if skill_name in registry:
                         skill_class = registry[skill_name]
+                        if skill_class is None:
+                            try:
+                                from neuro.skills import _lazy_get_skill
+
+                                skill_class = _lazy_get_skill(skill_name)
+                                registry[skill_name] = skill_class
+                            except Exception as exc:
+                                if self.verbose:
+                                    print(f"⚠️ Lazy stage skill {skill_name} unavailable: {exc}")
+                                skill_class = None
                         if hasattr(skill_class, 'invoke'):
                             result = skill_class.invoke(str(data), {"stage": stage})
                             results[skill_name] = result
-                except:
-                    pass
+                except Exception as exc:
+                    if self.verbose:
+                        print(f"⚠️ Stage skill {skill_name} error: {exc}")
         
         return results
     
@@ -140,5 +203,6 @@ class SkillOrchestrator:
                 tags=tags,
                 context=context
             )
-        except:
-            pass
+        except Exception as exc:
+            if self.verbose:
+                print(f"⚠️ Skill learning error: {exc}")

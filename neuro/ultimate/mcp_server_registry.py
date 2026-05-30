@@ -5,7 +5,7 @@ Integrates 500+ MCP servers from awesome-mcp-servers with smart
 server selection, installation helpers, and runtime management.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import json

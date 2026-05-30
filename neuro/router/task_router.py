@@ -451,7 +451,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     },
     
     # -------------------------------------------------------------------------
-    # Coding Roles - MOST IMPORTANT FOR SWE-bench
+    # Coding Roles - core repair and build roles
     # -------------------------------------------------------------------------
     TaskRole.FILE_INSPECTOR: {
         "primary": [
@@ -1378,7 +1378,6 @@ def run_code_repair_model_chain() -> List[Tuple[Provider, str]]:
     return get_code_repair_model_chain()
 
 # Alias for backwards compatibility
-get_swe_bench_model_chain = get_code_repair_model_chain
 
 # ============================================================================
 # SUMMARY STATS
