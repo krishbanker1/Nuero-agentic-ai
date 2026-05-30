@@ -25,15 +25,28 @@ except ImportError:
 # =============================================================================
 
 class Provider(Enum):
-    """Available API providers."""
+    """Available API providers - FREE TIER ONLY.
+    
+    CONFIRMED FREE:
+    - Gemini (Google): 15 RPM, generous quota
+    - Groq: Very generous free tier, fast inference
+    - OpenRouter: 100+ :free models (deepseek, qwen, llama, etc)
+    - Cloudflare: Workers AI free tier
+    - HuggingFace: Inference API free tier
+    
+    REQUIRES PAID (added but will fail without key):
+    - Mistral, Cohere, Perplexity, DeepSeek, Together
+    """
     GEMINI = "gemini"
     GROQ = "groq"
     OPENROUTER = "openrouter"
     HUGGINGFACE = "huggingface"
-    TOGETHER = "together"
     CLOUDFLARE = "cloudflare"
-    DEEPSEEK = "deepseek"  # Via OpenRouter
-    QWEN = "qwen"  # Via OpenRouter
+    TOGETHER = "together"
+    MISTRAL = "mistral"
+    COHERE = "cohere"
+    PERPLEXITY = "perplexity"
+    DEEPSEEK = "deepseek"
 
 
 # =============================================================================
@@ -178,8 +191,17 @@ class SmartRouter:
             base_url="https://api.groq.com/openai/v1",
             api_key_env="GROQ_API_KEYS",
             models=[
+                # GPT-OSS models - Best reasoning
+                "openai/gpt-oss-120b",
+                "openai/gpt-oss-20b",
+                # Qwen - Coding specialized
+                "qwen/qwen3-32b",
+                # Llama - Fast versatile
                 "llama-3.3-70b-versatile",
                 "llama-3.1-8b-instant",
+                # Groq Compound - Agentic with tools
+                "groq/compound",
+                "groq/compound-mini",
             ],
             rate_limit=30,
         ),
@@ -243,6 +265,53 @@ class SmartRouter:
                 "Qwen/Qwen2.5-72B-Instruct",
                 "mistralai/Mixtral-8x7B-Instruct",
                 "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+            ],
+            rate_limit=30,
+        ),
+        # Mistral AI - REQUIRES PAID KEY
+        Provider.MISTRAL: ProviderConfig(
+            name=Provider.MISTRAL,
+            base_url="https://api.mistral.ai/v1",
+            api_key_env="MISTRAL_API_KEY",
+            models=[
+                "mistral-small-latest",
+                "mistral-medium-latest",
+                "mistral-large-latest",
+            ],
+            rate_limit=30,
+        ),
+        # Cohere - REQUIRES PAID KEY
+        Provider.COHERE: ProviderConfig(
+            name=Provider.COHERE,
+            base_url="https://api.cohere.ai/v1",
+            api_key_env="COHERE_API_KEY",
+            models=[
+                "command-r-plus",
+                "command-r",
+                "command",
+            ],
+            rate_limit=30,
+        ),
+        # Perplexity - REQUIRES PAID KEY
+        Provider.PERPLEXITY: ProviderConfig(
+            name=Provider.PERPLEXITY,
+            base_url="https://api.perplexity.ai",
+            api_key_env="PERPLEXITY_API_KEY",
+            models=[
+                "sonar",
+                "sonar-pro",
+            ],
+            rate_limit=30,
+        ),
+        # DeepSeek - REQUIRES PAID KEY  
+        Provider.DEEPSEEK: ProviderConfig(
+            name=Provider.DEEPSEEK,
+            base_url="https://api.deepseek.com/v1",
+            api_key_env="DEEPSEEK_API_KEY",
+            models=[
+                "deepseek-chat",
+                "deepseek-coder",
+                "deepseek-reasoner",
             ],
             rate_limit=30,
         ),
@@ -489,6 +558,157 @@ class SmartRouter:
             self._record_failure(Provider.TOGETHER, model, str(e))
             return {"error": str(e)}
     
+    def _call_mistral(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        """Call Mistral AI."""
+        try:
+            from mistralai.client import MistralClient
+        except ImportError:
+            return {"error": "pip install mistralai"}
+        
+        api_key = self._get_api_key(Provider.MISTRAL)
+        if not api_key:
+            return {"error": "No Mistral API key found"}
+        
+        try:
+            client = MistralClient(api_key=api_key)
+            
+            clean_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k in ["temperature", "max_tokens", "top_p"]
+            }
+            
+            response = client.chat(
+                model=model,
+                messages=[{"role": m["role"], "content": m["content"]} for m in messages],
+                **clean_kwargs
+            )
+            
+            self._record_success(Provider.MISTRAL, model)
+            
+            return {
+                "content": response.choices[0].message.content,
+                "provider": "mistral",
+                "model": model,
+            }
+        except Exception as e:
+            self._record_failure(Provider.MISTRAL, model, str(e))
+            return {"error": str(e)}
+    
+    def _call_cohere(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        """Call Cohere API."""
+        try:
+            import cohere
+        except ImportError:
+            return {"error": "pip install cohere"}
+        
+        api_key = self._get_api_key(Provider.COHERE)
+        if not api_key:
+            return {"error": "No Cohere API key found"}
+        
+        try:
+            client = cohere.Client(api_key=api_key)
+            
+            clean_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k in ["temperature", "max_tokens", "p", "frequency_penalty", "presence_penalty"]
+            }
+            
+            response = client.chat(
+                model=model,
+                message=messages[-1]["content"] if messages else "",
+                chat_history=[{"role": m["role"], "message": m["content"]} for m in messages[:-1]],
+                **clean_kwargs
+            )
+            
+            self._record_success(Provider.COHERE, model)
+            
+            return {
+                "content": response.text,
+                "provider": "cohere",
+                "model": model,
+            }
+        except Exception as e:
+            self._record_failure(Provider.COHERE, model, str(e))
+            return {"error": str(e)}
+    
+    def _call_deepseek_api(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        """Call DeepSeek Direct API."""
+        try:
+            from openai import OpenAI
+        except ImportError:
+            return {"error": "pip install openai"}
+        
+        api_key = self._get_api_key(Provider.DEEPSEEK)
+        if not api_key:
+            return {"error": "No DeepSeek API key found"}
+        
+        try:
+            client = OpenAI(
+                api_key=api_key,
+                base_url="https://api.deepseek.com/v1"
+            )
+            
+            clean_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k in ["temperature", "max_tokens"]
+            }
+            
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                **clean_kwargs
+            )
+            
+            self._record_success(Provider.DEEPSEEK, model)
+            
+            return {
+                "content": response.choices[0].message.content,
+                "provider": "deepseek",
+                "model": model,
+            }
+        except Exception as e:
+            self._record_failure(Provider.DEEPSEEK, model, str(e))
+            return {"error": str(e)}
+    
+    def _call_perplexity(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        """Call Perplexity AI API."""
+        try:
+            from openai import OpenAI
+        except ImportError:
+            return {"error": "pip install openai"}
+        
+        api_key = self._get_api_key(Provider.PERPLEXITY)
+        if not api_key:
+            return {"error": "No Perplexity API key found"}
+        
+        try:
+            client = OpenAI(
+                api_key=api_key,
+                base_url="https://api.perplexity.ai"
+            )
+            
+            clean_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k in ["temperature", "max_tokens"]
+            }
+            
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                **clean_kwargs
+            )
+            
+            self._record_success(Provider.PERPLEXITY, model)
+            
+            return {
+                "content": response.choices[0].message.content,
+                "provider": "perplexity",
+                "model": model,
+            }
+        except Exception as e:
+            self._record_failure(Provider.PERPLEXITY, model, str(e))
+            return {"error": str(e)}
+    
     def _record_success(self, provider: Provider, model: str):
         """Record successful call."""
         with self.stats.lock:
@@ -700,20 +920,25 @@ class SmartRouter:
                 # Map provider to enum
                 provider_map = {
                     "gemini": Provider.GEMINI,
-                    "google": Provider.GEMINI,  # Alias for Gemini
+                    "google": Provider.GEMINI,
                     "groq": Provider.GROQ,
                     "openrouter": Provider.OPENROUTER,
                     "huggingface": Provider.HUGGINGFACE,
                     "cloudflare": Provider.CLOUDFLARE,
                     "together": Provider.TOGETHER,
-                    "deepseek": Provider.OPENROUTER,  # Via OpenRouter
+                    "deepseek": Provider.DEEPSEEK,
                     "qwen": Provider.OPENROUTER,  # Via OpenRouter
+                    "mistral": Provider.MISTRAL,
+                    "cohere": Provider.COHERE,
+                    "perplexity": Provider.PERPLEXITY,
                 }
                 
                 provider_enum = provider_map.get(provider, Provider.OPENROUTER)
                 
                 # Call the provider
-                if provider_enum == Provider.GROQ:
+                if provider_enum == Provider.GEMINI:
+                    result = self._call_gemini(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.GROQ:
                     result = self._call_groq(model, messages, max_tokens=max_tokens)
                 elif provider_enum == Provider.OPENROUTER:
                     result = self._call_openrouter(model, messages, max_tokens=max_tokens)
@@ -723,8 +948,14 @@ class SmartRouter:
                     result = self._call_cloudflare(model, messages, max_tokens=max_tokens)
                 elif provider_enum == Provider.TOGETHER:
                     result = self._call_together(model, messages, max_tokens=max_tokens)
-                elif provider_enum == Provider.GEMINI:
-                    result = self._call_gemini(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.MISTRAL:
+                    result = self._call_mistral(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.COHERE:
+                    result = self._call_cohere(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.DEEPSEEK:
+                    result = self._call_deepseek_api(model, messages, max_tokens=max_tokens)
+                elif provider_enum == Provider.PERPLEXITY:
+                    result = self._call_perplexity(model, messages, max_tokens=max_tokens)
                 else:
                     continue
                 
