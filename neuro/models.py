@@ -850,164 +850,148 @@ def get_model_by_name(name: str) -> Optional[ModelMetadata]:
 
 
 # Task-to-Model Assignment with 20 Categories - Optimized to beat Kimi 2.6, Manus 1.6, Claude Code, Codex
-# =============================================================================
-# ACTUALLY WORKING FREE MODELS (Tested 2026-05-29)
-# =============================================================================
-# GEMINI (3 working, 1 quota-exhausted):
-#   ✅ gemini-3.5-flash - Best for coding + reasoning
-#   ✅ gemini-2.5-flash - Great price-performance
-#   ✅ gemini-2.5-flash-lite - Fastest, cheapest
-#   ⏳ gemini-2.0-flash - QUOTA EXHAUSTED
-#
-# GROQ (2 working, 2 not found):
-#   ✅ llama-3.3-70b-versatile - Fast, large model
-#   ✅ llama-3.1-8b-instant - Ultra fast, small tasks
-#   ❌ gpt-oss-120b - 404 (not available on Groq)
-#   ❌ qwen/qwen3-32b - 404 (not available on Groq)
-#
-# OPENROUTER (no keys - can't use free tier)
-
 TASK_CATEGORIES = {
     # =============================================================================
-    # TASK CATEGORIES - Only using WORKING free models
+    # OPTIMIZED TASK CATEGORIES - 20 Types with Best Model Assignments
+    # Optimized to beat: Kimi 2.6, Manus 1.6, Claude Code, Codex
     # =============================================================================
     
-    # 1. CODE GENERATION - Groq 70B (fastest for code)
+    # 1. CODE GENERATION - DeepSeek V3 (39.8% SWE-bench winner)
     "code_generation": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile"],
         "roles": ["coder", "planner"],
-        "description": "Full app/feature implementation - Groq is fastest"
+        "description": "Full app/feature implementation"
     },
     
-    # 2. DEEP REASONING - Gemini 3.5 Flash (best reasoning + coding)
+    # 2. DEEP REASONING - Gemini 2.0 Flash Exp (best reasoning)
     "deep_reasoning": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "primary": "gemini/gemini-2.0-flash",
+        "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner", "architect"],
         "description": "Complex reasoning, planning, analysis"
     },
     
-    # 3. BUG DETECTION / DEBUGGING - Gemini 3.5 Flash
+    # 3. BUG DETECTION / DEBUGGING - Qwen3 Coder (specialized)
     "bug_detection": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "primary": "openrouter/qwen/qwen3-coder:free",
+        "fallback": ["huggingface/WizardCoder-33B", "groq/qwen/qwen3-32b"],
         "roles": ["debugger", "coder"],
         "description": "Bug finding and diagnosis"
     },
     "debugging": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "primary": "openrouter/qwen/qwen3-coder:free",
+        "fallback": ["huggingface/WizardCoder-33B", "groq/qwen/qwen3-32b"],
         "roles": ["debugger", "coder"],
         "description": "Error fixing, stack trace analysis"
     },
     
-    # 4. CODE REVIEW - Groq 70B (large model, complex analysis)
+    # 4. CODE REVIEW - GPT-OSS 120B (complex analysis)
     "code_review": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "groq/openai/gpt-oss-120b",
+        "fallback": ["cohere/command-r-plus", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["reviewer", "architect"],
         "description": "PR reviews, quality assessment"
     },
     
-    # 5. TEST WRITING / TESTING_QA - Groq 70B
+    # 5. TEST WRITING / TESTING_QA - Qwen3 Coder
     "test_writing": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "openrouter/qwen/qwen3-coder:free",
+        "fallback": ["together/qwen-2.5-coder-32b-instruct", "huggingface/CodeLlama-70B-Instruct"],
         "roles": ["validator", "coder"],
         "description": "Unit tests, integration tests"
     },
     "testing_qa": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "openrouter/qwen/qwen3-coder:free",
+        "fallback": ["together/qwen-2.5-coder-32b-instruct", "huggingface/CodeLlama-70B-Instruct"],
         "roles": ["validator", "coder"],
         "description": "QA automation, E2E tests"
     },
     
-    # 6. REFACTORING - Gemini 3.5 Flash (coding expert)
+    # 6. REFACTORING - Gemini 3.5 Flash (clean code)
     "refactoring": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["refactor", "reviewer"],
         "description": "Code restructuring, optimization"
     },
     "code_refactoring": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["refactor", "reviewer"],
         "description": "Code improvement, pattern application"
     },
     
-    # 7. FAST RESPONSE - Gemini 2.5 Flash-Lite (fastest, cheapest)
+    # 7. FAST RESPONSE - Gemini 2.5 Flash Lite (fast, cheap)
     "fast_response": {
         "primary": "gemini/gemini-2.5-flash-lite",
-        "fallback": ["groq/llama-3.1-8b-instant", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-3.1-flash-lite", "groq/llama-3.1-8b-instant"],
         "roles": ["coder"],
-        "description": "Quick answers, simple tasks - Lite is fastest"
+        "description": "Quick answers, simple tasks"
     },
     "code_completion": {
         "primary": "gemini/gemini-2.5-flash-lite",
-        "fallback": ["groq/llama-3.1-8b-instant", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-3.1-flash-lite", "groq/llama-3.1-8b-instant"],
         "roles": ["coder"],
         "description": "Autocomplete, snippet generation"
     },
     
-    # 8. LONG CONTEXT - Gemini 3.5 Flash (1M+ token context)
+    # 8. LONG CONTEXT - Gemini 3.5 Flash (1M token context)
     "long_context": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["architect", "planner"],
         "description": "Large codebase, 1M+ context"
     },
     
-    # 9. BACKEND_API - Gemini 3.5 Flash (coding + agentic)
+    # 9. BACKEND_API - Gemini 3.5 Flash (great for FastAPI, Express)
     "backend_api": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "REST, GraphQL, FastAPI, backend logic"
     },
     "api_development": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "API design, Express, Node.js"
     },
     
-    # 10. FRONTEND_REACT - Gemini 3.5 Flash (multimodal, coding)
+    # 10. FRONTEND_REACT - Gemini 3.5 Flash (multimodal, fast)
     "frontend_react": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["frontend", "coder"],
         "description": "React, Next.js, Vue, Svelte"
     },
     "frontend_ui": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["frontend", "coder"],
         "description": "HTML/CSS, UI components"
     },
     
-    # 11. DATABASE_SQL - Gemini 3.5 Flash
+    # 11. DATABASE_SQL - Gemini 3.5 Flash (schema design)
     "database_sql": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["openrouter/nvidia/nemotron-3-super-120b-a12b:free", "cohere/command-r-plus"],
         "roles": ["coder", "architect"],
         "description": "SQL, PostgreSQL, MongoDB, migrations"
     },
     
-    # 12. DEVOPS_DEPLOYMENT - Groq 70B (planning + coding)
+    # 12. DEVOPS_DEPLOYMENT - Gemini 3.5 Flash (comprehensive)
     "devops_deployment": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "gemini/gemini-3.5-flash",
+        "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["coder", "architect"],
         "description": "Docker, K8s, CI/CD, AWS, GCP"
     },
     
-    # 13. SECURITY_AUDIT - Groq 70B (complex analysis)
+    # 13. SECURITY_AUDIT - GPT-OSS 120B (thorough analysis)
     "security_audit": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "groq/openai/gpt-oss-120b",
+        "fallback": ["openrouter/nvidia/nemotron-3-super-120b-a12b:free", "cohere/command-r-plus"],
         "roles": ["reviewer", "debugger"],
         "description": "Vulnerability scanning, fixes"
     },
@@ -1020,70 +1004,70 @@ TASK_CATEGORIES = {
         "description": "README, API docs, comments"
     },
     
-    # 15. DATA_ANALYSIS - Gemini 3.5 Flash (coding + reasoning)
+    # 15. DATA_ANALYSIS - Gemini 3.5 Flash (Pandas, visualization)
     "data_analysis": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["together/qwen-2.5-72b-instruct", "huggingface/Qwen2.5-Coder-32B-Instruct"],
         "roles": ["coder", "planner"],
         "description": "Pandas, NumPy, analytics, Jupyter"
     },
     
-    # 16. MOBILE_DEVELOPMENT - Gemini 3.5 Flash
+    # 16. MOBILE_DEVELOPMENT - Gemini 3.5 Flash (cross-platform)
     "mobile_development": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["frontend", "coder"],
         "description": "iOS, Android, React Native, Flutter"
     },
     
-    # 17. ML_AI_TASKS - Gemini 3.5 Flash
+    # 17. ML_AI_TASKS - HuggingFace specialized models
     "ml_ai_tasks": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "primary": "huggingface/DeepSeek-Coder-V2",
+        "fallback": ["together/deepseek-coder-v2-instruct", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "planner"],
         "description": "ML pipelines, AI training"
     },
     
-    # 18. PERFORMANCE_OPT - Gemini 3.5 Flash
+    # 18. PERFORMANCE_OPT - DeepSeek V3 (optimization expert)
     "performance_opt": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
+        "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Profiling, caching, optimization"
     },
     "performance_optimization": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini/gemini-2.5-flash"],
+        "primary": "openrouter/deepseek/deepseek-v4-flash:free",
+        "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Performance tuning, benchmarks"
     },
     
-    # 19. GIT_OPERATIONS - Groq 8B (quick commands)
+    # 19. GIT_OPERATIONS - Groq fast model
     "git_operations": {
         "primary": "groq/llama-3.1-8b-instant",
-        "fallback": ["gemini/gemini-2.5-flash-lite", "gemini/gemini-2.5-flash"],
+        "fallback": ["gemini/gemini-2.5-flash-lite", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Git commands, PRs, merges"
     },
     
-    # 20. ARCHITECTURE_DESIGN - Groq 70B (large model)
+    # 20. ARCHITECTURE_DESIGN - GPT-OSS 120B (system design)
     "architecture_design": {
-        "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash"],
+        "primary": "groq/openai/gpt-oss-120b",
+        "fallback": ["gemini/gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["architect", "planner"],
         "description": "System design, microservices, patterns"
     },
     
-    # 21. NATURAL_LANGUAGE - Gemini 3.5 Flash (multimodal)
+    # 21. NATURAL_LANGUAGE - Gemini 3.5 Flash (NLP expert)
     "natural_language": {
         "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.1-8b-instant"],
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["planner"],
         "description": "Chatbots, summarization, NLP"
     },
     "office_document_generation": {
-        "primary": "gemini/gemini-2.5-flash",
-        "fallback": ["gemini/gemini-3.5-flash", "gemini/gemini-2.5-flash-lite"],
+        "primary": "gemini/gemini-3.5-flash",
+        "fallback": ["gemini/gemini-2.5-flash", "openrouter/google/gemma-4-31b-it:free"],
         "roles": ["planner"],
         "description": "Word, Excel, PowerPoint generation"
     },
@@ -1096,10 +1080,10 @@ TASK_CATEGORIES = {
         "description": "Image understanding, file processing"
     },
     
-    # 23. REASONING_PLANNING - Gemini 3.5 Flash
+    # 23. REASONING_PLANNING - GPT-OSS 120B + Gemini Flash
     "reasoning_planning": {
-        "primary": "gemini/gemini-3.5-flash",
-        "fallback": ["gemini/gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
+        "primary": "groq/openai/gpt-oss-120b",
+        "fallback": ["gemini/gemini-2.0-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner", "architect"],
         "description": "Strategic planning, task decomposition"
     },
