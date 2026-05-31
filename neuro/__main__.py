@@ -50,19 +50,14 @@ def _print_provider_key_help() -> None:
     print("  OpenRouter: https://openrouter.ai/keys", file=sys.stderr)
     print("  HuggingFace: https://huggingface.co/settings/tokens", file=sys.stderr)
 
-
-
-def _resolve_dry_run(args: argparse.Namespace) -> bool:
-    """Resolve CLI execution mode: apply by default, preview only with --dry-run."""
-    return bool(getattr(args, "dry_run", False)) and not bool(getattr(args, "apply", False))
-
 def main():
     parser = argparse.ArgumentParser(
         description="Neuro Autonomous Agent - Enterprise App Builder System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m neuro --goal "Build a CRM for real estate agents"
+  python -m neuro --goal "Build a CRM for real estate agents"   # writes files
+  python -m neuro --goal "Build a CRM for real estate agents" --dry-run  # preview only
   python -m neuro --mode enterprise --goal "Build a SaaS app"
   python -m neuro --mode debug --goal "Fix this app until it runs"
   python -m neuro --mode website --goal "Create a landing page"
@@ -171,7 +166,7 @@ Environment Variables:
         "--dry-run",
         action="store_true",
         default=None,
-        help="Preview plan without applying file changes"
+        help="Preview plan without writing any files (dry-run is OFF by default)"
     )
 
     parser.add_argument(
@@ -217,7 +212,7 @@ Environment Variables:
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Apply changes (default behavior; kept for compatibility)"
+        help="Apply changes (default behaviour — kept for compatibility)"
     )
 
     parser.add_argument(
@@ -286,10 +281,13 @@ Environment Variables:
         _print_provider_key_help()
         return 2
 
-    # Determine dry_run mode. Neuro applies changes by default; use --dry-run
-    # when you want a preview without file writes. --apply is kept as an
-    # explicit/legacy no-op that also resolves to apply mode.
-    dry_run = _resolve_dry_run(args)
+    # Determine dry_run mode
+    if args.apply:
+        dry_run = False
+    elif args.dry_run is not None:
+        dry_run = args.dry_run
+    else:
+        dry_run = False  # Apply changes by default
 
     # Show startup info
     if args.verbose or args.goal:
@@ -300,7 +298,8 @@ Environment Variables:
         print(f"║ Goal: {args.goal[:50]}{'...' if args.goal and len(args.goal) > 50 else '':<52}║")
         print(f"║ Working Dir: {args.working_dir:<48}║")
         print(f"║ Max Steps: {args.max_steps:<48}║")
-        print(f"║ Dry Run: {str(dry_run):<48}║")
+        mode_label = "PREVIEW ONLY" if dry_run else "WRITING FILES"
+        print(f"║ Mode: {mode_label:<51}║")
         if args.scenario:
             print(f"║ Scenario: {args.scenario:<47}║")
         if args.no_parallel:
@@ -333,7 +332,7 @@ Environment Variables:
 
     # Show dry-run notice
     if dry_run:
-        print("🔍 DRY-RUN MODE: Previewing plan without applying file changes")
+        print("🔍 DRY-RUN MODE: Showing plan without executing")
         print()
 
     try:
