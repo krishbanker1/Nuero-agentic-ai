@@ -21,7 +21,7 @@ class PipelineContext:
     goal: str
     mode: str = "auto"
     working_dir: str = "."
-    dry_run: bool = True
+    dry_run: bool = False
     stack_name: str = "nextjs_supabase"
     steps: List[Dict[str, Any]] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
@@ -188,7 +188,7 @@ def run_pipeline(
     goal: str,
     mode: str = "auto",
     working_dir: str = ".",
-    dry_run: bool = True,
+    dry_run: bool = False,
     verbose: bool = False,
 ) -> Dict[str, Any]:
     """
@@ -200,7 +200,7 @@ def run_pipeline(
         result = run_pipeline(
             goal="Build a CRM for real estate agents",
             mode="enterprise",
-            dry_run=True,
+            dry_run=False,
             verbose=True,
         )
         
@@ -232,7 +232,7 @@ def run_pipeline(
 class DebugPipeline:
     """Pipeline for debugging existing projects."""
     
-    def __init__(self, working_dir: str = ".", dry_run: bool = True):
+    def __init__(self, working_dir: str = ".", dry_run: bool = False):
         self.working_dir = working_dir
         self.dry_run = dry_run
         self.context = PipelineContext(

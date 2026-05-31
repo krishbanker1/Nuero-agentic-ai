@@ -96,6 +96,18 @@ pip install -e ".[visual,browser,research,memory]"
 
 The install no longer depends on the invalid `sqlitevec` package name. Vector-memory support is optional and uses the published `sqlite-vec` package when the `memory` extra is requested. Browser and visual-analysis packages are also optional; Neuro keeps running without them and only asks for the relevant extra when that feature is used.
 
+
+### Execution mode
+
+Neuro applies validated changes by default so it can actually build files in the target workspace. Use `--dry-run` only when you want a preview that does not write code.
+
+```bash
+neuro --goal "Build a landing page"          # writes validated changes
+neuro --goal "Build a landing page" --dry-run # preview only
+```
+
+Optional extras do not remove capabilities from Neuro. They keep fresh installs from failing on heavyweight packages; when a task needs provider SDKs, browser automation, visual analysis, research, or vector memory, install the matching extra shown above.
+
 ## Usage
 
 ### Basic Autonomous Coding

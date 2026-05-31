@@ -31,7 +31,7 @@ Pipeline Usage:
     result = run_pipeline(
         goal="Build a CRM for real estate agents",
         mode="enterprise",
-        dry_run=True,
+        dry_run=False,  # default; pass True to preview only
     )
 """
 

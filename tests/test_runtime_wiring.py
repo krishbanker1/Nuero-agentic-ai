@@ -201,3 +201,20 @@ def test_dry_run_succeeds_when_plan_is_generated(monkeypatch, tmp_path):
     assert result.validation_passed is True
     assert result.steps >= 1
     assert "plan" in result.metadata
+
+
+def test_agent_and_cli_apply_by_default():
+    from argparse import Namespace
+    from inspect import signature
+
+    from neuro.__main__ import _resolve_dry_run
+    from neuro.executor.agent_loop import create_agent
+    from neuro.pipelines import PipelineContext, run_pipeline
+
+    assert AgentConfig(goal="default").dry_run is False
+    assert signature(create_agent).parameters["dry_run"].default is False
+    assert signature(run_pipeline).parameters["dry_run"].default is False
+    assert PipelineContext(goal="default").dry_run is False
+    assert _resolve_dry_run(Namespace(dry_run=None, apply=False)) is False
+    assert _resolve_dry_run(Namespace(dry_run=True, apply=False)) is True
+    assert _resolve_dry_run(Namespace(dry_run=True, apply=True)) is False

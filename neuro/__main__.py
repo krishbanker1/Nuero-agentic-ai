@@ -50,6 +50,12 @@ def _print_provider_key_help() -> None:
     print("  OpenRouter: https://openrouter.ai/keys", file=sys.stderr)
     print("  HuggingFace: https://huggingface.co/settings/tokens", file=sys.stderr)
 
+
+
+def _resolve_dry_run(args: argparse.Namespace) -> bool:
+    """Resolve CLI execution mode: apply by default, preview only with --dry-run."""
+    return bool(getattr(args, "dry_run", False)) and not bool(getattr(args, "apply", False))
+
 def main():
     parser = argparse.ArgumentParser(
         description="Neuro Autonomous Agent - Enterprise App Builder System",
@@ -165,7 +171,7 @@ Environment Variables:
         "--dry-run",
         action="store_true",
         default=None,
-        help="Show plan without executing"
+        help="Preview plan without applying file changes"
     )
 
     parser.add_argument(
@@ -211,7 +217,7 @@ Environment Variables:
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Actually apply changes (disables dry-run)"
+        help="Apply changes (default behavior; kept for compatibility)"
     )
 
     parser.add_argument(
@@ -280,13 +286,10 @@ Environment Variables:
         _print_provider_key_help()
         return 2
 
-    # Determine dry_run mode
-    if args.apply:
-        dry_run = False
-    elif args.dry_run is not None:
-        dry_run = args.dry_run
-    else:
-        dry_run = True  # Default to dry-run
+    # Determine dry_run mode. Neuro applies changes by default; use --dry-run
+    # when you want a preview without file writes. --apply is kept as an
+    # explicit/legacy no-op that also resolves to apply mode.
+    dry_run = _resolve_dry_run(args)
 
     # Show startup info
     if args.verbose or args.goal:
@@ -330,7 +333,7 @@ Environment Variables:
 
     # Show dry-run notice
     if dry_run:
-        print("🔍 DRY-RUN MODE: Showing plan without executing")
+        print("🔍 DRY-RUN MODE: Previewing plan without applying file changes")
         print()
 
     try:

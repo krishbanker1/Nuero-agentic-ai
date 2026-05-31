@@ -100,8 +100,8 @@ class AgentConfig:
     use_semantic_validation: bool = True  # Semantic patch comparison
     test_votes: int = 3  # Number of test votes
     ensemble_models: int = 3  # Number of ensemble models
-    dry_run: bool = True
-    confirm_apply: bool = True
+    dry_run: bool = False
+    confirm_apply: bool = False
     verbose: bool = True
     test_results: Dict = field(default_factory=dict)
 
@@ -944,7 +944,7 @@ def create_agent(
     use_security: bool = True,  # NEW: AgentShield security
     use_orchestration: bool = False,  # NEW: Multi-agent for complex tasks
     use_autonomous_loop: bool = True,  # NEW: Self-improvement loops
-    dry_run: bool = True,
+    dry_run: bool = False,
     verbose: bool = True,
     auto_install_dependencies: bool = True,
     validation_commands: Optional[List[str]] = None,
