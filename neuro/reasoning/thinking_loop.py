@@ -164,6 +164,7 @@ class ThinkingLoop:
             'research_context', 'production_scaffold', 'production_scaffold_prompt',
             'production_build_plan', 'production_pipeline_prompt',
             'firecrawl_prompt', 'firecrawl_context', 'firecrawl_status',
+            'cinematic_design_prompt', 'cinematic_analysis', 'cinematic_component',
         ]:
             if key in context:
                 result_context[key] = context[key]
@@ -250,6 +251,18 @@ Task: """ + f"{goal}\n\n"
             base_prompt += (
                 "Firecrawl web research context:\n"
                 f"{context['firecrawl_context'][:3000]}\n\n"
+            )
+
+        if context.get("cinematic_design_prompt"):
+            base_prompt += (
+                "Cinematic design guidance:\n"
+                f"{context['cinematic_design_prompt']}\n\n"
+            )
+
+        if context.get("cinematic_analysis"):
+            base_prompt += (
+                "Cinematic visual analysis metadata:\n"
+                f"{context['cinematic_analysis']}\n\n"
             )
 
         # NEW: Include skill instructions/hints from orchestrator

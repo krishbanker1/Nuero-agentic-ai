@@ -37,6 +37,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+visual = [
+    "yt-dlp>=2024.1.0",
+    "opencv-python>=4.8.0",
+    "Pillow>=10.0.0",
+    "numpy>=1.24.0",
+    "requests>=2.31.0",
+]
+
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",

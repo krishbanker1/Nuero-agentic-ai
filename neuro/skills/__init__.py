@@ -36,6 +36,7 @@ from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, sto
 from neuro.skills.production_scaffolder import ProductionScaffolder, ScaffoldPlan, ScaffoldFile
 from neuro.skills.production_build_pipeline import ProductionBuildPipeline, ProductionBuildPlan, BuildStage
 from neuro.skills.firecrawl_research import FirecrawlResearchSkill, FirecrawlConfig
+from neuro.skills.cinematic_design import CinematicDesign
 
 # Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
@@ -175,6 +176,10 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "firecrawl": FirecrawlResearchSkill,
     "web_scrape": FirecrawlResearchSkill,
     "docs_scrape": FirecrawlResearchSkill,
+    "cinematic_design": CinematicDesign,
+    "cinematic": CinematicDesign,
+    "premium_design": CinematicDesign,
+    "visual_design": CinematicDesign,
     "enterprise_pipeline": ProductionBuildPipeline,
     "quality_pipeline": ProductionBuildPipeline,
     "launch": AppLauncher,

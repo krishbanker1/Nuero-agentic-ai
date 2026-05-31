@@ -3,10 +3,14 @@ Web Research Module - Autonomous research before building applications
 Uses Tavily API and browser tools to research unknown topics
 """
 
+import html as html_utils
 import json
 import re
 import os
 import subprocess
+import urllib.error
+import urllib.parse
+import urllib.request
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 
@@ -114,7 +118,19 @@ class WebResearcher:
             except Exception as e:
                 print(f"⚠️ Tavily search failed: {e}")
         
-        # Step 3: Try browser-based research as last resort
+        # Step 3: Try DuckDuckGo HTML search (free, no auth/card)
+        if not result.success:
+            print(f"🔍 Searching DuckDuckGo for: {topic}")
+            ddg_info = self._search_duckduckgo(topic)
+            if ddg_info:
+                result.summary = ddg_info.get("summary", "")
+                result.key_features = ddg_info.get("features", [])
+                result.tech_stack = ddg_info.get("tech_stack", [])
+                result.references = ddg_info.get("references", [])
+                result.raw_content = ddg_info.get("raw_content", "")
+                result.success = True
+
+        # Step 4: Try browser-based research as last resort
         if not result.success:
             print(f"🔍 Using browser for: {topic}")
             browser_info = self._research_with_browser(topic)
@@ -194,6 +210,93 @@ class WebResearcher:
             print(f"GitHub search error: {e}")
         return None
     
+
+    def _search_duckduckgo(self, topic: str) -> Optional[Dict[str, Any]]:
+        """Search DuckDuckGo HTML results without an API key or paid service."""
+        try:
+            query = urllib.parse.urlencode({"q": topic})
+            request = urllib.request.Request(
+                f"https://duckduckgo.com/html/?{query}",
+                headers={"User-Agent": "Mozilla/5.0 NeuroResearcher/1.0"},
+            )
+            with urllib.request.urlopen(request, timeout=15) as response:
+                page = response.read().decode("utf-8", errors="ignore")
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if self.api_key:
+                print(f"DuckDuckGo search error: {exc}")
+            return None
+
+        matches = list(re.finditer(
+            r'<a[^>]+class="result__a"[^>]+href="(?P<url>[^"]+)"[^>]*>(?P<title>.*?)</a>',
+            page,
+            flags=re.IGNORECASE | re.DOTALL,
+        ))
+        results = []
+        for index, match in enumerate(matches[:5]):
+            start = match.end()
+            end = matches[index + 1].start() if index + 1 < len(matches) else start + 1200
+            snippet_match = re.search(
+                r'<a[^>]+class="result__snippet"[^>]*>(?P<snippet>.*?)</a>',
+                page[start:end],
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            title = self._strip_html(match.group("title"))
+            url = self._normalize_duckduckgo_url(html_utils.unescape(match.group("url")))
+            snippet = self._strip_html(snippet_match.group("snippet")) if snippet_match else ""
+            if title or snippet:
+                results.append({"title": title, "url": url, "snippet": snippet})
+
+        if not results:
+            return None
+
+        summary = "\n".join(
+            f"- {item['title']}: {item['snippet']}".strip()
+            for item in results[:3]
+            if item.get("title") or item.get("snippet")
+        )
+        combined_text = " ".join(
+            f"{item.get('title', '')} {item.get('snippet', '')}"
+            for item in results
+        )
+        return {
+            "summary": summary,
+            "features": self._extract_features_from_description(combined_text),
+            "tech_stack": self._extract_tech_terms(combined_text),
+            "references": [item["url"] for item in results if item.get("url")],
+            "raw_content": json.dumps(results, indent=2),
+        }
+
+    @staticmethod
+    def _strip_html(text: str) -> str:
+        """Convert a small HTML fragment into readable text."""
+        no_tags = re.sub(r"<[^>]+>", " ", text)
+        return re.sub(r"\s+", " ", html_utils.unescape(no_tags)).strip()
+
+    @staticmethod
+    def _normalize_duckduckgo_url(url: str) -> str:
+        """Unwrap DuckDuckGo redirect URLs when possible."""
+        parsed = urllib.parse.urlparse(url)
+        params = urllib.parse.parse_qs(parsed.query)
+        if "uddg" in params and params["uddg"]:
+            return params["uddg"][0]
+        return url
+
+    @staticmethod
+    def _extract_tech_terms(text: str) -> List[str]:
+        """Extract common framework/runtime names from free-search snippets."""
+        terms = [
+            "Python", "FastAPI", "Flask", "Django", "React", "Next.js",
+            "Vue", "Angular", "Node.js", "Express", "PostgreSQL", "MySQL",
+            "SQLite", "Redis", "Docker", "Tailwind", "TypeScript", "JavaScript",
+            "GraphQL", "REST", "WebSocket", "Kubernetes",
+        ]
+        text_lower = text.lower()
+        found = []
+        for term in terms:
+            if term.lower() in text_lower and term not in found:
+                found.append(term)
+        return found[:10]
+
     def _extract_search_terms(self, topic: str) -> List[str]:
         """Extract multiple search terms from topic for comprehensive research."""
         # Base terms from the topic

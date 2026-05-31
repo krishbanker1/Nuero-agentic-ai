@@ -77,6 +77,10 @@ class SkillOrchestrator:
             if "firecrawl_research" not in detected:
                 detected.append("firecrawl_research")
 
+        if self._needs_cinematic_design(goal):
+            if "cinematic_design" not in detected:
+                detected.append("cinematic_design")
+
         # Wire in the ultimate registry without changing model/provider selection.
         enhanced_registry = self.enhanced_registry
         if enhanced_registry:
@@ -121,6 +125,18 @@ class SkillOrchestrator:
             "http://", "https://", "scrape", "crawl", "firecrawl", "live docs",
             "official docs", "web research", "research github", "extract website",
             "current docs", "latest docs", "documentation from",
+        ]
+        return any(trigger in goal_lower for trigger in triggers)
+
+    @staticmethod
+    def _needs_cinematic_design(goal: str) -> bool:
+        """Return True for premium visual/cinematic UI generation tasks."""
+        goal_lower = goal.lower()
+        triggers = [
+            "cinematic", "premium", "3d effect", "dark theme", "motion graphics",
+            "hero section", "gradient", "spotlight", "animation", "web design",
+            "landing page", "premium website", "extract from video",
+            "build from reference", "visual analysis", "design system",
         ]
         return any(trigger in goal_lower for trigger in triggers)
 
@@ -195,6 +211,15 @@ class SkillOrchestrator:
                                 enriched["firecrawl_context"] = result["firecrawl_context"]
                             enriched["firecrawl_status"] = result.get("status", "unknown")
                             enriched["firecrawl_enabled"] = result.get("enabled", False)
+
+                        if skill_name == "cinematic_design":
+                            if result.get("cinematic_prompt"):
+                                enriched["cinematic_design_prompt"] = result["cinematic_prompt"]
+                                skill_hints.append(result["cinematic_prompt"])
+                            if result.get("cinematic_analysis"):
+                                enriched["cinematic_analysis"] = result["cinematic_analysis"]
+                            if result.get("cinematic_component"):
+                                enriched["cinematic_component"] = result["cinematic_component"]
 
                         # Add MCP endpoint if available
                         if "endpoint" in result:
