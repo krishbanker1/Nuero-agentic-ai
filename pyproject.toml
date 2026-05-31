@@ -31,35 +31,57 @@ classifiers = [
     "Topic :: Artificial Intelligence",
 ]
 dependencies = [
+    "json-repair>=0.39.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+providers = [
     "groq>=0.4.0",
     "openai>=1.0.0",
     "google-genai>=1.0.0",
-    "json-repair>=0.39.0",
-    "requests>=2.31.0",
     "mistralai>=1.0.0",
     "cohere>=5.0.0",
     "huggingface-hub>=0.23.0",
     "together>=1.3.0",
-    "yt-dlp>=2024.0.0",
-    "opencv-python>=4.9.0",
-    "Pillow>=10.0.0",
-    "numpy>=1.24.0",
-    "playwright>=1.40.0",
-    "chromadb>=0.4.0",
-    "sqlitevec>=0.0.0",
-    "beautifulsoup4>=4.12.0",
-    "html2text>=2020.1.16",
-    "python-dotenv>=1.0.0",
-    "tavily-python>=0.5.0",
 ]
-
-[project.optional-dependencies]
 visual = [
     "yt-dlp>=2024.1.0",
     "opencv-python>=4.8.0",
     "Pillow>=10.0.0",
     "numpy>=1.24.0",
-    "requests>=2.31.0",
+]
+browser = [
+    "playwright>=1.40.0",
+]
+research = [
+    "beautifulsoup4>=4.12.0",
+    "html2text>=2020.1.16",
+    "tavily-python>=0.5.0",
+]
+memory = [
+    "chromadb>=0.4.0",
+    "sqlite-vec>=0.1.9; python_version < '3.14'",
+]
+all = [
+    "groq>=0.4.0",
+    "openai>=1.0.0",
+    "google-genai>=1.0.0",
+    "mistralai>=1.0.0",
+    "cohere>=5.0.0",
+    "huggingface-hub>=0.23.0",
+    "together>=1.3.0",
+    "yt-dlp>=2024.1.0",
+    "opencv-python>=4.8.0",
+    "Pillow>=10.0.0",
+    "numpy>=1.24.0",
+    "playwright>=1.40.0",
+    "beautifulsoup4>=4.12.0",
+    "html2text>=2020.1.16",
+    "tavily-python>=0.5.0",
+    "chromadb>=0.4.0",
+    "sqlite-vec>=0.1.9; python_version < '3.14'",
 ]
 
 dev = [
@@ -70,6 +92,7 @@ dev = [
 ]
 [project.scripts]
 neuro = "neuro.__main__:main"
+nuero = "neuro.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/krishbanker1/Nuero-agentic-ai"

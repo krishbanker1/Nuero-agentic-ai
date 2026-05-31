@@ -74,6 +74,28 @@ Neuro now adds deterministic structure before asking the current free models to 
 
 This keeps the existing model/provider configuration as the brain while adding stronger deterministic engineering scaffolding around it.
 
+
+## Installation
+
+Neuro has a small default install so it can boot on a fresh/free machine without pulling heavy optional runtimes.
+
+```bash
+# Core CLI/runtime
+pip install -e .
+
+# Both spellings work after install:
+#   neuro --health
+#   nuero --health
+
+# Provider SDKs for the configured model brain (Groq, Gemini, OpenRouter/OpenAI-compatible, etc.)
+pip install -e ".[providers]"
+
+# Optional visual/browser/research/memory extras
+pip install -e ".[visual,browser,research,memory]"
+```
+
+The install no longer depends on the invalid `sqlitevec` package name. Vector-memory support is optional and uses the published `sqlite-vec` package when the `memory` extra is requested. Browser and visual-analysis packages are also optional; Neuro keeps running without them and only asks for the relevant extra when that feature is used.
+
 ## Usage
 
 ### Basic Autonomous Coding
