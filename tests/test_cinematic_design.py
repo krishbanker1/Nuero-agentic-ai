@@ -77,3 +77,33 @@ def test_thinking_loop_includes_cinematic_context():
     assert "Cinematic design guidance" in prompt
     assert "Use spotlight, depth and smooth motion." in prompt
     assert "Cinematic visual analysis metadata" in prompt
+
+
+def test_cinematic_generation_returns_complete_code_contract():
+    design = CinematicDesign()
+
+    result = design.generate_code(
+        design.analyze_description("dark cinematic hero with 3d rotating product"),
+        {"title": "Neuro", "subtitle": "Build anything", "cta": "Start"},
+    )
+
+    assert set(result) == {"css", "jsx", "npm_packages", "components", "technology_stack"}
+    assert result["css"].strip()
+    assert result["jsx"].strip()
+    assert result["technology_stack"]["animation"] == "gsap"
+    assert result["technology_stack"]["animation_library"] == "gsap"
+    assert "gsap" in result["npm_packages"]
+    assert "GSAPAnimation" in result["components"]
+
+
+def test_cinematic_build_from_input_exposes_prompt_contract_aliases():
+    design = CinematicDesign()
+
+    result = design.build_from_input("dark cinematic hero with 3d rotating product")
+
+    assert "css" in result
+    assert "jsx" in result
+    assert "npm_packages" in result
+    assert "components" in result
+    assert result["technology_stack"]["animation"] in {"gsap", "framer_motion", "css_animation"}
+    assert result["technology_stack"]["animation"] == "gsap"

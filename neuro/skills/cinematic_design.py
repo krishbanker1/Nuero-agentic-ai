@@ -429,7 +429,7 @@ export default function CinematicHero({{ content }}) {{
         packages: list[str] = []
         reasoning: dict[str, str] = {}
 
-        if motion == "heavy" or (brightness == "dark" and motion != "static"):
+        if motion == "heavy" or brightness == "dark":
             animation = "gsap"
             packages.append("gsap")
             reasoning["animation"] = "Heavy or dark cinematic motion benefits from timeline control."
@@ -553,6 +553,363 @@ export default function CinematicHero({{ content }}) {{
             result["scroll_code"] = "const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.target.classList.toggle('visible', entry.isIntersecting)));"
         return result
 
+
+    def generate_code(self, analysis: dict[str, Any], content: dict[str, str] | None = None) -> dict[str, Any]:
+        """Generate complete, working CSS/JSX snippets for the detected stack.
+
+        This is the direct code-generation API requested by the cinematic
+        prompt. It keeps outputs dependency-aware and free-first by only adding
+        npm packages for libraries that the detected stack actually needs.
+        """
+        content = content or {"title": "Premium", "subtitle": "Cinematic", "cta": "Explore"}
+        tech_stack = self.detect_technology_stack(analysis)
+
+        anim = tech_stack.get("animation_library") or "css_animation"
+        three_d = tech_stack.get("3d_library")
+        text_anim = tech_stack.get("text_animation")
+        scroll = tech_stack.get("scroll_effect")
+
+        packages: list[str] = []
+        css_parts: list[str] = []
+        jsx_parts: list[str] = []
+        components: list[str] = []
+
+        if anim == "gsap":
+            css_parts.append(self._generate_gsap_css(analysis))
+            jsx_parts.append(self._generate_gsap_jsx())
+            packages.append("gsap")
+            components.append("GSAPAnimation")
+        elif anim == "framer_motion":
+            css_parts.append(self._generate_framer_css(analysis))
+            jsx_parts.append(self._generate_framer_jsx())
+            packages.append("framer-motion")
+            components.append("FramerHero")
+        else:
+            css_parts.append(self._generate_css_animation(analysis))
+            jsx_parts.append(self._generate_basic_jsx(content))
+            components.append("CSSHero")
+
+        if three_d == "threejs":
+            css_parts.append(self._generate_threejs_css())
+            jsx_parts.append(self._generate_threejs_jsx(analysis))
+            packages.extend(["three", "@react-three/fiber", "@react-three/drei"])
+            components.append("ThreeScene")
+        elif three_d == "babylonjs":
+            css_parts.append(self._generate_babylonjs_css())
+            jsx_parts.append(self._generate_babylonjs_jsx(analysis))
+            packages.extend(["@babylonjs/core", "@babylonjs/loaders"])
+            components.append("BabylonScene")
+        elif three_d == "css_3d":
+            css_parts.append(self._generate_css_3d(analysis))
+
+        if text_anim == "split_type":
+            jsx_parts.append(self._generate_splittext_jsx())
+            packages.append("split-type")
+            components.append("SplitText")
+        elif text_anim == "blotter":
+            jsx_parts.append(self._generate_blotter_jsx())
+            packages.append("blotter")
+            components.append("BlotterText")
+
+        if scroll == "lenis":
+            css_parts.append(self._generate_lenis_css())
+            jsx_parts.append(self._generate_lenis_jsx())
+            packages.append("lenis")
+            components.append("LenisProvider")
+        elif scroll == "locomotive_scroll":
+            css_parts.append(self._generate_locomotive_css())
+            jsx_parts.append(self._generate_locomotive_jsx())
+            packages.append("locomotive-scroll")
+            components.append("LocomotiveProvider")
+        elif scroll == "gsap_scroll":
+            packages.append("gsap")
+
+        stack_info = {
+            "animation": anim,
+            "3d": three_d,
+            "text": text_anim,
+            "scroll": scroll,
+            "animation_library": anim,
+            "3d_library": three_d,
+            "text_animation": text_anim,
+            "scroll_effect": scroll,
+            "reasoning": tech_stack.get("reasoning", {}),
+        }
+        return {
+            "css": "\n\n".join(part.strip() for part in css_parts if part and part.strip()),
+            "jsx": "\n\n".join(part.strip() for part in jsx_parts if part and part.strip()),
+            "npm_packages": sorted(set(packages)),
+            "components": components,
+            "technology_stack": stack_info,
+        }
+
+    def _generate_gsap_css(self, analysis: dict[str, Any]) -> str:
+        """Generate GSAP-compatible CSS classes."""
+        motion = analysis.get("motion_level", "subtle")
+        duration = "0.4" if motion == "heavy" else "0.6"
+        stagger = "0.05" if motion == "heavy" else "0.15"
+        return f"""
+/* GSAP Animations */
+@keyframes fade-up {{
+  from {{ opacity: 0; transform: translateY(50px); }}
+  to {{ opacity: 1; transform: translateY(0); }}
+}}
+
+@keyframes scale-in {{
+  from {{ opacity: 0; transform: scale(0.9); }}
+  to {{ opacity: 1; transform: scale(1); }}
+}}
+
+.gsap-hero {{ position: relative; overflow: hidden; min-height: 100vh; display: grid; place-items: center; }}
+.gsap-title {{ animation: fade-up {duration}s ease-out forwards; }}
+.gsap-subtitle {{ animation: fade-up {duration}s ease-out {float(stagger)}s forwards; opacity: 0; }}
+.gsap-cta {{ animation: scale-in {duration}s ease-out {float(stagger) * 2}s forwards; opacity: 0; }}
+.scroll-indicator {{ animation: bounce 2s infinite; }}
+@keyframes bounce {{
+  0%, 100% {{ transform: translateY(0); }}
+  50% {{ transform: translateY(10px); }}
+}}
+"""
+
+    def _generate_gsap_jsx(self) -> str:
+        return """
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+export function GSAPAnimation({ title, subtitle, cta }) {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.gsap-title', { y: 100, opacity: 0, duration: 0.8, ease: 'expo.out' })
+      gsap.from('.gsap-subtitle', { y: 50, opacity: 0, duration: 0.6, delay: 0.2, ease: 'expo.out' })
+      gsap.from('.gsap-cta', { scale: 0.8, opacity: 0, duration: 0.5, delay: 0.4, ease: 'back.out(1.7)' })
+    }, containerRef)
+    return () => ctx.revert()
+  }, [])
+
+  return (
+    <div ref={containerRef} className="gsap-hero">
+      <h1 className="gsap-title">{title || 'Premium'}</h1>
+      <p className="gsap-subtitle">{subtitle || 'Cinematic'}</p>
+      <button className="gsap-cta">{cta || 'Explore'}</button>
+    </div>
+  )
+}
+"""
+
+    def _generate_framer_css(self, analysis: dict[str, Any]) -> str:
+        return """
+/* Framer Motion Animations */
+.framer-hero { position: relative; overflow: hidden; min-height: 100vh; display: grid; place-items: center; }
+.framer-title, .framer-subtitle, .framer-cta { will-change: transform, opacity; }
+"""
+
+    def _generate_framer_jsx(self) -> str:
+        return """
+import { motion } from 'framer-motion'
+
+const container = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
+}
+
+const item = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 80, damping: 15 } }
+}
+
+export function FramerHero({ title, subtitle, cta }) {
+  return (
+    <motion.div className="framer-hero" variants={container} initial="hidden" animate="visible">
+      <motion.h1 className="framer-title" variants={item}>{title || 'Premium'}</motion.h1>
+      <motion.p className="framer-subtitle" variants={item}>{subtitle || 'Cinematic'}</motion.p>
+      <motion.button className="framer-cta" variants={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        {cta || 'Explore'}
+      </motion.button>
+    </motion.div>
+  )
+}
+"""
+
+    def _generate_css_animation(self, analysis: dict[str, Any]) -> str:
+        motion = analysis.get("motion_level", "subtle")
+        duration = "0.5s" if motion == "subtle" else "0.3s"
+        return f"""
+/* CSS Animation Hero */
+@keyframes fade-up {{
+  from {{ opacity: 0; transform: translateY(40px); }}
+  to {{ opacity: 1; transform: translateY(0); }}
+}}
+.css-hero {{ position: relative; min-height: 100vh; display: grid; place-items: center; }}
+.css-hero h1 {{ animation: fade-up {duration} ease-out forwards; }}
+.css-hero p {{ animation: fade-up {duration} ease-out 0.2s forwards; opacity: 0; }}
+.css-hero button {{ animation: fade-up {duration} ease-out 0.4s forwards; opacity: 0; }}
+"""
+
+    def _generate_threejs_css(self) -> str:
+        return """
+/* Three.js Scene */
+.three-canvas { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 0; }
+.three-content { position: relative; z-index: 1; }
+"""
+
+    def _generate_threejs_jsx(self, analysis: dict[str, Any]) -> str:
+        lighting = analysis.get("lighting_type", "ambient")
+        lights = """
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+"""
+        if lighting == "spotlight":
+            lights = """
+        <spotLight position={[0, 10, 0]} angle={0.3} penumbra={1} intensity={1.5} />
+        <pointLight position={[-10, -10, -10]} intensity={0.5} />
+"""
+        return f"""
+import {{ Canvas }} from '@react-three/fiber'
+import {{ OrbitControls, Environment }} from '@react-three/drei'
+
+export function ThreeScene() {{
+  return (
+    <div className="three-canvas">
+      <Canvas camera={{{{ position: [0, 0, 5], fov: 45 }}}}>
+{lights.rstrip()}
+        <mesh>
+          <sphereGeometry args={{[1, 32, 32]}} />
+          <meshStandardMaterial color="#8a2be2" metalness={{0.8}} roughness={{0.2}} />
+        </mesh>
+        <Environment preset="city" />
+        <OrbitControls enableZoom={{false}} autoRotate autoRotateSpeed={{0.5}} />
+      </Canvas>
+    </div>
+  )
+}}
+"""
+
+    def _generate_babylonjs_css(self) -> str:
+        return """
+/* Babylon.js Scene */
+.babylon-canvas { width: 100%; height: 100vh; display: block; }
+.babylon-content { position: relative; z-index: 1; }
+"""
+
+    def _generate_babylonjs_jsx(self, analysis: dict[str, Any]) -> str:
+        return """
+export function BabylonScene({ canvasId }) {
+  // Initialize in useEffect with:
+  // const { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder } = await import('@babylonjs/core')
+  return <canvas id={canvasId || 'babylon-canvas'} className="babylon-canvas" />
+}
+"""
+
+    def _generate_css_3d(self, analysis: dict[str, Any]) -> str:
+        edge = float(analysis.get("edge_score", 100))
+        depth = min(edge / 50, 5)
+        return f"""
+/* CSS 3D Transforms */
+.scene-3d {{ transform-style: preserve-3d; perspective: 1000px; }}
+.layer-1 {{ transform: translateZ({depth}px); }}
+.layer-2 {{ transform: translateZ({depth * 0.7}px); }}
+.layer-3 {{ transform: translateZ({depth * 0.4}px); }}
+.card-3d {{ transform-style: preserve-3d; transition: transform 0.8s; }}
+.card-3d:hover {{ transform: rotateY(180deg); }}
+"""
+
+    def _generate_splittext_jsx(self) -> str:
+        return """
+import { useEffect, useRef } from 'react'
+import SplitType from 'split-type'
+
+export function SplitText({ text, className }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    const split = new SplitType(ref.current, { types: 'chars' })
+    return () => split.revert()
+  }, [text])
+
+  return <div ref={ref} className={className}>{text}</div>
+}
+"""
+
+    def _generate_blotter_jsx(self) -> str:
+        return """
+import { useEffect, useRef } from 'react'
+import Blotter from 'blotter'
+
+export function BlotterText({ text, className }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    const material = new Blotter.RollingDistortMaterial()
+    const blotterText = new Blotter.Text(text, { size: 96 })
+    const blotter = new Blotter(material, { texts: [blotterText] })
+    const scope = blotter.forText(blotterText)
+    scope.appendTo(ref.current)
+    return () => { blotter.stop(); ref.current && (ref.current.innerHTML = '') }
+  }, [text])
+
+  return <div ref={ref} className={className} />
+}
+"""
+
+    def _generate_lenis_css(self) -> str:
+        return """
+/* Lenis Smooth Scroll */
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+[data-lenis-scroll] { transform: translateY(calc(var(--scroll, 0) * 1px)); }
+"""
+
+    def _generate_lenis_jsx(self) -> str:
+        return """
+import { useEffect } from 'react'
+import Lenis from 'lenis'
+
+export function LenisProvider({ children }) {
+  useEffect(() => {
+    const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) })
+    function raf(time) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+    requestAnimationFrame(raf)
+    return () => lenis.destroy()
+  }, [])
+
+  return <>{children}</>
+}
+"""
+
+    def _generate_locomotive_css(self) -> str:
+        return """
+/* Locomotive Scroll */
+[data-scroll-container] { perspective: 1px; overflow: hidden; }
+[data-scroll] { will-change: transform; }
+[data-scroll-speed="1"] { transform: translateY(calc(var(--scroll, 0) * 1px)); }
+[data-scroll-speed="-1"] { transform: translateY(calc(var(--scroll, 0) * -1px)); }
+"""
+
+    def _generate_locomotive_jsx(self) -> str:
+        return """
+import { useEffect } from 'react'
+import LocomotiveScroll from 'locomotive-scroll'
+
+export function LocomotiveProvider({ children }) {
+  useEffect(() => {
+    const scroll = new LocomotiveScroll({ smooth: true })
+    return () => scroll.destroy()
+  }, [])
+
+  return <div data-scroll-container>{children}</div>
+}
+"""
+
     def _generate_gsap(self, params: dict[str, Any]) -> str:
         duration = 0.8 if params.get("motion_level") == "heavy" else 1.2
         return f"""gsap.timeline({{ defaults: {{ ease: 'power3.out', duration: {duration} }} }})
@@ -620,9 +977,22 @@ function raf(time) {{ lenis.raf(time); requestAnimationFrame(raf); }}
 requestAnimationFrame(raf);"""
 
     def build_from_input(self, input_data: str, content: dict[str, str] | None = None) -> dict[str, Any]:
+        """Analyze input and return production-ready cinematic code artifacts."""
         content = content or {"title": "Premium Headline", "subtitle": "Subheadline text", "cta": "Explore"}
         analysis = self.analyze_input(input_data)
-        return self.generate_complete_component(analysis, content)
+        component = self.generate_complete_component(analysis, content)
+        generated = self.generate_code(analysis, content)
+        component_css = "\n\n".join(part for part in [component.get("css", ""), generated["css"]] if part)
+        component_jsx = "\n\n".join(part for part in [component.get("jsx", ""), generated["jsx"]] if part)
+        component.update({
+            "css": component_css,
+            "jsx": component_jsx,
+            "npm_packages": generated["npm_packages"],
+            "packages": generated["npm_packages"],
+            "components": generated["components"],
+            "technology_stack": generated["technology_stack"],
+        })
+        return component
 
     def build_prompt_block(self, component: dict[str, Any]) -> str:
         patterns = ", ".join(component.get("patterns_used", [])) or "basic cinematic"
