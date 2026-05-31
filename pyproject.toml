@@ -69,7 +69,7 @@ browser = [
 # Persistent vector memory (chromadb + sqlite-vec — correct package name)
 memory = [
     "chromadb>=0.4.0",
-    "sqlite-vec>=0.1.0",
+    "sqlite-vec>=0.1.0; python_version < '3.14'",
 ]
 
 # Web research tools
@@ -96,7 +96,7 @@ all = [
     "numpy>=1.24.0",
     "playwright>=1.40.0",
     "chromadb>=0.4.0",
-    "sqlite-vec>=0.1.0",
+    "sqlite-vec>=0.1.0; python_version < '3.14'",
     "tavily-python>=0.5.0",
 ]
 
