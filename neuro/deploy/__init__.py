@@ -366,7 +366,7 @@ class DockerDeployer:
             )
         
         dockerfile = self._generate_dockerfile(project_dir)
-        compose = self._generate_compose()
+        self._generate_compose()
         
         return DeploymentResult(
             success=True,
@@ -440,7 +440,7 @@ class NetlifyDeployer:
     
     def deploy(self, project_dir: str, env_vars: Dict[str, str] = None) -> DeploymentResult:
         token = os.getenv("NETLIFY_AUTH_TOKEN")
-        site_id = os.getenv("NETLIFY_SITE_ID")
+        os.getenv("NETLIFY_SITE_ID")
         
         if not token:
             return DeploymentResult(
@@ -632,7 +632,7 @@ def auto_deploy(project_dir: str = ".") -> DeploymentResult:
     return DeploymentResult(
         success=False,
         platform=best_platform,
-        message=f"Auto-deploy unable to complete. Set credentials and try again.",
+        message="Auto-deploy unable to complete. Set credentials and try again.",
         instructions=deployer.generate_env_example().strip().split("\n")
     )
 

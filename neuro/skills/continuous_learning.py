@@ -280,7 +280,7 @@ class ContinuousLearning:
     def _extract_patterns(self, task: str, actions: List[Dict]):
         """Extract patterns from successful action sequences."""
         # Extract common action patterns
-        action_types = [a.get("action", "") for a in actions]
+        [a.get("action", "") for a in actions]
         
         # Look for repeated patterns
         for i, action in enumerate(actions):
@@ -314,13 +314,12 @@ class ContinuousLearning:
     
     def _extract_code_pattern(self, code: str) -> Optional[Dict]:
         """Extract reusable patterns from code."""
-        patterns = []
         
         # Function definition pattern
         func_match = re.search(r'def (\w+)\([^)]*\):', code)
         if func_match:
             return {
-                "regex": rf'def\s+\w+\([^)]*\):[^\n]*\n(?:[ \t]+[^\n]*\n)*',
+                "regex": r'def\s+\w+\([^)]*\):[^\n]*\n(?:[ \t]+[^\n]*\n)*',
                 "action": f"Define {func_match.group(1)} function"
             }
         
@@ -328,7 +327,7 @@ class ContinuousLearning:
         class_match = re.search(r'class (\w+)(?:\([^)]*\))?:', code)
         if class_match:
             return {
-                "regex": rf'class\s+\w+(?:\([^)]*\))?:[^\n]*\n(?:[ \t]+[^\n]*\n)*',
+                "regex": r'class\s+\w+(?:\([^)]*\))?:[^\n]*\n(?:[ \t]+[^\n]*\n)*',
                 "action": f"Create {class_match.group(1)} class"
             }
         

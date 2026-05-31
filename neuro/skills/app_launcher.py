@@ -6,9 +6,8 @@ import time
 import os
 import signal
 import json
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
 
 @dataclass
@@ -208,7 +207,7 @@ class AppLauncher:
         # Build first if requested
         build_output = ""
         if build_first and "build_cmd" in config:
-            print(f"   Building app...")
+            print("   Building app...")
             build_result = self._run_command(
                 config["build_cmd"],
                 app_path,
@@ -226,7 +225,7 @@ class AppLauncher:
                     error=f"Build failed: {build_result.get('error')}",
                     startup_duration_ms=(time.time() - start_time) * 1000
                 )
-            print(f"   Build completed")
+            print("   Build completed")
         
         # Determine start command
         if mode == "dev":
@@ -261,7 +260,7 @@ class AppLauncher:
         
         if process:
             # Wait for server to be ready
-            ready = self._wait_for_server(port, timeout=60)
+            self._wait_for_server(port, timeout=60)
             host = config.get("host", "localhost")
             
             url = f"http://{host}:{port}"

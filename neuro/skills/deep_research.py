@@ -6,14 +6,12 @@ This agent performs iterative web research, analyzing multiple sources
 and synthesizing findings into comprehensive reports.
 """
 
-import json
 import re
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 from tavily import TavilyClient
 
-from neuro.skills.skill_middleware import register_skill
 from neuro.skills.skill_middleware import register_skill
 
 
@@ -155,7 +153,7 @@ class DeepResearchAgent:
             
             return results
             
-        except Exception as e:
+        except Exception:
             return self._mock_search(query)
     
     def _mock_search(self, query: str) -> List[ResearchResult]:

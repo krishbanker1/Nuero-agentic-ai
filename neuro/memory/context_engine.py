@@ -22,7 +22,6 @@ import subprocess
 from typing import Dict, Any, List, Optional, Set
 from dataclasses import dataclass, field
 from pathlib import Path
-from collections import defaultdict
 
 
 @dataclass
@@ -92,8 +91,8 @@ class ContextEngine:
         root = Path(codebase_root) if codebase_root else self.workspace_root
         
         description = task.get("description", "")
-        scope_files = task.get("scope_files", [])
-        task_type = task.get("type", "general")
+        task.get("scope_files", [])
+        task.get("type", "general")
         
         # Detect scope
         scoped_files = self.detect_scope(task, root)

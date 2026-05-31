@@ -2,7 +2,6 @@
 # Multi-agent orchestration for +23% boost
 
 import time
-import json
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
@@ -57,11 +56,11 @@ class AgentSwarmCoordinator:
     
     # Model assignments for each role - ALL VERIFIED WORKING
     ROLE_MODELS = {
-        AgentRole.PLANNER: "gemini/gemini-3.5-flash",        # Best for planning & reasoning
+        AgentRole.PLANNER: "gemini-3.5-flash",        # Best for planning & reasoning
         AgentRole.CODER: "openrouter/qwen/qwen3-coder:free", # Best for coding
         AgentRole.REVIEWER: "groq/openai/gpt-oss-120b",      # 120B for comprehensive review
         AgentRole.TESTER: "openrouter/google/gemma-4-31b-it:free",  # Test generation
-        AgentRole.DEBUGGER: "gemini/gemini-2.5-flash",       # Fast debugging
+        AgentRole.DEBUGGER: "gemini-2.5-flash",       # Fast debugging
         AgentRole.VALIDATOR: "groq/llama-3.3-70b-versatile", # Validation & testing
     }
     
@@ -234,7 +233,7 @@ class AgentSwarmCoordinator:
                 }
                 
                 for future in as_completed(futures):
-                    task = futures[future]
+                    futures[future]
                     result_task = future.result()
                     
                     if result_task.status == "completed":

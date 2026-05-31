@@ -1,5 +1,5 @@
 """Autonomous Build Agent - Build, test, fix, screenshot loop using REAL AI"""
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 from neuro.tools.browser_automation import BrowserAutomation
 from neuro.tools.terminal_executor import TerminalExecutor

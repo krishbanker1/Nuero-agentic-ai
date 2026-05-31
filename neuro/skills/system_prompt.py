@@ -3,7 +3,7 @@ System Prompt Scaffolding Skill
 AI system prompts, LLM instructions, agent frameworks
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 
 
 class SystemPromptScaffoldSkill:

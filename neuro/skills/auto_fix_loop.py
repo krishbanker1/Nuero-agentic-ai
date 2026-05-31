@@ -3,12 +3,10 @@
 
 import subprocess
 import time
-import os
 import re
 from typing import Dict, Any, List, Optional, Callable, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
 
 
 # =============================================================================
@@ -162,7 +160,7 @@ class AutoFixLoop:
             
             # Check if success
             if result["success"]:
-                print(f"   ✅ SUCCESS!")
+                print("   ✅ SUCCESS!")
                 return AutoFixResult(
                     success=True,
                     iterations=iteration,
@@ -184,7 +182,7 @@ class AutoFixLoop:
             print(f"   ❌ Error: {result['error']}")
             
             if iteration >= self.config.max_iterations:
-                print(f"   ⚠️ Max iterations reached")
+                print("   ⚠️ Max iterations reached")
                 break
             
             # Try to fix
@@ -203,7 +201,7 @@ class AutoFixLoop:
                 # Wait before retry
                 time.sleep(self.config.wait_between_attempts)
             else:
-                print(f"   ⚠️ Could not auto-fix")
+                print("   ⚠️ Could not auto-fix")
                 break
             
             attempts.append(FixAttempt(
@@ -359,7 +357,7 @@ class AutoFixLoop:
                 print(f"   ❌ Tests failed: {test_result['error']}")
                 result.tests_passed = False
             else:
-                print(f"   ✅ Tests passed!")
+                print("   ✅ Tests passed!")
                 result.tests_passed = True
         
         return result
@@ -712,16 +710,16 @@ class UpgradedAutoFixLoop:
                     print(f"      ❌ Command failed: {result.stderr[:100]}")
             
             if success:
-                print(f"      ✅ Command succeeded")
+                print("      ✅ Command succeeded")
                 
                 # Verify with test function if provided
                 if test_fn:
-                    print(f"   🔍 Verifying with test function...")
+                    print("   🔍 Verifying with test function...")
                     if test_fn():
-                        print(f"      ✅ Verification passed")
+                        print("      ✅ Verification passed")
                         return True
                     else:
-                        print(f"      ❌ Verification failed")
+                        print("      ❌ Verification failed")
                         continue
                 else:
                     return True

@@ -172,12 +172,17 @@ class TestModels:
         """Test that models have expected structure."""
         from neuro.models import APPROVED_MODELS
 
-        # Models are strings in format "provider/model-name"
+        # Most models are provider/model strings; native Google Gemini models are
+        # intentionally prefix-free and use provider metadata in MODEL_REGISTRY.
+        from neuro.models import MODEL_REGISTRY
+
+        native_gemini = {m.name for m in MODEL_REGISTRY if m.provider == "google"}
         for model in APPROVED_MODELS[:5]:  # Check first 5
             assert isinstance(model, str), "Model should be a string"
-            assert "/" in model, f"Model '{model}' should have provider/model format"
-            parts = model.split("/")
-            assert len(parts) >= 2, f"Model '{model}' should have provider/model format"
+            assert "/" in model or model in native_gemini, f"Model '{model}' should be provider/model or native Gemini"
+            if "/" in model:
+                parts = model.split("/")
+                assert len(parts) >= 2, f"Model '{model}' should have provider/model format"
 
 
 class TestProductIntake:

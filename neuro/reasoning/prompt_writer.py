@@ -34,7 +34,7 @@ class PromptWriter:
         gemini_models = [
             "gemini-3.5-flash",        # Latest Gemini 3
             "gemini-2.5-flash",        # Gemini 2.5
-            "gemini-2.0-flash",        # Gemini 2.0
+            "gemini-2.5-flash",        # Gemini 2.0
             "gemini-flash-latest",    # Alias for latest
         ]
         

@@ -4,7 +4,7 @@
 # =============================================================================
 # Generated: 2026-05-29
 # Purpose: Install all 500+ MCP servers, 20+ 3D graphics skills, and enterprise tools
-# To Beat: Kimi 2.6 Max, Manus 1.6 Max, Claude Code, Codex
+# Goal: bootstrap free, enterprise-grade autonomous engineering tools
 # =============================================================================
 
 set -e
@@ -19,7 +19,7 @@ NC='\033[0m'
 echo -e "${BLUE}"
 echo "╔════════════════════════════════════════════════════════════════════════╗"
 echo "║         NEURO ULTIMATE - Complete System Setup                        ║"
-echo "║  The Ultimate AI Coding System to Beat Kimi, Manus, Claude & Codex     ║"
+echo "║  Free-first autonomous engineering tools for production app builds      ║"
 echo "╚════════════════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 

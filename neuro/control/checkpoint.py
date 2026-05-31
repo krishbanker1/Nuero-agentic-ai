@@ -3,8 +3,6 @@
 # Inspired by SWE-AF's checkpointed execution
 
 import json
-import os
-import time
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 from datetime import datetime

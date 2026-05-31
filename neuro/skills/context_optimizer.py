@@ -3,12 +3,9 @@
 # Features: smart truncation, summary injection, priority-based context
 
 import re
-import os
-from typing import Dict, Any, List, Optional, Tuple, Callable
+from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
-from collections import deque
 from datetime import datetime
 from neuro.skills.skill_middleware import register_skill
 
@@ -181,7 +178,7 @@ class ContextSummarizer:
             summary += f"... ({len(lines)} lines shown)\n"
             
             return summary
-        except Exception as e:
+        except Exception:
             return f"# {filepath}: Error reading file"
     
     @staticmethod

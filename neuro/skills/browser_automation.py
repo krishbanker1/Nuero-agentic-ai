@@ -3,10 +3,9 @@ Neuro Browser Automation Skill (Playwright)
 Web automation and scraping capabilities
 """
 
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import asyncio
 
 class BrowserType(Enum):
     """Supported browsers"""
@@ -195,8 +194,8 @@ class BrowserAutomation:
             '"""Generated Playwright script"""',
             'from playwright.sync_api import sync_playwright',
             '',
-            f'def run_task():',
-            f'    with sync_playwright() as p:',
+            'def run_task():',
+            '    with sync_playwright() as p:',
             f'        browser = p.{config.browser_type.value}.launch(headless={config.headless})',
         ]
         
@@ -230,8 +229,8 @@ class BrowserAutomation:
                 script_parts.append(f'        page.screenshot(path="screenshot_{i}.png")')
             
             elif step.action == BrowserAction.SCRAPE:
-                script_parts.append(f'        content = page.content()')
-                script_parts.append(f'        # Process scraped content')
+                script_parts.append('        content = page.content()')
+                script_parts.append('        # Process scraped content')
             
             elif step.action == BrowserAction.WAIT:
                 wait_time = step.value or "1000"

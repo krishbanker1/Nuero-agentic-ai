@@ -3,7 +3,7 @@ Three.js Core & WebGL Skill - 3D Graphics Engine
 Pure Three.js, WebGL shaders, geometries, materials, rendering
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
 
@@ -241,28 +241,28 @@ gradientMap.needsUpdate = true
 material.gradientMap = gradientMap
 ''',
 
-            "shader": '''
+            "shader": r'''
 // Raw ShaderMaterial with custom GLSL
 const material = new THREE.ShaderMaterial({
   uniforms: {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color(0xff0000) }
   },
-  vertexShader: \`
+  vertexShader: `
     varying vec2 vUv;
     void main() {
       vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  \`,
-  fragmentShader: \`
+  `,
+  fragmentShader: `
     uniform float uTime;
     uniform vec3 uColor;
     varying vec2 vUv;
     void main() {
       gl_FragColor = vec4(uColor * sin(uTime), 1.0);
     }
-  \`
+  `
 })
 ''',
         }

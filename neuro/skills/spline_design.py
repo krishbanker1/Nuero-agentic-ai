@@ -1,5 +1,4 @@
 """Spline - 3D design using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class SplineDesign:

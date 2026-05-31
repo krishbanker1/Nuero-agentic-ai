@@ -9,7 +9,6 @@ Features:
 - Cross-session context transfer
 """
 
-import os
 import json
 import hashlib
 from pathlib import Path
@@ -17,7 +16,6 @@ from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from enum import Enum
-import sqlite3
 
 class MemoryType(Enum):
     """Types of memory storage"""

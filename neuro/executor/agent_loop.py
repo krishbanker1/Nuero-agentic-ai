@@ -1,5 +1,5 @@
 """
-Main Agent Loop - Orchestrates all components for 75-80% performance
+Main Agent Loop - Orchestrates components for production app builds
 Integrates: Router, Reasoning, Validation, Memory, Skills (259+)
 NOW WITH ECC-INSPIRED COMPONENTS:
 - Task Decomposer (planning)
@@ -10,60 +10,54 @@ NOW WITH ECC-INSPIRED COMPONENTS:
 - Autonomous Loops (self-improvement)
 """
 
-import os
 import time
-import json
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
-
-from neuro.router.smart_router import SmartRouter, _router
-from neuro.router.fallback import FallbackHandler, create_fallback_handler
-from neuro.reasoning.chain_of_thought import ChainOfThought, CoTConfig
-from neuro.reasoning.thinking_loop import ThinkingLoop, LoopConfig
-from neuro.validation.test_runner import TestRunner
-from neuro.validation.patch_guard import PatchGuard
-from neuro.memory.task_store import TaskStore
-
-# IMPORT ALL SKILLS FOR INTEGRATION
-from neuro.skills import (
-    SkillAutomation, SkillTrigger, SkillTriggerType,
-    MCPSkill, OpenDesignSkills, AgentMemorySkill, BrowserAutomation,
-    invoke_skill, mcp_connect, browse_web, store_memory, recall, 
-    get_context as get_memory_context, MemoryType, SKILL_REGISTRY,
-    SkillOrchestrator,  # Import from separate file
-    
-    # NEW: ECC-inspired skills
-    VerificationLoop, run_verification,
-    PythonPatternsSkill,
-    ContinuousLearning, get_learning_system,
-    AgentShieldSkill, run_security_scan,
-    MultiAgentOrchestrator, quick_orchestrate,
-    TaskDecomposer, create_plan,
-    AutonomousLoop, run_autonomous_loop,
-    
-    # NEW: Shell Executor & Self-Healing
-    ShellExecutor, quick_execute,
-    PlaywrightTester, test_created_app,
-    AutoFixLoop, AutoFixConfig, quick_fix,
-    AppLauncher, launch_app,
-)
+from typing import Dict, List, Optional
 
 # NEW: Import role-based agent swarm
 from neuro.executor.role_agents import run_agent_swarm
+from neuro.memory.task_store import TaskStore
+from neuro.reasoning.chain_of_thought import ChainOfThought, CoTConfig
+from neuro.reasoning.thinking_loop import LoopConfig, ThinkingLoop
+from neuro.router.fallback import create_fallback_handler
 
 # NEW: Import scenario detection
 from neuro.router.scenario_router import ScenarioRouter
+from neuro.router.smart_router import SmartRouter
+from neuro.skills import (
+    AgentShieldSkill,
+    AppLauncher,
+    AutoFixLoop,
+    AutonomousLoop,
+    MultiAgentOrchestrator,
+    PlaywrightTester,
+    PythonPatternsSkill,
+    ShellExecutor,
+    SkillOrchestrator,
+    TaskDecomposer,
+    # NEW: ECC-inspired skills
+    VerificationLoop,
+    create_plan,
+    get_learning_system,
+)
 
-# NEW: Advanced optimizations for 80%+ scores
+# IMPORT ALL SKILLS FOR INTEGRATION
+from neuro.skills import (
+    get_context as get_memory_context,  # Import from separate file
+)
+from neuro.validation.patch_guard import PatchGuard
+from neuro.validation.test_runner import TestRunner
+
+# Advanced production-quality orchestration features
 try:
     from neuro.executor.optimized_agent import (
-        ModelEnsemble,
-        TestVoting,
-        SemanticPatchValidator,
-        IntelligentErrorAnalyzer,
-        ReflectionLoop,
         ContextManager,
+        IntelligentErrorAnalyzer,
+        ModelEnsemble,
+        ReflectionLoop,
+        SemanticPatchValidator,
+        TestVoting,
     )
     OPTIMIZATIONS_AVAILABLE = True
 except ImportError:
@@ -87,14 +81,14 @@ class AgentConfig:
     use_decomposer: bool = True  # ECC-style task planning
     use_verification: bool = True  # ECC verification loops
     use_security: bool = True  # AgentShield security
-    use_orchestration: bool = True  # ✅ Multi-agent ENABLED (critical for 80%+)
+    use_orchestration: bool = True  # ✅ Multi-agent ENABLED
     use_autonomous_loop: bool = True  # NEW: Self-improvement loops
     # NEW: Shell Executor & Self-Healing
     use_shell_executor: bool = True  # Execute shell commands
     use_auto_fix: bool = True  # Auto-fix errors
     use_playwright_test: bool = True  # Test UI/apps
     use_app_launcher: bool = True  # Launch apps/servers
-    # NEW: Advanced optimizations for 80%+ scores
+    # Advanced production-quality orchestration features
     use_test_voting: bool = True  # Run tests 3x for reliability
     use_ensemble_voting: bool = True  # Multiple models vote
     use_reflection_loop: bool = True  # Learn from failures
@@ -128,81 +122,81 @@ class AgentResult:
 class NeuroAgent:
     """
     Main Neuro Autonomous Agent.
-    Orchestrates all components for high SWE-bench performance.
+    Orchestrates all components for production-grade autonomous engineering.
     NOW WITH FULL 259+ SKILLS + ECC-INSPIRED COMPONENTS.
     """
-    
+
     def __init__(self, config: AgentConfig):
         self.config = config
-        
+
         # Reload API keys from environment to ensure fresh load
         from neuro.router.smart_router import reload_keys
         reload_keys()
-        
+
         self.router = SmartRouter()
         self.fallback = create_fallback_handler(self.router)
         self.cot = ChainOfThought(CoTConfig(enabled=config.use_cot))
         self.test_runner = TestRunner(config.working_dir)
         self.patch_guard = PatchGuard(config.working_dir, dry_run=config.dry_run)
         self.memory = TaskStore() if config.use_memory else None
-        
+
         # NEW: Initialize skill orchestrator
         self.skill_orchestrator = SkillOrchestrator(verbose=config.verbose) if config.use_skills else None
-        
+
         # NEW: ECC-inspired components
         if config.use_decomposer:
             self.decomposer = TaskDecomposer()
         else:
             self.decomposer = None
-            
+
         if config.use_verification:
             self.verification_loop = VerificationLoop(max_attempts=3)
         else:
             self.verification_loop = None
-            
+
         if config.use_security:
             self.security_scanner = AgentShieldSkill()
         else:
             self.security_scanner = None
-            
+
         if config.use_orchestration:
             self.orchestrator = MultiAgentOrchestrator()
         else:
             self.orchestrator = None
-            
+
         if config.use_autonomous_loop:
             self.autonomous_loop = AutonomousLoop()
         else:
             self.autonomous_loop = None
-        
+
         # NEW: Continuous learning (always available)
         self.learning = get_learning_system()
-        
+
         # NEW: Python patterns
         self.python_patterns = PythonPatternsSkill()
-        
+
         # NEW: Shell Executor & Self-Healing
         if config.use_shell_executor:
             self.shell_executor = ShellExecutor(working_dir=config.working_dir)
         else:
             self.shell_executor = None
-            
+
         if config.use_auto_fix:
             self.auto_fix_loop = AutoFixLoop()
         else:
             self.auto_fix_loop = None
-            
+
         if config.use_playwright_test:
             self.playwright_tester = PlaywrightTester()
         else:
             self.playwright_tester = None
-            
+
         if config.use_app_launcher:
             self.app_launcher = AppLauncher()
         else:
             self.app_launcher = None
-        
-        # NEW: Initialize advanced optimization components for 80%+
+
+        # Initialize advanced optimization components
         if OPTIMIZATIONS_AVAILABLE:
             self.model_ensemble = ModelEnsemble(self.router) if config.use_ensemble_voting else None
             self.test_voting = TestVoting(self.test_runner) if config.use_test_voting else None
@@ -217,19 +211,19 @@ class NeuroAgent:
             self.error_analyzer = None
             self.reflection = None
             self.context_manager = None
-        
+
         self.current_step = 0
         self.history: List[Dict] = []
         self.start_time = time.time()
         self.attempts: List[Dict] = []
-        
+
         # Get similar past tasks for context (including skill memory)
         self.similar_context = self._get_similar_context()
-    
+
     def _get_similar_context(self) -> str:
         """Get context from similar past tasks and skill memory."""
         context_parts = []
-        
+
         # Memory from past tasks
         if self.memory:
             try:
@@ -240,7 +234,7 @@ class NeuroAgent:
                         context_parts.append(f"- {task.goal[:100]}... (status: {task.status})")
             except:
                 pass
-        
+
         # NEW: Also get context from skill-based memory
         if self.config.use_skills:
             try:
@@ -249,13 +243,51 @@ class NeuroAgent:
                     context_parts.append(f"\nRelevant skill memory:\n{skill_mem}")
             except:
                 pass
-        
+
         return "\n".join(context_parts) if context_parts else ""
-    
+
+
+    def _validate_written_files(self, files_written: List[str]) -> List[str]:
+        """Return files that are missing or empty after generation."""
+        import os
+
+        empty = []
+        for path in files_written:
+            if not os.path.exists(path) or os.path.getsize(path) == 0:
+                empty.append(path)
+                if self.config.verbose:
+                    print(f"⚠️ Empty or missing generated file detected: {path}")
+        return empty
+
+    def _write_generated_file(self, relative_path: str, content: str) -> Optional[str]:
+        """Write generated content safely inside the configured workspace.
+
+        Fallback extraction paths should obey the same guarantees as the robust
+        parser: no path traversal, no empty writes, UTF-8 output, and preserved
+        relative directories.
+        """
+        if not relative_path or not str(content).strip():
+            return None
+
+        workspace = Path(self.config.working_dir).resolve()
+        target = (workspace / relative_path).resolve()
+        if workspace != target and workspace not in target.parents:
+            if self.config.verbose:
+                print(f"⚠️ Skipping unsafe generated path outside workspace: {relative_path}")
+            return None
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(str(content), encoding="utf-8")
+        if not target.exists() or target.stat().st_size == 0:
+            if self.config.verbose:
+                print(f"⚠️ Skipping zero-byte generated file: {relative_path}")
+            return None
+        return str(target)
+
     def run(self) -> AgentResult:
         """
         Run the agent to complete the goal WITH FULL SKILL INTEGRATION.
-        
+
         Returns:
             AgentResult with execution details
         """
@@ -272,7 +304,7 @@ class NeuroAgent:
             print(f"Decomposer: {self.config.use_decomposer}")
             print(f"Security: {self.config.use_security}")
             print("=" * 60)
-        
+
         try:
             # PHASE 0: SKILL DETECTION + PLANNING (ECC)
             if self.skill_orchestrator:
@@ -281,13 +313,14 @@ class NeuroAgent:
                 self.skill_orchestrator.detect_skills(self.config.goal, {
                     "working_dir": self.config.working_dir
                 })
-            
+
             # NEW: Scenario Detection and Agent Swarm
             scenario_router = ScenarioRouter()
             scenario, confidence = scenario_router.detect_scenario(self.config.goal)
+            scenario_handler = scenario_router.get_handler(scenario)
             if self.config.verbose:
                 print(f"\n🎯 Detected scenario: {scenario.value} (confidence: {confidence:.2f})")
-            
+
             # Run the multi-agent swarm and print trace
             if self.config.verbose:
                 print("\n🤖 Running Agent Swarm (4 agents working)...")
@@ -302,7 +335,7 @@ class NeuroAgent:
                 for agent_name, success, message in swarm_result["trace"]:
                     status = "✓" if success else "✗"
                     print(f"   {status} {agent_name}: {message}")
-            
+
             # NEW: Task Decomposition (ECC's /plan)
             if self.decomposer and self.config.use_decomposer:
                 if self.config.verbose:
@@ -312,10 +345,10 @@ class NeuroAgent:
                     print(f"   Steps: {len(decomposition['steps'])}, Estimated: {decomposition['total_minutes']} min")
             else:
                 decomposition = None
-            
+
             # Phase 1: Multi-pass thinking WITH skill enrichment
             thinking_loop = ThinkingLoop(self.router, LoopConfig(max_passes=self.config.max_passes))
-            
+
             # Build context with skill enrichment + learned patterns
             context = {
                 "goal": self.config.goal,  # NEW: Add goal for web research
@@ -324,28 +357,35 @@ class NeuroAgent:
                 "similar_tasks": self.similar_context,
                 "active_skills": self.skill_orchestrator.active_skills if self.skill_orchestrator else [],
                 "decomposition": decomposition,  # NEW: Add plan to context
+                "scenario_instructions": "\n".join(scenario_handler.special_instructions),
+                "scenario_approach": scenario_handler.approach,
             }
-            
+
             # NEW: Add learned patterns from continuous learning
             if self.learning:
                 learned_context = self.learning.get_context_for_task(self.config.goal)
                 if learned_context:
                     context["learned_patterns"] = learned_context
-            
+
+            # Enrich thinking context with detected skills, ultimate task analysis,
+            # MCP recommendations, and enterprise/3D capability hints.
+            if self.skill_orchestrator:
+                context = self.skill_orchestrator.enrich_context(self.config.goal, context)
+
             # Invoke analysis-stage skills
             if self.skill_orchestrator:
                 analysis_results = self.skill_orchestrator.invoke_skills_for_stage("analysis", context)
                 if analysis_results and self.config.verbose:
                     print(f"📊 Analysis skills: {list(analysis_results.keys())}")
-            
+
             thinking_result = thinking_loop.run(
                 goal=self.config.goal,
                 context=context,
             )
-            
+
             solution = thinking_result["solution"]
             passes_used = thinking_result["num_passes"]
-            
+
             # NEW: Extract research context from passes for next iteration
             for p in thinking_result.get("passes", []):
                 if "KEY FEATURES IDENTIFIED" in p.get("response", ""):
@@ -353,42 +393,42 @@ class NeuroAgent:
                     if self.config.verbose:
                         print("📚 Research context captured for implementation")
                     break
-            
+
             if self.config.verbose:
                 print(f"\n✓ Thinking complete ({passes_used} passes)")
                 print(f"Convergence: {thinking_result['convergence_score']:.2f}")
-            
+
             # Parse solution JSON to get file structure - USE ROBUST PARSER
             files_created = []
-            
+
             # NEW: Use the robust CodeParser
             from neuro.core.code_parser import parse_and_write_files
-            
-            print(f"📄 Parsing solution ({len(solution)} chars)...")
-            print(f"🔍 Solution preview: {solution[:200]}...")
-            
+
+            if self.config.verbose:
+                print(f"📄 Parsing solution ({len(solution)} chars)...")
+                print(f"🔍 Solution preview: {solution[:200]}...")
+
             # Try the robust parser first
             try:
                 parsed_files = parse_and_write_files(
-                    solution, 
-                    self.config.working_dir, 
-                    verbose=True  # Always verbose for debugging
+                    solution,
+                    self.config.working_dir,
+                    verbose=self.config.verbose
                 )
-                files_created = parsed_files
-                print(f"✅ Parser returned: {files_created}")
-                
-                # DEBUG: Verify files exist
-                import os
-                print(f"🔍 Verifying files exist:")
-                for f in files_created:
-                    exists = os.path.exists(f)
-                    size = os.path.getsize(f) if exists else 0
-                    print(f"   {'✓' if exists else '✗'} {f} ({size} bytes)")
+                empty_files = self._validate_written_files(parsed_files)
+                files_created = [path for path in parsed_files if path not in empty_files]
+                if self.config.verbose:
+                    print(f"✅ Parser returned: {files_created}")
+                if empty_files:
+                    context["empty_generated_files"] = empty_files
+                    context["validation_error"] = (
+                        "Generated empty files; regenerate complete non-empty content for: "
+                        + ", ".join(empty_files)
+                    )
             except Exception as e:
-                print(f"⚠️ Robust parser failed: {e}")
-                import traceback
-                traceback.print_exc()
-            
+                if self.config.verbose:
+                    print(f"⚠️ Robust parser failed: {e}")
+
             # If robust parser found files, we're done
             if files_created:
                 if self.config.verbose:
@@ -397,46 +437,37 @@ class NeuroAgent:
                 # Fallback: Try legacy JSON parsing
                 if self.config.verbose:
                     print("🔄 Trying legacy JSON parsing...")
-                
-                import re
+
                 import json
-                
+                import re
+
                 def create_files_from_json(parsed, verbose=True):
                     nonlocal files_created
                     files_to_create = parsed.get("files", [])
-                    
+
                     if files_to_create and verbose:
                         print(f"\n📁 Creating {len(files_to_create)} files...")
-                    
+
                     for file_info in files_to_create:
                         file_path = file_info.get("path", "")
                         file_content = file_info.get("content", "")
-                        
+
                         if file_content and ('\\n' in str(file_content)):
                             file_content = file_content.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
-                        
+
                         if isinstance(file_content, str):
                             stripped = file_content.strip()
                             if stripped.startswith('"""') and stripped.endswith('"""') and stripped.count('"""') == 2:
                                 file_content = stripped[3:-3].strip()
                             elif stripped.startswith("'''") and stripped.endswith("'''") and stripped.count("'''") == 2:
                                 file_content = stripped[3:-3].strip()
-                        
-                        if file_path and file_content:
-                            full_path = Path(self.config.working_dir) / file_path
-                            target_dir = Path(self.config.working_dir)
-                            if file_path.startswith("templates/") or file_path.endswith(".html"):
-                                target_dir = target_dir / "templates"
-                            elif file_path.startswith("static/"):
-                                target_dir = target_dir / "static"
-                            
-                            full_path = target_dir / Path(file_path).name
-                            full_path.parent.mkdir(parents=True, exist_ok=True)
-                            full_path.write_text(str(file_content))
-                            files_created.append(str(full_path))
+
+                        written_path = self._write_generated_file(file_path, str(file_content))
+                        if written_path:
+                            files_created.append(written_path)
                             if verbose:
                                 print(f"   ✓ Created: {file_path}")
-                
+
                 # Try parsing JSON from markdown blocks
                 json_blocks = re.findall(r'```(?:json)?\s*(\{[\s\S]*?\})\s*```', solution)
                 for block in json_blocks:
@@ -447,29 +478,29 @@ class NeuroAgent:
                             break
                     except:
                         continue
-            
+
             # If no JSON, check if solution itself contains code blocks
             if not files_created:
                 # Try to extract code blocks from solution
                 code_blocks = re.findall(r'```(?:\w+)?\n([\s\S]*?)```', solution)
                 if code_blocks and self.config.verbose:
                     print(f"\n📁 Extracting {len(code_blocks)} code blocks...")
-                
+
                 # Track what files we created to avoid duplicates
                 created_bases = set()
-                
+
                 for i, code in enumerate(code_blocks):
                     # Try to determine filename from context
                     code = code.strip()
                     if not code or len(code) < 50:
                         continue
-                    
+
                     file_name = None
                     # Try to determine filename from preceding text
                     match_start = solution.find(f'```{i}') if i < 3 else 0
                     # Search for filenames before the code block
                     search_area = solution[max(0, match_start-200):match_start+10] if match_start > 0 else solution[:200]
-                    
+
                     # Look for specific patterns that indicate filenames
                     patterns = [
                         r'filename[:\s]+([\w\-_./]+\.py)',
@@ -482,7 +513,7 @@ class NeuroAgent:
                         if m:
                             file_name = m.group(1)
                             break
-                    
+
                     if not file_name:
                         # Use keyword detection - expanded for more file types
                         # Check YAML first (since it has distinct markers)
@@ -512,7 +543,7 @@ class NeuroAgent:
                             file_name = "config.json"
                         else:
                             file_name = f"generated_{i+1}.py"
-                    
+
                     # Make filename unique if already used
                     base_name = file_name
                     counter = 1
@@ -520,35 +551,36 @@ class NeuroAgent:
                         parts = base_name.rsplit('.', 1)
                         file_name = f"{parts[0]}_{counter}.{parts[1]}" if len(parts) == 2 else f"{base_name}_{counter}.py"
                         counter += 1
-                    
+
                     created_bases.add(file_name)
-                    file_path = Path(self.config.working_dir) / file_name
-                    file_path.write_text(code)
-                    files_created.append(str(file_path))
-                    if self.config.verbose:
-                        print(f"   ✓ Created: {file_name}")
-            
+                    written_path = self._write_generated_file(file_name, code)
+                    if written_path:
+                        files_created.append(written_path)
+                        if self.config.verbose:
+                            print(f"   ✓ Created: {file_name}")
+
             # Phase 2: Validation WITH skill invocation
             validation_passed = False
-            
+
             # Debug: Show what we're trying to parse
-            print(f"\n🔍 Solution length: {len(solution)} chars")
-            has_json_marker = '"files"' in solution or solution.strip().startswith('{')
-            print(f"🔍 Has JSON marker: {has_json_marker}")
-            print(f"\n📄 Solution content (first 1000 chars):")
-            print(solution[:1000])
-            
+            if self.config.verbose:
+                print(f"\n🔍 Solution length: {len(solution)} chars")
+                has_json_marker = '"files"' in solution or solution.strip().startswith('{')
+                print(f"🔍 Has JSON marker: {has_json_marker}")
+                print("\n📄 Solution content (first 1000 chars):")
+                print(solution[:1000])
+
             # Fallback: If no JSON was parsed, try direct code block extraction
             if not files_created:
                 code_blocks = re.findall(r'```(?:json|python|py|js|html|css)?\s*([\s\S]*?)```', solution)
                 if code_blocks and self.config.verbose:
                     print(f"\n📁 No JSON found, extracting {len(code_blocks)} code blocks...")
-                
+
                 for i, code in enumerate(code_blocks):
                     code = code.strip()
                     if len(code) < 100:
                         continue
-                    
+
                     # Determine file type
                     if 'flask' in code.lower() and 'app' in code.lower():
                         fname = "app.py"
@@ -560,24 +592,22 @@ class NeuroAgent:
                         fname = "app.js"
                     else:
                         fname = f"generated_{i+1}.py"
-                    
-                    fpath = Path(self.config.working_dir) / fname
-                    fpath.write_text(code)
-                    files_created.append(str(fpath))
-                    if self.config.verbose:
-                        print(f"   ✓ Created: {fname}")
-            
+
+                    written_path = self._write_generated_file(fname, code)
+                    if written_path:
+                        files_created.append(written_path)
+                        if self.config.verbose:
+                            print(f"   ✓ Created: {fname}")
+
             # Quality check: Verify files are not placeholders/TODOs
             files_valid = True
             for fpath in files_created:
                 try:
                     fcontent = Path(fpath).read_text()
                     # Check for placeholder patterns
-                    placeholder_patterns = ["TODO", "FIXME", "...", "rest of code", "..."]
+                    placeholder_patterns = ["TODO", "FIXME", "...", "rest of code"]
                     has_placeholder = any(p in fcontent for p in placeholder_patterns)
-                    # Check for minimum content (real code, not just headers)
-                    is_too_short = len(fcontent) < 200
-                    if has_placeholder or is_too_short:
+                    if has_placeholder:
                         files_valid = False
                         if self.config.verbose:
                             print(f"⚠️ Invalid file: {fpath}")
@@ -585,34 +615,32 @@ class NeuroAgent:
                     pass
 
             # Consider success if files were created (even without tests)
-            if files_created:
+            if files_created and files_valid:
                 validation_passed = True
                 if self.config.verbose:
                     # Show what was created
-                    print(f"\n✅ Files created successfully")
+                    print("\n✅ Files created successfully")
                     print(f"   Created {len(files_created)} files:")
                     for f in files_created:
                         print(f"      - {f}")
-            elif files_valid:
-                validation_passed = True
-            
+
             # Debug: Show validation state before test_first
             if self.config.verbose:
                 print(f"\n🔍 Before test_first: validation_passed={validation_passed}, test_first={self.config.test_first}")
-            
+
             if self.config.test_first:
                 if self.config.verbose:
                     print("\n📋 Running validation tests...")
-                
+
                 # NEW: Invoke testing-stage skills before running tests
                 if self.skill_orchestrator:
                     test_skills = self.skill_orchestrator.invoke_skills_for_stage("testing", solution)
                     if test_skills and self.config.verbose:
                         print(f"🧪 Testing skills: {list(test_skills.keys())}")
-                
+
                 # Run relevant tests only if they exist
                 test_result = self.test_runner.run_pytest(timeout=300)
-                
+
                 # Only update validation if tests were actually run and found
                 if test_result.total > 0:
                     validation_passed = test_result.all_passed
@@ -620,49 +648,49 @@ class NeuroAgent:
                     # No tests found - keep file-creation success
                     if self.config.verbose:
                         print("⚠️ No tests found - keeping file creation as success")
-                
+
                 self.config.test_results = {
                     "total": test_result.total,
                     "passed": test_result.passed,
                     "failed": test_result.failed,
                     "exit_code": test_result.exit_code,
                 }
-                
+
                 if self.config.verbose:
                     if test_result.total > 0:
                         print(f"Tests: {test_result.passed}/{test_result.total} passed")
                     else:
                         print("Tests: 0/0 (no tests found)")
-                
+
                 if not validation_passed and test_result.total > 0:
                     if self.config.verbose:
                         print("⚠️ Tests failed - attempting fixes...")
-            
+
             # Phase 3: Apply patches (if not dry run and validated)
             files_changed = []
-            
+
             if not self.config.dry_run and validation_passed:
                 if self.config.verbose:
                     print("\n🔧 Applying verified patches...")
-                
+
                 # NEW: Invoke deployment skills before applying
                 if self.skill_orchestrator:
                     deploy_skills = self.skill_orchestrator.invoke_skills_for_stage("deployment", files_changed)
                     if deploy_skills and self.config.verbose:
                         print(f"🚀 Deployment skills: {list(deploy_skills.keys())}")
-                
+
                 results = self.patch_guard.apply_verified_patches()
                 files_changed = [r["file"] for r in results["applied"]]
-                
+
                 if self.config.verbose:
                     print(f"Applied: {len(files_changed)} files")
             elif self.config.dry_run:
                 if self.config.verbose:
                     print("\n🔍 Dry run - no changes applied")
-            
+
             # Record in memory INCLUDING skill learning
             duration_ms = (time.time() - self.start_time) * 1000
-            
+
             if self.memory:
                 try:
                     self.memory.add_task(
@@ -676,15 +704,15 @@ class NeuroAgent:
                     )
                 except:
                     pass
-            
+
             # NEW: Store skill learning
             if self.skill_orchestrator:
                 self.skill_orchestrator.learn_from_task(
-                    self.config.goal, 
+                    self.config.goal,
                     validation_passed,
                     {"files_changed": files_changed}
                 )
-            
+
             return AgentResult(
                 success=validation_passed,
                 goal=self.config.goal,
@@ -698,10 +726,10 @@ class NeuroAgent:
                 model_used=self.config.model or "auto",
                 skills_used=self.skill_orchestrator.active_skills if self.skill_orchestrator else [],
             )
-            
+
         except Exception as e:
             duration_ms = (time.time() - self.start_time) * 1000
-            
+
             # Record failure
             if self.memory:
                 try:
@@ -714,7 +742,7 @@ class NeuroAgent:
                     )
                 except:
                     pass
-            
+
             # NEW: Store failure in skill memory too
             if self.skill_orchestrator:
                 self.skill_orchestrator.learn_from_task(
@@ -722,7 +750,7 @@ class NeuroAgent:
                     False,
                     {"error": str(e)}
                 )
-            
+
             return AgentResult(
                 success=False,
                 goal=self.config.goal,
@@ -733,11 +761,11 @@ class NeuroAgent:
                 error=str(e),
                 skills_used=self.skill_orchestrator.active_skills if self.skill_orchestrator else [],
             )
-    
+
     def get_history(self) -> List[Dict]:
         """Get execution history."""
         return self.history
-    
+
     def get_thinking_summary(self) -> str:
         """Get summary of thinking process."""
         skill_info = f", Skills: {len(self.skill_orchestrator.active_skills)}" if self.skill_orchestrator else ""
@@ -764,10 +792,10 @@ def create_agent(
 ) -> NeuroAgent:
     """
     Create a new Neuro agent WITH FULL SKILL INTEGRATION + ECC COMPONENTS.
-    
+
     Usage:
         from neuro.executor.agent_loop import create_agent
-        
+
         agent = create_agent(
             goal="Fix the login bug",
             working_dir="/path/to/project",
@@ -780,7 +808,7 @@ def create_agent(
             use_security=True,  # Enable AgentShield scanning
             dry_run=False,
         )
-        
+
         result = agent.run()
         print(f"Success: {result.success}")
         print(f"Skills used: {result.skills_used}")
@@ -803,23 +831,23 @@ def create_agent(
         dry_run=dry_run,
         verbose=verbose,
     )
-    
+
     return NeuroAgent(config)
 
 
 def run_goal(goal: str, **kwargs) -> AgentResult:
     """
     Quick function to run a goal WITH SKILL INTEGRATION.
-    
+
     Usage:
         from neuro.executor.agent_loop import run_goal
-        
+
         result = run_goal(
             "Fix the bug in main.py",
             working_dir="/path/to/project",
             use_skills=True
         )
-        
+
         print(result.success)
         print(f"Skills used: {result.skills_used}")
     """

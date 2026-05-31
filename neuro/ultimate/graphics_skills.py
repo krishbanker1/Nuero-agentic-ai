@@ -5,7 +5,7 @@ Complete 3D graphics, animation, and motion design capabilities
 for enterprise-grade UI/frontend development.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
 

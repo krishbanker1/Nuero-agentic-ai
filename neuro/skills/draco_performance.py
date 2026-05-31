@@ -3,7 +3,7 @@ Draco Compression & Performance Tuning Skill
 3D model optimization, Draco compression, performance best practices
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 
 
 class DracoPerformanceSkill:

@@ -1,7 +1,7 @@
 """Competitor Beater - Real multi-agent orchestration"""
-from typing import Dict, Any, List
+from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
-from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentRole
+from neuro.skills.agent_swarm import AgentSwarmCoordinator
 
 class CompetitorBeater:
     """Real system that coordinates multiple AI agents for complex tasks."""

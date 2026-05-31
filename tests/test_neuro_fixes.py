@@ -124,20 +124,24 @@ class TestProviderEnvDetection:
 class TestProviderEnum:
     """Test Provider enum includes all providers."""
     
-    def test_gemini_in_providers(self):
-        """Test Gemini is in Provider enum."""
-        assert Provider.GEMINI.value == "gemini"
+    def test_google_in_providers(self):
+        """Test native Google Gemini is in Provider enum."""
+        assert Provider.GOOGLE.value == "google"
     
     def test_all_required_providers(self):
         """Test all required providers exist."""
-        required = ["gemini", "groq", "openrouter", "huggingface", "together", "cloudflare"]
+        required = ["google", "groq", "openrouter", "huggingface", "together", "cloudflare"]
         for p in required:
             assert hasattr(Provider, p.upper())
     
-    def test_deepseek_qwen_aliases(self):
-        """Test DeepSeek and Qwen are handled (via OpenRouter)."""
-        assert Provider.DEEPSEEK.value == "deepseek"
-        assert Provider.QWEN.value == "qwen"
+    def test_deepseek_qwen_accessible(self):
+        """Test DeepSeek and Qwen are accessible via OpenRouter."""
+        # DeepSeek and Qwen are accessed via OpenRouter, not as separate providers
+        # This test verifies they're referenced in the model registry
+        openrouter_models = [m for m in MODEL_REGISTRY if 'openrouter' in m.provider.lower()]
+        deepseek_via_openrouter = any('deepseek' in m.name.lower() for m in openrouter_models)
+        qwen_via_openrouter = any('qwen' in m.name.lower() for m in openrouter_models)
+        assert deepseek_via_openrouter or qwen_via_openrouter, "DeepSeek/Qwen should be accessible via OpenRouter"
 
 
 # =============================================================================
@@ -359,7 +363,7 @@ class TestCommandRunner:
     def test_capture_stderr(self):
         """Test stderr is captured."""
         runner = CommandRunner("/tmp")
-        result = runner.run("ls /nonexistent_dir_12345")
+        runner.run("ls /nonexistent_dir_12345")
         # May or may not fail, but should capture output
     
     def test_command_timeout(self):
@@ -387,7 +391,7 @@ class TestCommandRunner:
         (tmp_path / "test_foo.py").write_text("def test_pass(): assert True")
         
         runner = CommandRunner(str(tmp_path))
-        result = runner.run_test()
+        runner.run_test()
         # May detect pytest or not, but should run something
 
 

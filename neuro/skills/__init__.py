@@ -3,6 +3,7 @@ Neuro Skill Manager - Automatic skill utilization system
 Auto-loads and auto-triggers skills based on task context
 """
 
+import inspect
 import os
 import re
 import json
@@ -33,35 +34,39 @@ from neuro.skills.shell_executor import ShellExecutor, ExecutionResult, ShellErr
 from neuro.skills.playwright_tester import PlaywrightTester, AppTestReport, test_created_app
 from neuro.skills.auto_fix_loop import AutoFixLoop, AutoFixConfig, AutoFixResult, quick_fix
 from neuro.skills.app_launcher import AppLauncher, LaunchResult, launch_app, stop_app
+from neuro.skills.production_scaffolder import ProductionScaffolder, ScaffoldPlan, ScaffoldFile
+from neuro.skills.production_build_pipeline import ProductionBuildPipeline, ProductionBuildPlan, BuildStage
+from neuro.skills.firecrawl_research import FirecrawlResearchSkill, FirecrawlConfig
+from neuro.skills.cinematic_design import CinematicDesign
 
 # Agent swarm coordinator
 from neuro.skills.agent_swarm import AgentSwarmCoordinator, AgentTask, AgentRole, run_swarm
 
-# Lazy imports for heavy skills
+# Lazy imports for heavy skills - map to actual class names in the repo
 _lazy_imports = {
-    "react_three_fiber": "neuro.skills.react_three_fiber.ReactThreeFiberSkill",
+    "react_three_fiber": "neuro.skills.react_three_fiber.ReactThreeFiber",
     "threejs_core": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
     "threejs": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
     "webgl": "neuro.skills.threejs_webgl.ThreeJSCoreSkill",
-    "spline_design": "neuro.skills.spline_design.SplineDesignSkill",
-    "glsl_shaders": "neuro.skills.glsl_shaders.GLSLShaderSkill",
-    "shader": "neuro.skills.glsl_shaders.GLSLShaderSkill",
+    "spline_design": "neuro.skills.spline_design.SplineDesign",
+    "glsl_shaders": "neuro.skills.glsl_shaders.GLSLShaders",
+    "shader": "neuro.skills.glsl_shaders.GLSLShaders",
     "draco_performance": "neuro.skills.draco_performance.DracoPerformanceSkill",
     "draco": "neuro.skills.draco_performance.DracoPerformanceSkill",
     "gsap_scroll": "neuro.skills.gsap_scroll.GSAPScrollSkill",
     "gsap": "neuro.skills.gsap_scroll.GSAPScrollSkill",
     "scrolltrigger": "neuro.skills.gsap_scroll.GSAPScrollSkill",
-    "framer_motion": "neuro.skills.framer_motion.FramerMotionSkill",
-    "framer": "neuro.skills.framer_motion.FramerMotionSkill",
+    "framer_motion": "neuro.skills.framer_motion.FramerMotion",
+    "framer": "neuro.skills.framer_motion.FramerMotion",
     "lenis_scroll": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
     "lenis": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
     "smooth_scroll": "neuro.skills.lenis_scroll.LenisSmoothScrollSkill",
-    "vector_math": "neuro.skills.vector_math.VectorMathSkill",
-    "matrix": "neuro.skills.vector_math.VectorMathSkill",
-    "mathematics": "neuro.skills.vector_math.VectorMathSkill",
-    "component_driven": "neuro.skills.component_driven.ComponentDrivenSkill",
+    "vector_math": "neuro.skills.vector_math.VectorMath",
+    "matrix": "neuro.skills.vector_math.VectorMath",
+    "mathematics": "neuro.skills.vector_math.VectorMath",
+    "component_driven": "neuro.skills.component_driven.ComponentDriven",
     "system_prompt": "neuro.skills.system_prompt.SystemPromptScaffoldSkill",
-    "asset_mapping": "neuro.skills.asset_mapping.AssetMappingSkill",
+    "asset_mapping": "neuro.skills.asset_mapping.AssetMapping",
     
     # NEW: Cross-session features (from screenshots)
     "deep_research": "neuro.skills.deep_research.DeepResearchAgent",
@@ -90,6 +95,124 @@ _lazy_imports = {
     "context_optimizer": "neuro.skills.context_optimizer.ContextOptimizer",
     "context": "neuro.skills.context_optimizer.ContextOptimizer",
 }
+
+
+_SKILL_METHOD_PREFERENCE = (
+    "build_from_input",
+    "build_app",
+    "build",
+    "generate_full_stack",
+    "generate",
+    "create_plan",
+    "create_presentation",
+    "decompose",
+    "breakdown",
+    "review",
+    "audit",
+    "analyze_task",
+    "analyze_bottlenecks",
+    "optimize",
+    "write_commit_message",
+    "resolve_conflict",
+    "suggest_workflow",
+    "create_spec",
+    "validate_spec",
+    "generate_scene",
+    "generate_renderer",
+    "generate_utilities",
+    "generate_math_lib",
+    "generate_matrix_lib",
+    "generate_vertex_shader",
+    "generate_fragment_shader",
+    "generate_animations",
+    "generate_design_system",
+    "generate_component",
+    "run",
+    "execute",
+)
+
+
+def _normalize_skill_result(skill_name: str, method_name: str, result: Any) -> Dict[str, Any]:
+    """Return a consistent skill result envelope for all skill shapes."""
+    if isinstance(result, dict):
+        normalized = result.copy()
+    else:
+        normalized = {"result": result}
+    normalized.setdefault("skill", skill_name)
+    normalized.setdefault("method", method_name)
+    normalized.setdefault("success", "error" not in normalized)
+    return normalized
+
+
+def _call_skill_method(method: Any, task: str, context: Optional[Dict[str, Any]] = None) -> Any:
+    """Call a skill method using its signature instead of hardcoded wrappers."""
+    context = context or {}
+    signature = inspect.signature(method)
+    parameters = list(signature.parameters.values())
+    required = [
+        parameter for parameter in parameters
+        if parameter.default is inspect.Parameter.empty
+        and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+    ]
+    accepts_kwargs = any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters)
+    if not required:
+        return method()
+    if accepts_kwargs:
+        return method(task, **context)
+    if len(required) == 1:
+        return method(task)
+    if any(parameter.name == "context" for parameter in parameters):
+        return method(task, context)
+    raise TypeError(f"Method requires {len(required)} positional arguments and no context parameter")
+
+
+def invoke_skill_class(skill_name: str, skill_class: Any, task: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Invoke both modern `invoke` skills and legacy template-style skills.
+
+    Many older Neuro skills expose useful methods such as `build`, `generate`,
+    `review`, or `decompose` but not a uniform `invoke` entry point. This adapter
+    makes those skills callable without rewriting every individual skill file.
+    """
+    if skill_class is None:
+        return {"success": False, "skill": skill_name, "error": "Skill is not configured"}
+
+    if hasattr(skill_class, "invoke"):
+        return _normalize_skill_result(skill_name, "invoke", skill_class.invoke(task, context))
+
+    try:
+        instance = skill_class() if isinstance(skill_class, type) else skill_class
+    except TypeError as exc:
+        return {"success": False, "skill": skill_name, "error": f"Could not instantiate skill: {exc}"}
+
+    public_methods = sorted(
+        name for name in dir(instance)
+        if not name.startswith("_") and callable(getattr(instance, name, None))
+    )
+    candidate_methods = list(dict.fromkeys([*_SKILL_METHOD_PREFERENCE, *public_methods]))
+    last_error = ""
+    for method_name in candidate_methods:
+        method = getattr(instance, method_name, None)
+        if callable(method):
+            try:
+                result = _call_skill_method(method, task, context)
+            except TypeError as exc:
+                last_error = str(exc)
+                continue
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "skill": skill_name,
+                    "method": method_name,
+                    "error": str(exc),
+                }
+            return _normalize_skill_result(skill_name, method_name, result)
+
+    return {
+        "success": False,
+        "skill": skill_name,
+        "error": last_error or "Skill has no supported callable entry point",
+        "available_methods": public_methods,
+    }
 
 def _lazy_get_skill(name: str):
     """Lazily import and return a skill class."""
@@ -129,7 +252,6 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "memory": AgentMemorySkill,
     "browser": BrowserAutomation,
     "browser_automation": BrowserAutomation,
-    "playwright": BrowserAutomation,
     
     # NEW: ECC-inspired skills
     "verification_loop": VerificationLoop,
@@ -163,6 +285,22 @@ SKILL_REGISTRY: Dict[str, Any] = {
     "fix_loop": AutoFixLoop,
     "self_heal": AutoFixLoop,
     "app_launcher": AppLauncher,
+    "production_scaffolder": ProductionScaffolder,
+    "production_scaffold": ProductionScaffolder,
+    "enterprise_scaffold": ProductionScaffolder,
+    "app_scaffolder": ProductionScaffolder,
+    "production_pipeline": ProductionBuildPipeline,
+    "build_pipeline": ProductionBuildPipeline,
+    "firecrawl_research": FirecrawlResearchSkill,
+    "firecrawl": FirecrawlResearchSkill,
+    "web_scrape": FirecrawlResearchSkill,
+    "docs_scrape": FirecrawlResearchSkill,
+    "cinematic_design": CinematicDesign,
+    "cinematic": CinematicDesign,
+    "premium_design": CinematicDesign,
+    "visual_design": CinematicDesign,
+    "enterprise_pipeline": ProductionBuildPipeline,
+    "quality_pipeline": ProductionBuildPipeline,
     "launch": AppLauncher,
     "start": AppLauncher,
     
@@ -300,7 +438,6 @@ class SkillManager:
                 "gitlab": ["gitlab", "merge request"],
                 "code-review": ["code review", "review", "pr review"],
                 "iterate": ["iterate", "verify", "ci", "tests"],
-                "security": ["security", "auth", "vulnerability"],
                 "docker": ["docker", "container", "containerize"],
                 "kubernetes": ["kubernetes", "k8s", "deploy"],
                 "jupyter": ["jupyter", "notebook", "data science"],
@@ -416,9 +553,9 @@ def invoke_skill(skill_name: str, task: str, context: Optional[Dict[str, Any]] =
             else:
                 return {"error": f"Skill {skill_name} has no lazy import path configured"}
         
-        if skill_class and hasattr(skill_class, 'invoke'):
-            return skill_class.invoke(task, context)
-        return {"error": f"Skill {skill_name} does not have an invoke method"}
+        if skill_class:
+            return invoke_skill_class(skill_name, skill_class, task, context)
+        return {"success": False, "error": f"Skill {skill_name} is unavailable"}
     
     # Fallback to auto-detection
     return {"auto_triggered": auto_skills(task, context)}
@@ -452,6 +589,31 @@ from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_
 # NEW: DevOps & Deployment
 from neuro.skills.docker_deploy import DockerDeploy, docker_deploy
 from neuro.skills.website_builder import WebsiteBuilder, build_website
+from neuro.skills.presentation_builder import PresentationBuilder, build_presentation
+from neuro.skills.security_hardening import SecurityHardening
+from neuro.skills.planning_task_breakdown import PlanningTaskBreakdown
+from neuro.skills.git_workflow import GitWorkflow
+from neuro.skills.spec_driven_development import SpecDrivenDevelopment
+from neuro.skills.performance_optimization import PerformanceOptimization
+from neuro.skills.debugging_error_recovery import DebuggingErrorRecovery
+
+SKILL_REGISTRY.update({
+    "code_generator": CodeGenerator,
+    "rest_api_builder": RESTAPIBuilder,
+    "api_builder": RESTAPIBuilder,
+    "database_builder": DatabaseBuilder,
+    "frontend_builder": FrontendBuilder,
+    "landing_page_builder": LandingPageBuilder,
+    "docker_deploy": DockerDeploy,
+    "website_builder": WebsiteBuilder,
+    "presentation_builder": PresentationBuilder,
+    "security_hardening": SecurityHardening,
+    "planning_task_breakdown": PlanningTaskBreakdown,
+    "git_workflow": GitWorkflow,
+    "spec_driven_development": SpecDrivenDevelopment,
+    "performance_optimization": PerformanceOptimization,
+    "debugging_error_recovery": DebuggingErrorRecovery,
+})
 
 
 # 3D & Motion Graphics Skills (ALL REAL AI)

@@ -1,8 +1,8 @@
 """
 Neuro Ultimate - Comprehensive AI Coding System
 =================================================
-The most powerful autonomous coding system that integrates all AI capabilities
-to beat Kimi 2.6 Max, Manus 1.6 Max, Claude Code, and Codex in every scenario.
+A free-first autonomous coding system that integrates local orchestration,
+MCP tools, graphics skills, and enterprise app-building capabilities.
 
 Features:
 - 500+ MCP servers integration
@@ -14,7 +14,26 @@ Features:
 - Advanced code generation and optimization
 """
 
-from typing import Dict, List, Optional, Any
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+# =============================================================================
+# TASK CLASSIFICATION
+# =============================================================================
+
+class TaskType(Enum):
+    """Task type classification shared by ultimate registries and orchestrators."""
+
+    CODING = "coding"
+    DESIGN = "design"
+    THREE_D_GRAPHICS = "3d_graphics"
+    ANIMATION = "animation"
+    DEPLOYMENT = "deployment"
+    TESTING = "testing"
+    RESEARCH = "research"
+    BUSINESS = "business"
+    CREATIVE = "creative"
+
 
 # =============================================================================
 # ULTIMATE SYSTEM REGISTRY
@@ -88,8 +107,18 @@ class NeuroUltimateRegistry:
         "pal_mcp_server": {
             "repo": "BeehiveInnovations/pal-mcp-server",
             "stars": "11.6k",
-            "capabilities": ["claude_code_alternative", "gemini_cli", "codex_cli", 
-                           "multi_provider": ["gemini", "openai", "openrouter", "azure", "grok", "ollama"]],
+            "capabilities": [
+                "claude_code_alternative",
+                "gemini_cli",
+                "codex_cli",
+                "multi_provider_cli",
+                "gemini",
+                "openai",
+                "openrouter",
+                "azure",
+                "grok",
+                "ollama",
+            ],
             "install": "pip install pal-mcp-server",
             "priority": 1
         },
@@ -233,7 +262,7 @@ class NeuroUltimateRegistry:
                 "Presentation creation",
                 "Enterprise app development"
             ],
-            "beat_strategy": "Integrate more context windows, faster model routing, multi-provider support"
+            "integration_strategy": "Use larger context windows, faster model routing, and multi-provider support"
         },
         "manus_1_6_max": {
             "features": [
@@ -244,7 +273,7 @@ class NeuroUltimateRegistry:
                 "Memory persistence",
                 "Tool integration"
             ],
-            "beat_strategy": "More agents, better orchestration, wider tool support, 500+ MCP servers"
+            "integration_strategy": "Use more agents, stronger orchestration, wider tool support, and MCP servers"
         },
         "claude_code": {
             "features": [
@@ -254,7 +283,7 @@ class NeuroUltimateRegistry:
                 "Terminal execution",
                 "Context awareness"
             ],
-            "beat_strategy": "Multi-model support, better context, more tools, GitHub MCP integration"
+            "integration_strategy": "Use multi-model support, better context, more tools, and GitHub MCP integration"
         },
         "codex": {
             "features": [
@@ -263,7 +292,7 @@ class NeuroUltimateRegistry:
                 "Documentation generation",
                 "API integration"
             ],
-            "beat_strategy": "Connect to Codex via MCP, add multi-model layer, enhanced completions"
+            "integration_strategy": "Use MCP bridges, add a multi-model layer, and improve completions"
         }
     }
     

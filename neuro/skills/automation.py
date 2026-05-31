@@ -5,7 +5,7 @@ Automatically triggers skills, plugins, and integrations based on code analysis 
 
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Any
 from dataclasses import dataclass
 from enum import Enum
 

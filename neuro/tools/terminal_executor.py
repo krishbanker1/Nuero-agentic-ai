@@ -1,9 +1,7 @@
 """Terminal Executor - Run commands, capture output, fix errors using REAL AI"""
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 import subprocess
-import shlex
 import os
-import tempfile
 
 class TerminalExecutor:
     """
