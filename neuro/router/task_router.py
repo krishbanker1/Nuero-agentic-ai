@@ -11,10 +11,11 @@ Usage:
     task_type = classify_task("Build a React login page")
 """
 
-from typing import Optional, List, Dict, Tuple, Any
+from __future__ import annotations
+
+from typing import List, Dict, Tuple, Any
 from enum import Enum
 import random
-import os
 
 
 class TaskRole(Enum):
@@ -102,7 +103,7 @@ class TaskRole(Enum):
 class Provider(Enum):
     """API Providers."""
     GROQ = "groq"
-    GEMINI = "gemini"
+    GOOGLE = "google"
     OPENROUTER = "openrouter"
     SAMBANOVA = "sambanova"
     CEREBRAS = "cerebras"
@@ -125,14 +126,18 @@ PROVIDER_MODELS = {
         "moonshotai/kimi-k2-instruct",
     ],
     
-    # Gemini API - Best for planning, architecture, validation
-    # FROM YOUR INSTRUCTIONS: gemini-2.5-pro, gemini-2.5-flash, gemini-2.5-flash-lite, gemini-3-flash-preview, gemini-3.1-flash-lite, gemini-embedding-001
-    Provider.GEMINI: [
-        "gemini-2.5-pro",
+    # Google Gemini API - native IDs only, no OpenRouter prefixes.
+    Provider.GOOGLE: [
+        "gemini-3.5-flash",
+        "gemini-3-flash-preview",
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        "gemini-3-flash-preview",
-        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-live-preview",
+        "gemini-2.5-flash-native-audio-preview-12-2025",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-flash-image",
+        "gemini-embedding-2",
         "gemini-embedding-001",
     ],
     
@@ -141,7 +146,6 @@ PROVIDER_MODELS = {
     # nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free, poolside/laguna-m.1:free, poolside/laguna-xs.2:free,
     # baidu/cobuddy:free, google/gemma-4-31b-it:free, google/gemma-4-26b-a4b-it:free,
     # meta-llama/llama-3.3-70b-instruct:free, meta-llama/llama-3.2-3b-instruct:free,
-    # openai/gpt-oss-120b:free, liquid/lfm-2.5-1.2b-thinking:free, z-ai/glm-4.5-air:free
     # NOTE: deepseek/deepseek-chat used in roles but may be SambaNova or paid OpenRouter
     Provider.OPENROUTER: [
         "openrouter/free",
@@ -156,7 +160,6 @@ PROVIDER_MODELS = {
         "google/gemma-4-26b-a4b-it:free",
         "meta-llama/llama-3.3-70b-instruct:free",
         "meta-llama/llama-3.2-3b-instruct:free",
-        "openai/gpt-oss-120b:free",
         "liquid/lfm-2.5-1.2b-thinking:free",
         "z-ai/glm-4.5-air:free",
         # Additional models used in role assignments (may be available on OpenRouter):
@@ -219,12 +222,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.INTENT_ROUTER: {
         "primary": [
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
-            (Provider.GEMINI, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
         ],
         "fallback": [
             (Provider.GROQ, "llama-3.3-70b-versatile"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -232,12 +235,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.TASK_CLASSIFIER: {
         "primary": [
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
             (Provider.GROQ, "qwen/qwen3-32b"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -245,11 +248,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.COMPLEXITY_ESTIMATOR: {
         "primary": [
             (Provider.GROQ, "llama-3.3-70b-versatile"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
             (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
         ],
@@ -257,12 +260,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.MAIN_PLANNER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
             (Provider.GROQ, "openai/gpt-oss-120b"),
@@ -271,12 +274,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.LONG_HORIZON_PLANNER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
             (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
             (Provider.OPENROUTER, "qwen/qwen3-235b"),
         ],
@@ -284,13 +287,13 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.PRODUCT_MANAGER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
     },
@@ -300,12 +303,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.RESEARCH_AGENT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.1"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "openrouter/free"),
@@ -314,26 +317,26 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.BROWSER_AGENT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.GROQ, "llama-3.1-8b-instant"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
     
     TaskRole.GITHUB_REPO_SCOUT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
     },
@@ -343,9 +346,9 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.SYSTEM_ARCHITECT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
         ],
         "fallback": [
             (Provider.SAMBANOVA, "deepseek-v3.2"),
@@ -359,11 +362,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "llama-4-maverick-17b-128e-instruct"),
         ],
@@ -371,8 +374,8 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.FRONTEND_ARCHITECT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
@@ -386,11 +389,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.SAMBANOVA, "deepseek-v3.2"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
     },
@@ -399,11 +402,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -413,8 +416,8 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.TASK_DECOMPOSER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
@@ -427,37 +430,37 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.TICKET_GENERATOR: {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
     },
     
     TaskRole.EXECUTOR_CONTROLLER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.GROQ, "llama-3.1-8b-instant"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
     
     # -------------------------------------------------------------------------
-    # Coding Roles - MOST IMPORTANT FOR SWE-bench
+    # Coding Roles - core repair and build roles
     # -------------------------------------------------------------------------
     TaskRole.FILE_INSPECTOR: {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
@@ -475,8 +478,8 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
     },
     
@@ -487,8 +490,8 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
@@ -498,12 +501,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
         ],
     },
     
@@ -511,11 +514,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.SAMBANOVA, "deepseek-v3.2"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -523,25 +526,25 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.AUTH_CODER: {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
         ],
     },
     
     TaskRole.INTEGRATION_CODER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -555,7 +558,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
     },
     
@@ -563,7 +566,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
@@ -576,12 +579,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
         ],
     },
     
@@ -589,7 +592,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.GROQ, "llama-3.1-8b-instant"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
@@ -604,12 +607,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.LOG_COMPRESSOR: {
         "primary": [
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
-            (Provider.GEMINI, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
         ],
         "fallback": [
             (Provider.GROQ, "llama-3.3-70b-versatile"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -621,8 +624,8 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
         ],
     },
@@ -631,12 +634,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
     },
     
@@ -647,9 +650,9 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
         ],
     },
     
@@ -657,11 +660,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
         "fallback": [
             (Provider.SAMBANOVA, "deepseek-v3.2"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -670,11 +673,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-xs.2:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -684,13 +687,13 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.VALIDATOR: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -699,12 +702,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
     },
     
@@ -712,10 +715,10 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "poolside/laguna-xs.2:free"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
@@ -724,21 +727,21 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.API_VALIDATOR: {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
     
     TaskRole.UI_VALIDATOR: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
@@ -752,26 +755,26 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.SECURITY_REVIEWER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
         ],
     },
     
     TaskRole.ENTERPRISE_CRITIC: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
             (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
@@ -780,12 +783,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.PERFORMANCE_AGENT: {
         "primary": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -794,11 +797,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
@@ -808,12 +811,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
             (Provider.GROQ, "llama-3.1-8b-instant"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
             (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
         ],
     },
     
@@ -822,9 +825,9 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.UI_DESIGNER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
@@ -835,12 +838,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.UX_FLOW_DESIGNER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
@@ -850,7 +853,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
         "primary": [
             (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
             (Provider.OPENROUTER, "poolside/laguna-xs.2:free"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
@@ -861,9 +864,9 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.VISION_REVIEWER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
             (Provider.CLOUDFLARE, "kimi-k2.6"),
@@ -877,25 +880,25 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     # -------------------------------------------------------------------------
     TaskRole.PRESENTATION_BUILDER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
         ],
     },
     
     TaskRole.DOCUMENT_WRITER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
@@ -903,12 +906,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.MARKETING_WRITER: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
@@ -920,11 +923,11 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     TaskRole.MEMORY_SUMMARIZER: {
         "primary": [
             (Provider.GROQ, "llama-3.1-8b-instant"),
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
-            (Provider.GEMINI, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
             (Provider.GROQ, "llama-3.3-70b-versatile"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
@@ -932,7 +935,7 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.EMBEDDING_AGENT: {
         "primary": [
-            (Provider.GEMINI, "gemini-embedding-001"),
+            (Provider.GOOGLE, "gemini-embedding-001"),
             (Provider.CLOUDFLARE, "BGE-embedding-models"),
             (Provider.HUGGINGFACE, "BGE/E5-embedding-models"),
         ],
@@ -948,27 +951,27 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
             (Provider.HUGGINGFACE, "Whisper-ASR-models"),
         ],
         "fallback": [
-            (Provider.GEMINI, "gemini-audio-capable-models"),
+            (Provider.GOOGLE, "gemini-3.1-flash-live-preview"),
         ],
     },
     
     TaskRole.TOOL_CALLING_AGENT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
         ],
         "fallback": [
             (Provider.GROQ, "llama-3.3-70b-versatile"),
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.OPENROUTER, "openrouter/free"),
         ],
     },
     
     TaskRole.STRUCTURED_JSON_AGENT: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-flash"),
-            (Provider.GEMINI, "gemini-3.1-flash-lite"),
+            (Provider.GOOGLE, "gemini-2.5-flash"),
+            (Provider.GOOGLE, "gemini-2.5-flash-lite"),
             (Provider.GROQ, "llama-3.1-8b-instant"),
         ],
         "fallback": [
@@ -980,12 +983,12 @@ ROLE_MODEL_ROUTING: Dict[TaskRole, Dict[str, List[Tuple[Provider, str]]]] = {
     
     TaskRole.FINAL_ORCHESTRATOR: {
         "primary": [
-            (Provider.GEMINI, "gemini-2.5-pro"),
+            (Provider.GOOGLE, "gemini-3.5-flash"),
             (Provider.OPENROUTER, "openrouter/owl-alpha"),
-            (Provider.GEMINI, "gemini-3-flash-preview"),
+            (Provider.GOOGLE, "gemini-3-flash-preview"),
         ],
         "fallback": [
-            (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+            (Provider.GROQ, "openai/gpt-oss-120b"),
             (Provider.SAMBANOVA, "deepseek-v3.2"),
             (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"),
         ],
@@ -1168,6 +1171,87 @@ def classify_task(task_description: str) -> TaskRole:
     return max(scores, key=scores.get)
 
 
+
+# Balanced production routing overrides. These keep coding/debugging ownership on
+# Qwen/DeepSeek/OpenRouter while allowing native Google Gemini where it is strong.
+def _balanced_route(primary: List[Tuple[Provider, str]], fallback: List[Tuple[Provider, str]]) -> Dict[str, List[Tuple[Provider, str]]]:
+    return {"primary": primary, "fallback": fallback}
+
+_FAST_ROLES = [
+    TaskRole.INTENT_ROUTER, TaskRole.TASK_CLASSIFIER, TaskRole.COMPLEXITY_ESTIMATOR,
+    TaskRole.LOG_COMPRESSOR, TaskRole.MEMORY_SUMMARIZER, TaskRole.STRUCTURED_JSON_AGENT,
+]
+_PLANNING_ROLES = [TaskRole.MAIN_PLANNER, TaskRole.LONG_HORIZON_PLANNER, TaskRole.PRODUCT_MANAGER, TaskRole.FINAL_ORCHESTRATOR]
+_ARCHITECTURE_ROLES = [
+    TaskRole.SYSTEM_ARCHITECT, TaskRole.BACKEND_ARCHITECT, TaskRole.FRONTEND_ARCHITECT,
+    TaskRole.DATABASE_ARCHITECT, TaskRole.API_CONTRACT_WRITER,
+]
+_CODING_ROLES = [
+    TaskRole.FRONTEND_CODER, TaskRole.BACKEND_CODER, TaskRole.FULL_STACK_CODER,
+    TaskRole.DATABASE_CODER, TaskRole.AUTH_CODER, TaskRole.INTEGRATION_CODER,
+    TaskRole.AGENTIC_CODER, TaskRole.SMALL_PATCH_CODER, TaskRole.REFACTOR_AGENT,
+]
+_DEBUG_ROLES = [
+    TaskRole.DEBUGGER, TaskRole.FRONTEND_DEBUGGER, TaskRole.BACKEND_DEBUGGER,
+    TaskRole.DATABASE_DEBUGGER, TaskRole.DEPENDENCY_DEBUGGER, TaskRole.SELF_HEALING_AGENT,
+]
+_VALIDATION_ROLES = [TaskRole.VALIDATOR, TaskRole.TYPECHECK_VALIDATOR, TaskRole.BUILD_VALIDATOR, TaskRole.API_VALIDATOR, TaskRole.TESTING_AGENT]
+_REVIEW_ROLES = [TaskRole.SECURITY_REVIEWER, TaskRole.ENTERPRISE_CRITIC, TaskRole.PERFORMANCE_AGENT]
+
+for _role in _FAST_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.GROQ, "llama-3.1-8b-instant"), (Provider.GOOGLE, "gemini-2.5-flash-lite")],
+        [(Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.OPENROUTER, "openrouter/free")],
+    )
+
+for _role in _PLANNING_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.GROQ, "openai/gpt-oss-120b"), (Provider.OPENROUTER, "openrouter/owl-alpha")],
+        [(Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.SAMBANOVA, "deepseek-v3.2"), (Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free")],
+    )
+
+for _role in _ARCHITECTURE_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free"), (Provider.GROQ, "openai/gpt-oss-120b")],
+        [(Provider.OPENROUTER, "qwen/qwen3-coder:free"), (Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.SAMBANOVA, "deepseek-v3.2")],
+    )
+
+for _role in _CODING_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.OPENROUTER, "qwen/qwen3-coder:free"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free"), (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free")],
+        [(Provider.GOOGLE, "gemini-2.5-flash"), (Provider.GROQ, "qwen/qwen3-32b"), (Provider.GROQ, "llama-3.3-70b-versatile")],
+    )
+
+for _role in _DEBUG_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free"), (Provider.OPENROUTER, "qwen/qwen3-coder:free")],
+        [(Provider.GOOGLE, "gemini-2.5-flash"), (Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.SAMBANOVA, "deepseek-v3.2")],
+    )
+
+for _role in _VALIDATION_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.OPENROUTER, "qwen/qwen3-coder:free"), (Provider.GOOGLE, "gemini-2.5-flash"), (Provider.GROQ, "llama-3.3-70b-versatile")],
+        [(Provider.OPENROUTER, "deepseek/deepseek-chat:free"), (Provider.GROQ, "openai/gpt-oss-120b")],
+    )
+
+for _role in _REVIEW_ROLES:
+    ROLE_MODEL_ROUTING[_role] = _balanced_route(
+        [(Provider.GROQ, "openai/gpt-oss-120b"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free"), (Provider.GOOGLE, "gemini-3.5-flash")],
+        [(Provider.OPENROUTER, "qwen/qwen3-coder:free"), (Provider.SAMBANOVA, "deepseek-v3.2"), (Provider.GROQ, "llama-3.3-70b-versatile")],
+    )
+
+ROLE_MODEL_ROUTING.update({
+    TaskRole.UI_DESIGNER: _balanced_route([(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.OPENROUTER, "qwen/qwen3-coder:free")], [(Provider.OPENROUTER, "z-ai/glm-4.5-air:free"), (Provider.CLOUDFLARE, "vision-models"), (Provider.GROQ, "llama-3.3-70b-versatile")]),
+    TaskRole.UX_FLOW_DESIGNER: _balanced_route([(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.OPENROUTER, "qwen/qwen3-coder:free")], [(Provider.OPENROUTER, "z-ai/glm-4.5-air:free"), (Provider.GROQ, "llama-3.3-70b-versatile")]),
+    TaskRole.CSS_TAILWIND_FIXER: _balanced_route([(Provider.OPENROUTER, "qwen/qwen3-coder:free"), (Provider.GOOGLE, "gemini-3.5-flash")], [(Provider.OPENROUTER, "z-ai/glm-4.5-air:free"), (Provider.GROQ, "llama-3.3-70b-versatile")]),
+    TaskRole.VISION_REVIEWER: _balanced_route([(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.GOOGLE, "gemini-2.5-flash-image")], [(Provider.OPENROUTER, "z-ai/glm-4.5-air:free"), (Provider.CLOUDFLARE, "vision-models"), (Provider.GROQ, "llama-3.3-70b-versatile")]),
+    TaskRole.PRESENTATION_BUILDER: _balanced_route([(Provider.GOOGLE, "gemini-3.5-flash"), (Provider.OPENROUTER, "qwen/qwen3-coder:free")], [(Provider.OPENROUTER, "z-ai/glm-4.5-air:free"), (Provider.GROQ, "llama-3.3-70b-versatile")]),
+    TaskRole.DOCUMENT_WRITER: _balanced_route([(Provider.GOOGLE, "gemini-2.5-flash"), (Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.GROQ, "openai/gpt-oss-120b")], [(Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free")]),
+    TaskRole.MARKETING_WRITER: _balanced_route([(Provider.GOOGLE, "gemini-2.5-flash"), (Provider.GROQ, "llama-3.3-70b-versatile"), (Provider.GROQ, "openai/gpt-oss-120b")], [(Provider.OPENROUTER, "meta-llama/llama-3.3-70b-instruct:free"), (Provider.OPENROUTER, "deepseek/deepseek-chat:free")]),
+    TaskRole.EMBEDDING_AGENT: _balanced_route([(Provider.GOOGLE, "gemini-embedding-2"), (Provider.GOOGLE, "gemini-embedding-001"), (Provider.CLOUDFLARE, "BGE-embedding-models")], [(Provider.HUGGINGFACE, "BGE/E5-embedding-models")]),
+    TaskRole.SPEECH_STT_AGENT: _balanced_route([(Provider.GROQ, "whisper-large-v3"), (Provider.GOOGLE, "gemini-3.1-flash-live-preview"), (Provider.GOOGLE, "gemini-3.1-flash-tts-preview")], [(Provider.GOOGLE, "gemini-2.5-flash-native-audio-preview-12-2025"), (Provider.GOOGLE, "gemini-2.5-flash-preview-tts"), (Provider.CLOUDFLARE, "whisper-asr"), (Provider.HUGGINGFACE, "whisper-asr")]),
+})
+
 def get_model_for_role(
     role: TaskRole,
     prefer_fallback: bool = False,
@@ -1265,22 +1349,22 @@ def get_model_info(role: TaskRole) -> Dict[str, Any]:
 TASK_CHAINS = {
     "quick_routing": [
         (Provider.GROQ, "llama-3.1-8b-instant"),
-        (Provider.GEMINI, "gemini-3.1-flash-lite"),
-        (Provider.GEMINI, "gemini-2.5-flash-lite"),
+        (Provider.GOOGLE, "gemini-2.5-flash-lite"),
+        (Provider.GOOGLE, "gemini-2.5-flash-lite"),
         (Provider.OPENROUTER, "openrouter/free"),
     ],
     "hard_planning": [
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
         (Provider.OPENROUTER, "openrouter/owl-alpha"),
-        (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+        (Provider.GROQ, "openai/gpt-oss-120b"),
         (Provider.SAMBANOVA, "deepseek-v3.2"),
         (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
     ],
     "app_architecture": [
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
         (Provider.OPENROUTER, "openrouter/owl-alpha"),
         (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
-        (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+        (Provider.GROQ, "openai/gpt-oss-120b"),
         (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
     ],
     "frontend_coding": [
@@ -1288,48 +1372,48 @@ TASK_CHAINS = {
         (Provider.OPENROUTER, "poolside/laguna-m.1:free"),
         (Provider.OPENROUTER, "poolside/laguna-xs.2:free"),
         (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
-        (Provider.GEMINI, "gemini-2.5-flash"),
+        (Provider.GOOGLE, "gemini-2.5-flash"),
     ],
     "backend_coding": [
         (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
         (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-        (Provider.GEMINI, "gemini-2.5-pro"),
-        (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
+        (Provider.GROQ, "openai/gpt-oss-120b"),
     ],
     "debugging": [
         (Provider.GROQ, "llama-3.1-8b-instant"),
         (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
     ],
     "validation": [
-        (Provider.GEMINI, "gemini-2.5-flash"),
+        (Provider.GOOGLE, "gemini-2.5-flash"),
         (Provider.GROQ, "llama-3.3-70b-versatile"),
         (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         (Provider.OPENROUTER, "qwen/qwen3-coder:free"),
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
     ],
     "security_review": [
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
         (Provider.OPENROUTER, "deepseek/deepseek-chat:free"),
         (Provider.OPENROUTER, "openrouter/owl-alpha"),
         (Provider.OPENROUTER, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
     ],
     "docs_presentation": [
-        (Provider.GEMINI, "gemini-2.5-flash"),
-        (Provider.GEMINI, "gemini-2.5-pro"),
-        (Provider.OPENROUTER, "openai/gpt-oss-120b:free"),
+        (Provider.GOOGLE, "gemini-2.5-flash"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
+        (Provider.GROQ, "openai/gpt-oss-120b"),
         (Provider.GROQ, "llama-3.3-70b-versatile"),
     ],
     "memory": [
         (Provider.GROQ, "llama-3.1-8b-instant"),
-        (Provider.GEMINI, "gemini-embedding-001"),
+        (Provider.GOOGLE, "gemini-embedding-001"),
         (Provider.CLOUDFLARE, "BGE-embedding-models"),
     ],
     "vision_ui": [
-        (Provider.GEMINI, "gemini-2.5-pro"),
-        (Provider.GEMINI, "gemini-2.5-flash"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
+        (Provider.GOOGLE, "gemini-2.5-flash"),
         (Provider.CLOUDFLARE, "kimi-k2.6"),
     ],
 }
@@ -1366,9 +1450,9 @@ def get_code_repair_model_chain() -> List[Tuple[Provider, str]]:
         # Step 3: Generate patch
         (Provider.OPENROUTER, "deepseek/deepseek-v4-flash:free"),
         # Step 4: Validate
-        (Provider.GEMINI, "gemini-2.5-flash"),
+        (Provider.GOOGLE, "gemini-2.5-flash"),
         # Step 5: Final check
-        (Provider.GEMINI, "gemini-2.5-pro"),
+        (Provider.GOOGLE, "gemini-3.5-flash"),
     ]
 
 def run_code_repair_model_chain() -> List[Tuple[Provider, str]]:
@@ -1378,7 +1462,6 @@ def run_code_repair_model_chain() -> List[Tuple[Provider, str]]:
     return get_code_repair_model_chain()
 
 # Alias for backwards compatibility
-get_swe_bench_model_chain = get_code_repair_model_chain
 
 # ============================================================================
 # SUMMARY STATS

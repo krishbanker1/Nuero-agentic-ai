@@ -14,16 +14,15 @@ Neuro is a brain-inspired autonomous engineering runtime designed to build produ
 - ✅ Structured edit format for machine-parseable file changes
 - ✅ Command execution with validation
 - ✅ Error repair loop
-- ✅ Local mini eval harness (smoke tests, NOT official benchmarks)
+- ✅ Local smoke-eval harness for quality checks
 - ✅ Safe file writing with workspace boundary enforcement
 
 **What's NOT Claimed**:
-- ❌ Official HumanEval scores (not tested yet)
-- ❌ Official SWE-bench scores (not tested yet)
-- ❌ "Beats Kimi/Manus/Claude Code" (not proven)
-- ❌ 75-85% benchmark performance (target, not achieved)
+- ❌ Paid or card-required provider access
+- ❌ Unsupported competitive claims
+- ❌ Guaranteed production readiness without running validation checks
 
-**Target**: Build toward competitive autonomous coding performance using free/fallback model routing.
+**Target**: Build production-grade applications with a free-first autonomous engineering workflow.
 
 ## Architecture
 
@@ -61,7 +60,19 @@ Note: Qwen and DeepSeek models are accessed via OpenRouter keys.
 - **Command Runner**: Captures stdout/stderr, timeout, dangerous command blocking
 - **Error Repair Loop**: Analyzes failures, generates fixes, re-validates
 - **Memory System**: Stores task history, model performance, fallback events
-- **Mini Eval Harness**: Local smoke tests for autonomous coding capability
+- **Smoke Eval Harness**: Local smoke tests for autonomous coding capability
+
+
+### Production App Builder Layer
+
+Neuro now adds deterministic structure before asking the current free models to write code:
+
+- **ProductionScaffolder** chooses a local/free scaffold for full-stack apps, APIs, websites, presentations, or Python packages.
+- **ProductionBuildPipeline** splits generation into spec, backend/data, frontend, and tests/deployment stages.
+- Each stage includes required files, validation commands, and targeted repair prompts so small/free models can work on smaller verified slices.
+- Quality gates require non-empty files, local run/test instructions, no paid/card-required services, and no hardcoded secrets.
+
+This keeps the existing model/provider configuration as the brain while adding stronger deterministic engineering scaffolding around it.
 
 ## Usage
 
@@ -106,11 +117,11 @@ coders = get_models_by_role(ModelRole.CODER)
 free_models = get_free_models()
 ```
 
-### Mini Eval Harness
+### Smoke Eval Harness
 ```python
 from neuro.validation.mini_eval import run_mini_evals
 
-# Run local smoke tests (NOT official benchmarks)
+# Run local smoke checks
 summary = run_mini_evals()
 print(f"Passed: {summary['passed']}/{summary['total']}")
 ```
@@ -124,7 +135,7 @@ pytest tests/ -v
 # Run specific test categories
 pytest tests/test_neuro_fixes.py -v
 
-# Run mini evals
+# Run smoke evals
 python -m neuro.validation.mini_eval
 ```
 

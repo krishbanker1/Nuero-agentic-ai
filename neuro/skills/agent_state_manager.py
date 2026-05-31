@@ -3,11 +3,9 @@
 # Features: real-time updates, thinking process display, checkpoint notifications
 
 import json
-import time
-import asyncio
 import threading
 import uuid
-from typing import Dict, Any, List, Optional, Callable, Union
+from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime

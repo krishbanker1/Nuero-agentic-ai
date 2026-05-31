@@ -6,8 +6,6 @@ Creates professional presentations with animations, transitions,
 and interactive elements using web technologies.
 """
 
-import json
-import re
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from pathlib import Path

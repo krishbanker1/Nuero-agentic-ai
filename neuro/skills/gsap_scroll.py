@@ -3,8 +3,7 @@ GSAP ScrollTrigger Skill - Scroll-Driven Animations
 Scroll-based animations, parallax effects, timeline scrubbing
 """
 
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
+from typing import Dict, Any, Optional
 
 
 class GSAPScrollSkill:

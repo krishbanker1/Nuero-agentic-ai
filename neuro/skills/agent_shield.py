@@ -2,10 +2,9 @@
 # Integration with ECC's AgentShield for vulnerability detection
 # Scans Neuro configurations, hooks, and MCP servers
 
-import os
 import json
 import subprocess
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -185,7 +184,7 @@ class AgentShieldSkill:
                                 recommendation=config["recommendation"]
                             ))
         
-        except Exception as e:
+        except Exception:
             pass  # Skip unreadable files
         
         return findings
@@ -305,7 +304,7 @@ class AgentShieldSkill:
                             recommendation="Limit shell tool usage, add validation"
                         ))
         
-        except Exception as e:
+        except Exception:
             pass
         
         return findings

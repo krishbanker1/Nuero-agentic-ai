@@ -1,5 +1,4 @@
 """Three.js - 3D WebGL using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class ThreeJS:
@@ -41,7 +40,7 @@ Output as complete HTML. No markdown.
     
     def generate_model_loader(self, format: str = "glb") -> str:
         """Generate 3D model loader."""
-        prompt = f"""Generate Three.js GLTF/GLB model loader with:
+        prompt = """Generate Three.js GLTF/GLB model loader with:
 - GLTFLoader
 - OrbitControls
 - Loading animation

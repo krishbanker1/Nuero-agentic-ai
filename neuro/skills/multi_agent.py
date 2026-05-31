@@ -2,9 +2,7 @@
 # Inspired by ECC's multi-plan, multi-execute, and PM2 commands
 # Enhanced from your basic agent swarm
 
-import os
 import time
-import json
 import asyncio
 from typing import Dict, Any, List, Optional, Callable, Set, Tuple
 from dataclasses import dataclass, field
@@ -260,7 +258,7 @@ class MultiAgentOrchestrator:
         
         while remaining:
             # Find tasks with no remaining dependencies
-            ready = [
+            [
                 tid for tid in remaining
                 if all(dep in (set(groups) if isinstance(groups, list) else set()) or dep not in remaining
                       for dep in dep_map.get(tid, []))

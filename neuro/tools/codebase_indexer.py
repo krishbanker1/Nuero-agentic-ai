@@ -1,10 +1,7 @@
 """Codebase Indexer - Index entire project for context using FREE embeddings"""
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, List
 from dataclasses import dataclass
 import os
-import json
-import hashlib
-from pathlib import Path
 
 class CodebaseIndexer:
     """

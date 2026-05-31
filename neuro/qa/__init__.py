@@ -61,7 +61,7 @@ class PlaywrightRunner:
                 timeout=30,
             )
             passed = result.returncode == 0
-        except Exception as e:
+        except Exception:
             passed = False
         
         return TestResult(
@@ -152,7 +152,7 @@ class ConsoleErrorChecker:
         """Check page for console errors."""
         # Simple curl-based check
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["curl", "-s", url],
                 capture_output=True,
                 text=True,

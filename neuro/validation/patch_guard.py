@@ -1,9 +1,9 @@
 """
 Patch Guard - Validates patches before applying
 Ensures only verified patches are applied
-Critical for 75-80% score by preventing broken patches
+Critical for preventing broken patches
 
-Now with improved unified diff parsing for SWE-bench patches.
+Now with improved unified diff parsing for generated patches.
 """
 
 import os
@@ -11,20 +11,20 @@ import re
 import hashlib
 import json
 import difflib
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime
 
 
 # =============================================================================
-# UNIFIED DIFF PARSING (for SWE-bench compatibility)
+# UNIFIED DIFF PARSING
 # =============================================================================
 
 class UnifiedDiffParser:
     """
     Parse unified diff patches correctly using difflib.unified_diff.
-    Critical for SWE-bench where patches have hunk offsets.
+    Critical for patches with hunk offsets.
     """
     
     @staticmethod
@@ -241,7 +241,7 @@ class PatchGuard:
     """
     Guard that validates patches before applying.
     Only applies patches that pass all validation checks.
-    This is critical for achieving high scores.
+    This is critical for preventing broken generated changes.
     """
     
     def __init__(self, working_dir: Optional[str] = None, dry_run: bool = False):
@@ -276,7 +276,7 @@ class PatchGuard:
         - diff: Verify diff is valid
         - safety: Check for dangerous patterns
         """
-        start = datetime.now()
+        datetime.now()
         
         if validation_type == "syntax":
             return self._validate_syntax(patch)

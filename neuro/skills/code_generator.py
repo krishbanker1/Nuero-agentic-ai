@@ -1,5 +1,5 @@
 """Code Generator - Complete code generation for all languages"""
-from typing import Dict, Any, Optional
+from typing import Dict
 from neuro.router.smart_router import SmartRouter
 
 class CodeGenerator:
@@ -43,7 +43,7 @@ Output ONLY code, no markdown."""
             components["frontend"] = self.router.chat(prompt, task_type="frontend_react")
         
         if spec.get("backend"):
-            prompt = f"""Generate complete Node.js/Express backend with:
+            prompt = """Generate complete Node.js/Express backend with:
 - REST endpoints
 - JWT authentication
 - Database models
@@ -52,7 +52,7 @@ Output ONLY code, no markdown."""
             components["backend"] = self.router.chat(prompt, task_type="backend_api")
         
         if spec.get("database"):
-            prompt = f"""Generate PostgreSQL schema with:
+            prompt = """Generate PostgreSQL schema with:
 - Users table with roles
 - Relationships
 - Indexes

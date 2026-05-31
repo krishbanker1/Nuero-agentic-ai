@@ -1,5 +1,4 @@
 """Smooth Scroll - Using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class SmoothScroll:

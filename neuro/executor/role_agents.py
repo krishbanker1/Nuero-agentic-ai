@@ -9,7 +9,7 @@ Each agent has:
 - Model selection based on TASK_CATEGORIES
 """
 
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from neuro.models import TASK_CATEGORIES
 import re
@@ -103,8 +103,6 @@ class ManagerAgent(BaseAgent):
         """
         try:
             task_type = task.get("type", "code_fix")
-            description = task.get("description", "")
-            
             # Decompose task based on type
             subtasks = self._decompose_task(task)
             
@@ -480,8 +478,6 @@ class EngineerAgent(BaseAgent):
             
             description = task.get("description", "")
             context = task.get("context", {})
-            constraints = task.get("constraints", {})
-            
             # Initialize router
             self.router = SmartRouter()
             
@@ -490,11 +486,17 @@ class EngineerAgent(BaseAgent):
             
             implementations = []
             for i, chunk in enumerate(chunks):
+                path = chunk.get("path") or chunk.get("file_path") or chunk.get("target_file") or ""
+                code = chunk.get("content") or chunk.get("code") or ""
                 chunk_result = {
                     "chunk_id": i + 1,
                     "description": chunk["description"],
-                    "code": chunk.get("code", ""),
-                    "file": chunk.get("target_file", ""),
+                    "path": path,
+                    "file_path": path,
+                    "target_file": path,
+                    "file": path,
+                    "code": code,
+                    "content": code,
                     "verified": chunk.get("verified", False)
                 }
                 implementations.append(chunk_result)
@@ -575,7 +577,8 @@ Followed by the complete code for that file.
         
         if not response:
             return [{"chunk_id": 1, "description": "implementation",
-                     "target_file": "output.py", "code": "# No response from model",
+                     "path": "output.py", "file_path": "output.py", "target_file": "output.py",
+                     "code": "# No response from model", "content": "# No response from model",
                      "verified": False}]
         
         # Split by FILE markers if present
@@ -593,8 +596,11 @@ Followed by the complete code for that file.
                     chunks.append({
                         "chunk_id": i,
                         "description": f"Implementation for {filename}",
+                        "path": filename,
+                        "file_path": filename,
                         "target_file": filename,
                         "code": code,
+                        "content": code,
                         "verified": False
                     })
         else:
@@ -609,8 +615,11 @@ Followed by the complete code for that file.
             chunks.append({
                 "chunk_id": 1,
                 "description": description,
+                "path": target_file,
+                "file_path": target_file,
                 "target_file": target_file,
                 "code": code,
+                "content": code,
                 "verified": False
             })
         
@@ -619,8 +628,11 @@ Followed by the complete code for that file.
             chunks.append({
                 "chunk_id": 1,
                 "description": description,
+                "path": self._infer_filename(description, task_type),
+                "file_path": self._infer_filename(description, task_type),
                 "target_file": self._infer_filename(description, task_type),
                 "code": response,
+                "content": response,
                 "verified": False
             })
         
@@ -717,7 +729,15 @@ class ValidatorAgent(BaseAgent):
             context = task.get("context", {})
             task_type = context.get("task_type", "code_fix")
             
-            # Run tests and get results
+            # Run tests and get results in the configured workspace.
+            workspace = (
+                context.get("working_dir")
+                or context.get("codebase_root")
+                or context.get("repo_root")
+                or context.get("workspace")
+            )
+            if workspace and "working_dir" not in implementation:
+                implementation["working_dir"] = workspace
             test_results = self._execute_tests(implementation)
             
             # Calculate confidence
@@ -795,7 +815,14 @@ class ValidatorAgent(BaseAgent):
         
         start_time = time.time()
         chunks = implementation.get("chunks", [])
-        workspace = os.getcwd()
+        workspace = (
+            implementation.get("working_dir")
+            or implementation.get("codebase_root")
+            or implementation.get("repo_root")
+            or implementation.get("workspace")
+            or os.getcwd()
+        )
+        workspace_path = Path(workspace).resolve()
         
         if not chunks:
             return test_results
@@ -803,16 +830,22 @@ class ValidatorAgent(BaseAgent):
         # Write code chunks to files
         written_files = []
         for chunk in chunks:
-            file_path = chunk.get("file_path", "")
-            code = chunk.get("code", "")
+            file_path = chunk.get("path") or chunk.get("file_path") or chunk.get("target_file") or chunk.get("file") or ""
+            code = chunk.get("content") or chunk.get("code") or ""
             
             if file_path and code:
                 try:
-                    full_path = Path(workspace) / file_path
+                    full_path = (workspace_path / file_path).resolve()
+                    if full_path != workspace_path and workspace_path not in full_path.parents:
+                        raise ValueError(f"Refusing to write outside workspace: {file_path}")
                     full_path.parent.mkdir(parents=True, exist_ok=True)
                     with open(full_path, 'w', encoding='utf-8') as f:
                         f.write(code)
                     written_files.append(file_path)
+                    chunk["path"] = file_path
+                    chunk["file_path"] = file_path
+                    chunk["target_file"] = file_path
+                    chunk["content"] = code
                     chunk["verified"] = True
                 except Exception as e:
                     chunk["verified"] = False
@@ -843,6 +876,31 @@ class ValidatorAgent(BaseAgent):
                     if candidate.exists():
                         test_files_found.append(candidate)
         
+        # Run basic syntax checks for generated Python files even when no tests exist.
+        for file_path in written_files:
+            full_path = (workspace_path / file_path).resolve()
+            if full_path.suffix == '.py':
+                try:
+                    result = subprocess.run(
+                        ['python', '-m', 'py_compile', str(full_path)],
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                        cwd=workspace_path,
+                    )
+                    if result.returncode != 0:
+                        test_results["failed"] += 1
+                        test_results["failures"].append({
+                            "name": f"syntax:{file_path}",
+                            "error": result.stderr or result.stdout,
+                        })
+                except Exception as e:
+                    test_results["failed"] += 1
+                    test_results["failures"].append({
+                        "name": f"syntax:{file_path}",
+                        "error": str(e),
+                    })
+
         # Run pytest on found test files
         for test_file in test_files_found:
             try:
@@ -850,7 +908,8 @@ class ValidatorAgent(BaseAgent):
                     ['python', '-m', 'pytest', str(test_file), '-v', '--tb=short'],
                     capture_output=True,
                     text=True,
-                    timeout=60
+                    timeout=60,
+                    cwd=workspace_path,
                 )
                 
                 # Parse output for pass/fail
@@ -871,7 +930,7 @@ class ValidatorAgent(BaseAgent):
                         
             except subprocess.TimeoutExpired:
                 test_results["skipped"] += 1
-            except Exception as e:
+            except Exception:
                 # Test run failed but code is valid
                 pass
         
@@ -921,7 +980,6 @@ class ReviewerAgent(BaseAgent):
         """
         try:
             implementation = task.get("implementation", {})
-            context = task.get("context", {})
             original_task = task.get("original_task", {})
             
             # Run review checks
@@ -1117,7 +1175,6 @@ def run_agent_swarm(task: Dict[str, Any]) -> Dict[str, Any]:
             "trace": execution_trace
         }
     
-    subtasks = result.data["subtasks"]
     assignments = result.data["assignments"]
     
     # Step 2: Researcher gathers context
@@ -1155,11 +1212,15 @@ def run_agent_swarm(task: Dict[str, Any]) -> Dict[str, Any]:
         }
     
     implementation = engineer_result.data
+    implementation["working_dir"] = task.get("working_dir") or task.get("codebase_root") or "."
     
     # Step 4: Validator tests
     validator_task = {
         "implementation": implementation,
-        "context": {"task_type": task.get("type", "code_fix")}
+        "context": {
+            "task_type": task.get("type", "code_fix"),
+            "working_dir": implementation["working_dir"],
+        }
     }
     validation_result = validator.run(validator_task)
     execution_trace.append(("ValidatorAgent", validation_result.success, validation_result.message))
@@ -1242,8 +1303,8 @@ def _apply_retries(implementation: Dict[str, Any], instructions: Dict[str, Any])
     
     # Try to fix chunks based on instructions
     for chunk in chunks:
-        file_path = chunk.get("file_path", "")
-        code = chunk.get("code", "")
+        file_path = chunk.get("path") or chunk.get("file_path") or chunk.get("target_file") or ""
+        code = chunk.get("content") or chunk.get("code") or ""
         
         if not file_path or not code:
             continue
@@ -1264,6 +1325,10 @@ def _apply_retries(implementation: Dict[str, Any], instructions: Dict[str, Any])
                 pass  # Would need more context
         
         chunk["code"] = code
+        chunk["content"] = code
+        chunk["path"] = file_path
+        chunk["file_path"] = file_path
+        chunk["target_file"] = file_path
         chunk["fixed"] = True
     
     implementation["chunks"] = chunks
@@ -1298,7 +1363,7 @@ def _apply_review_fixes(implementation: Dict[str, Any], review_data: Dict[str, A
         
         # Find matching chunk
         for chunk in chunks:
-            chunk_path = chunk.get("file_path", "")
+            chunk_path = chunk.get("path") or chunk.get("file_path") or chunk.get("target_file") or ""
             if location and location in chunk_path:
                 # Generate fix prompt
                 fix_prompt = f"""
@@ -1312,9 +1377,12 @@ Provide the corrected code:
 """
                 try:
                     response = router.chat(fix_prompt, task_type="code_fix")
-                    if response and response.get("content"):
-                        chunk["code"] = response["content"]
-                        chunk["reviewed"] = True
+                    if response:
+                        corrected = response.get("content") if isinstance(response, dict) else str(response)
+                        if corrected:
+                            chunk["code"] = corrected
+                            chunk["content"] = corrected
+                            chunk["reviewed"] = True
                 except Exception:
                     pass
     

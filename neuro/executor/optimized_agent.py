@@ -1,4 +1,4 @@
-# Neuro Optimized Agent - Target: 80-85% on SWE-bench
+# Neuro Optimized Agent - Production-grade autonomous repair agent
 # 
 # Key optimizations for maximum performance:
 # 1. Agent Swarm enabled by default
@@ -12,15 +12,12 @@
 import os
 import time
 import json
-from typing import Dict, Any, Optional, List, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
+from typing import Dict, Any, Optional, List
+from dataclasses import dataclass
 from collections import Counter
-import difflib
 
-from neuro.router.smart_router import SmartRouter, Provider
+from neuro.router.smart_router import SmartRouter
 from neuro.reasoning.chain_of_thought import ChainOfThought, CoTConfig
-from neuro.reasoning.thinking_loop import ThinkingLoop
 from neuro.validation.test_runner import TestRunner
 from neuro.validation.patch_guard import PatchGuard, UnifiedDiffParser
 from neuro.memory.task_store import TaskStore
@@ -42,7 +39,7 @@ class EnsembleVote:
 class ModelEnsemble:
     """
     Run multiple models and vote on solution.
-    Critical for reaching 80%+ by reducing false negatives.
+    Critical for reducing false negatives during validation.
     """
     
     # Models for ensemble voting
@@ -185,7 +182,7 @@ ANALYSIS: [brief comparison]"""
                 "reasoning": reasoning,
                 "similarity": confidence,
             }
-        except Exception as e:
+        except Exception:
             return None
 
 
@@ -664,7 +661,7 @@ class OptimizedAgentConfig:
 
 class OptimizedNeuroAgent:
     """
-    Optimized agent targeting 80-85% on SWE-bench.
+    Optimized agent focused on production-grade autonomous repair.
     
     Key innovations:
     1. Test Voting (reduces false positives)
@@ -697,7 +694,7 @@ class OptimizedNeuroAgent:
         """Run the optimized agent."""
         if self.config.verbose:
             print("="*60)
-            print("🚀 NEURO OPTIMIZED AGENT (Targeting 80-85%)")
+            print("🚀 NEURO OPTIMIZED AGENT")
             print("="*60)
         
         start_time = time.time()
@@ -750,7 +747,7 @@ class OptimizedNeuroAgent:
                         return self._create_success_result(voting_result, fix, time.time() - start_time)
                 else:
                     if self.config.verbose:
-                        print(f"   ✅ TESTS PASSED")
+                        print("   ✅ TESTS PASSED")
                     return self._create_success_result(test_result, fix, time.time() - start_time)
             
             # Failed - analyze and reflect
@@ -786,8 +783,8 @@ class OptimizedNeuroAgent:
     
     def _analyze_with_cot(self, context: str) -> str:
         """Run chain-of-thought analysis."""
-        cot = ChainOfThought(CoTConfig(enabled=True))
-        analysis_prompt = f"""Analyze this SWE-bench issue:
+        ChainOfThought(CoTConfig(enabled=True))
+        analysis_prompt = f"""Analyze this production repair issue:
 
 {context}
 
@@ -806,7 +803,7 @@ Provide:
     
     def _generate_fix(self, context: str, analysis: str) -> str:
         """Generate code fix."""
-        prompt = f"""Generate a fix for this SWE-bench issue.
+        prompt = f"""Generate a fix for this production repair issue.
 
 {context}
 

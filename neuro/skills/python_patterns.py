@@ -2,7 +2,7 @@
 # Language-specific best practices for Python code generation
 # Inspired by ECC's python-patterns
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 @dataclass

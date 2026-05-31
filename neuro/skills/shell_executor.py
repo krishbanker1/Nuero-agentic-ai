@@ -6,19 +6,10 @@ import subprocess
 import re
 import time
 import os
-import sys
-import signal
-import asyncio
-import pty
-import select
-import termios
-import tty
-from typing import Dict, Any, List, Optional, Tuple, Callable, Union
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from concurrent.futures import ThreadPoolExecutor
-import json
-import threading
 
 
 class ErrorSeverity(Enum):
@@ -578,7 +569,7 @@ class ShellExecutor:
                     self.execute(f"chmod 755 {file_path}")
                     fix_description = f"Fixed permissions for {file_path}"
         
-        elif error.severity == ErrorSeverity.SYNNTAX:
+        elif error.severity == ErrorSeverity.SYNTAX:
             if "missing colon" in error.message.lower():
                 fix_description = "Syntax error - requires manual review"
             else:
@@ -586,6 +577,27 @@ class ShellExecutor:
         
         return fix_description
     
+    @classmethod
+    def invoke(cls, task: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Skill entry point that executes a command in the requested workspace.
+
+        Context keys:
+        - working_dir: workspace to run inside (defaults to current directory)
+        - timeout: command timeout in seconds
+        - max_retries: auto-fix retries for dependency/config errors
+        """
+        context = context or {}
+        working_dir = str(context.get("working_dir") or context.get("workspace") or ".")
+        executor = cls(working_dir=working_dir)
+        result = executor.execute_with_fix(
+            task,
+            max_retries=int(context.get("max_retries", 1)),
+            context=context,
+        )
+        payload = execution_result_to_dict(result)
+        payload.update({"skill": "shell_executor", "command": task, "working_dir": str(Path(working_dir).resolve())})
+        return payload
+
     def run_tests(self, test_command: str = "pytest",
                   coverage: bool = False) -> ExecutionResult:
         """Run project tests with optional coverage."""
@@ -612,6 +624,31 @@ class ShellExecutor:
         ]
 
 
+
+def execution_result_to_dict(result: ExecutionResult) -> Dict[str, Any]:
+    """Serialize an ExecutionResult for skill/orchestrator responses."""
+    return {
+        "success": result.success,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+        "exit_code": result.exit_code,
+        "duration_ms": result.duration_ms,
+        "validation_passed": result.validation_passed,
+        "warnings": result.warnings,
+        "fixes_attempted": result.fixes_attempted,
+        "errors": [
+            {
+                "severity": error.severity.value,
+                "message": error.message,
+                "line_hint": error.line_hint,
+                "file_hint": error.file_hint,
+                "suggestion": error.suggestion,
+                "original_command": error.original_command,
+            }
+            for error in result.errors
+        ],
+    }
+
 def quick_execute(command: str, max_retries: int = 3) -> Dict[str, Any]:
     """
     Quick shell execution with auto-fix.
@@ -626,16 +663,7 @@ def quick_execute(command: str, max_retries: int = 3) -> Dict[str, Any]:
     executor = ShellExecutor()
     result = executor.execute_with_fix(command, max_retries=max_retries)
     
-    return {
-        "success": result.success,
-        "stdout": result.stdout,
-        "stderr": result.stderr,
-        "exit_code": result.exit_code,
-        "duration_ms": result.duration_ms,
-        "errors": [e.message for e in result.errors],
-        "fixes_attempted": result.fixes_attempted,
-        "validation_passed": result.validation_passed
-    }
+    return execution_result_to_dict(result)
 
 
 # SKILL.md content

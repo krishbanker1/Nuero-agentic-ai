@@ -7,14 +7,11 @@ Nothing remains dead or unused - all skills are called when needed.
 
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass
-import re
 
 from neuro.ultimate.skills_100 import (
     ULTIMATE_SKILLS, 
-    SkillAutoTrigger, 
     UltimateSkill,
     get_auto_trigger,
-    auto_detect_skills,
     SkillCategory
 )
 
@@ -48,7 +45,7 @@ class TaskAnalyzer:
         Analyze a task and return all detected skills with auto-invocation status.
         """
         context = context or {}
-        task_lower = task.lower()
+        task.lower()
         
         # Get auto-detected skills
         auto_result = self.auto_trigger.analyze_task(task, context)

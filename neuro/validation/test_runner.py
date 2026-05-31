@@ -1,6 +1,6 @@
 """
 Test Runner - Execute tests to validate fixes
-Critical for achieving high SWE-bench scores
+Critical for production-grade validation
 """
 
 import os
@@ -9,7 +9,6 @@ import json
 import tempfile
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
-from pathlib import Path
 
 
 @dataclass
@@ -281,7 +280,6 @@ class TestRunner:
                 if len(parts) >= 2:
                     name = parts[-1].split(' ')[0]
                     passed = 'PASSED' in line or '✓' in line
-                    failed = 'FAILED' in line or '✗' in line
                     
                     current_test = TestResult(
                         name=name,

@@ -1,5 +1,4 @@
 """Draco - 3D mesh compression using REAL AI"""
-from typing import Dict, Any
 from neuro.router.smart_router import SmartRouter
 
 class DracoCompression:

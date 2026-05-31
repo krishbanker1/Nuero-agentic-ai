@@ -1,5 +1,5 @@
 """Presentation Builder - Professional slides using real AI"""
-from typing import Dict, Any, List
+from typing import Dict, Any
 from dataclasses import dataclass
 from neuro.router.smart_router import SmartRouter
 

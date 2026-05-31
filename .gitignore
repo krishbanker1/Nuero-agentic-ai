@@ -75,3 +75,22 @@ Thumbs.db
 
 # Editors
 *.sublime-*
+
+# Visual analysis temp files
+cinematic_*/
+*.jpg
+*.png
+*.mp4
+*.webm
+
+# Memory database
+*.db
+*.sqlite
+chromadb/
+
+# Environment variants
+.env.local
+.env.production
+
+# Logs
+logs/

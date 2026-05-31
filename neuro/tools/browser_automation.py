@@ -1,8 +1,7 @@
 """Browser Automation - Browse websites, take screenshots, interact using REAL AI"""
 from typing import Dict, Any, Optional, List
-from playwright.sync_api import sync_playwright, Browser, Page, TimeoutError as PlaywrightTimeout
+from playwright.sync_api import sync_playwright, Browser, Page
 import base64
-import io
 
 class BrowserAutomation:
     """

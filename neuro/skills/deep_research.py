@@ -6,14 +6,15 @@ This agent performs iterative web research, analyzing multiple sources
 and synthesizing findings into comprehensive reports.
 """
 
-import json
 import re
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
-from tavily import TavilyClient
+try:
+    from tavily import TavilyClient
+except ImportError:  # Optional free-tier web search dependency; fallback stays offline.
+    TavilyClient = None
 
-from neuro.skills.skill_middleware import register_skill
 from neuro.skills.skill_middleware import register_skill
 
 
@@ -64,7 +65,7 @@ class DeepResearchAgent:
     
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the Deep Research Agent"""
-        self.tavily = TavilyClient(api_key=api_key) if api_key else None
+        self.tavily = TavilyClient(api_key=api_key) if (api_key and TavilyClient) else None
         self.max_iterations = 5
         self.min_sources = 5
         self.max_sources_per_query = 10
@@ -155,7 +156,7 @@ class DeepResearchAgent:
             
             return results
             
-        except Exception as e:
+        except Exception:
             return self._mock_search(query)
     
     def _mock_search(self, query: str) -> List[ResearchResult]:

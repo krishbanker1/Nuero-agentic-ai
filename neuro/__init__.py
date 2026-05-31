@@ -35,6 +35,10 @@ Pipeline Usage:
     )
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 __version__ = "2.0.0"
 __target__ = "Enterprise App Builder"
 
@@ -49,6 +53,28 @@ from neuro.qa import RouteChecker, run_qa_checks
 from neuro.stacks import STACKS, get_stack, select_stack_for_goal, StackProfile
 from neuro.deploy import deploy_app, generate_deployment_files, list_platforms, DEPLOYERS
 from neuro.deploy import DeploymentConfig
+
+
+def health_check() -> dict[str, Any]:
+    """Verify Neuro is configured with providers and enabled models."""
+    from neuro.models import MODEL_REGISTRY
+    from neuro.router import available_providers
+
+    issues: list[str] = []
+    providers = available_providers()
+    if not any(providers.values()):
+        issues.append("No API keys configured")
+
+    enabled_models = [model for model in MODEL_REGISTRY if model.enabled]
+    if not enabled_models:
+        issues.append("No enabled models")
+
+    return {
+        "status": "healthy" if not issues else "degraded",
+        "providers": providers,
+        "model_count": len(enabled_models),
+        "issues": issues,
+    }
 
 __all__ = [
     # Core
@@ -96,4 +122,5 @@ __all__ = [
     "list_platforms",
     "DEPLOYERS",
     "DeploymentConfig",
+    "health_check",
 ]

@@ -5,25 +5,11 @@ This system intelligently selects and orchestrates all available tools,
 agents, and MCP servers based on task requirements.
 """
 
-from typing import Dict, List, Optional, Any, Callable
+import re
 from dataclasses import dataclass, field
-from enum import Enum
-import json
+from typing import Any, Callable, Dict, List, Optional
 
-from neuro.ultimate import NeuroUltimateRegistry
-
-
-class TaskType(Enum):
-    """Task type classification for smart routing."""
-    CODING = "coding"
-    DESIGN = "design"
-    3D_GRAPHICS = "3d_graphics"
-    ANIMATION = "animation"
-    DEPLOYMENT = "deployment"
-    TESTING = "testing"
-    RESEARCH = "research"
-    BUSINESS = "business"
-    CREATIVE = "creative"
+from neuro.ultimate import NeuroUltimateRegistry, TaskType
 
 
 @dataclass
@@ -39,18 +25,32 @@ class SkillProfile:
     usage_count: int = 0
     
     def matches(self, task: str) -> float:
-        """Calculate match score for a task."""
+        """Calculate match score for a task using phrases and meaningful tokens."""
         score = 0.0
         task_lower = task.lower()
-        
+        task_tokens = set(re.findall(r"[a-z0-9_+#.-]+", task_lower))
+
         for trigger in self.triggers:
-            if trigger.lower() in task_lower:
+            trigger_text = trigger.lower().replace("_", " ")
+            if trigger_text in task_lower:
                 score += 1.0
-                
+                continue
+
+            trigger_tokens = {token for token in re.findall(r"[a-z0-9_+#.-]+", trigger_text) if len(token) > 3}
+            if trigger_tokens & task_tokens:
+                score += 0.35
+
         for cap in self.capabilities:
-            if cap.lower().replace("_", " ") in task_lower:
+            cap_text = cap.lower().replace("_", " ")
+            if cap_text in task_lower:
                 score += 0.5
-                
+                continue
+
+            cap_tokens = {token for token in re.findall(r"[a-z0-9_+#.-]+", cap_text) if len(token) > 3}
+            overlap = cap_tokens & task_tokens
+            if overlap:
+                score += min(0.4, 0.1 * len(overlap))
+
         return score
 
 

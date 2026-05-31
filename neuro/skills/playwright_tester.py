@@ -5,14 +5,12 @@ import subprocess
 import time
 import json
 import os
-import re
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
 
 try:
-    from playwright.sync_api import sync_playwright, Page, Browser
+    from playwright.sync_api import Page, Browser
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -146,7 +144,7 @@ class PlaywrightTester:
             links = self.page.query_selector_all("a, [role='link']")
             for link in links:
                 text = link.inner_text() or ""
-                href = link.get_attribute("href") or ""
+                link.get_attribute("href") or ""
                 elements.append(UIElement(
                     selector=self._get_selector(link),
                     element_type="link",
@@ -361,7 +359,7 @@ class PlaywrightTester:
         finally:
             self.stop_browser()
         
-        duration_ms = (time.time() - start_time) * 1000
+        (time.time() - start_time) * 1000
         
         # Calculate totals
         passed_count = sum(1 for r in results if r.passed)

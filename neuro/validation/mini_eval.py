@@ -6,13 +6,11 @@ Local smoke tests to prove Neuro can really act
 import os
 import tempfile
 import shutil
-import subprocess
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
 from neuro.tools.edit_parser import (
-    StructuredEdit,
     CommandRunner,
     parse_structured_edit,
 )
@@ -33,8 +31,7 @@ class MiniEvalHarness:
     """
     Mini evaluation harness for Neuro.
     
-    These are NOT official benchmark scores.
-    They are local smoke tests proving Neuro can:
+    These are local smoke checks proving Neuro can:
     1. Read files
     2. Generate edits
     3. Apply edits
@@ -555,7 +552,7 @@ def run_mini_evals() -> Dict[str, Any]:
     """
     Run all mini evaluations and return summary.
     
-    These are LOCAL SMOKE TESTS, not official benchmarks.
+    These are LOCAL SMOKE CHECKS for development quality.
     """
     harness = MiniEvalHarness()
     try:
@@ -570,7 +567,7 @@ if __name__ == "__main__":
     print("NEURO MINI EVALUATION HARNESS")
     print("=" * 60)
     print()
-    print("⚠️  LOCAL SMOKE TESTS - NOT OFFICIAL BENCHMARKS")
+    print("⚠️  LOCAL SMOKE TESTS - NOT OFFICIAL QUALITY_CHECKS")
     print()
     
     summary = run_mini_evals()
