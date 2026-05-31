@@ -146,3 +146,58 @@ def test_deep_research_skill_imports_without_optional_tavily():
     from neuro.skills import _lazy_get_skill
 
     assert _lazy_get_skill("deep_research") is not None
+
+
+def test_dry_run_succeeds_when_plan_is_generated(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from neuro.executor import agent_loop as agent_loop_module
+
+    monkeypatch.setattr(agent_loop_module, "run_agent_swarm", lambda task: {"trace": []})
+
+    class _ScenarioRouterStub:
+        def detect_scenario(self, goal):
+            return SimpleNamespace(value="coding"), 1.0
+
+        def get_handler(self, scenario):
+            return SimpleNamespace(special_instructions=[], approach="plan")
+
+    class _ThinkingLoopStub:
+        def __init__(self, router, config):
+            pass
+
+        def run(self, goal, context):
+            return {
+                "solution": "",
+                "num_passes": 1,
+                "convergence_score": 1.0,
+                "passes": [{"response_preview": "Plan preview"}],
+                "context": {"plan": "Plan: create hello.py and print hello world"},
+            }
+
+    monkeypatch.setattr(agent_loop_module, "ScenarioRouter", _ScenarioRouterStub)
+    monkeypatch.setattr(agent_loop_module, "ThinkingLoop", _ThinkingLoopStub)
+
+    agent = agent_loop_module.NeuroAgent(
+        agent_loop_module.AgentConfig(
+            goal="Create a hello world Python script and run it",
+            working_dir=str(tmp_path),
+            dry_run=True,
+            verbose=False,
+            use_memory=False,
+            use_skills=False,
+            use_decomposer=False,
+            use_verification=False,
+            use_security=False,
+            use_orchestration=False,
+            use_autonomous_loop=False,
+        )
+    )
+
+    result = agent.run()
+
+    assert result.success is True
+    assert result.status == "completed"
+    assert result.validation_passed is True
+    assert result.steps >= 1
+    assert "plan" in result.metadata

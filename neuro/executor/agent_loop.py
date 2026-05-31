@@ -11,6 +11,7 @@ NOW WITH ECC-INSPIRED COMPONENTS:
 """
 
 import json
+import os
 import shlex
 import time
 from dataclasses import dataclass, field
@@ -102,6 +103,7 @@ class AgentConfig:
     dry_run: bool = True
     confirm_apply: bool = True
     verbose: bool = True
+    test_results: Dict = field(default_factory=dict)
 
 
 @dataclass
@@ -303,11 +305,19 @@ class NeuroAgent:
                 install_commands.append("npm install")
 
         if python_files:
-            quoted = " ".join(shlex.quote(self._relative_to_workspace(str(path))) for path in python_files)
+            if os.name == "nt":
+                quoted = " ".join(f'"{self._relative_to_workspace(str(path))}"' for path in python_files)
+            else:
+                quoted = " ".join(shlex.quote(self._relative_to_workspace(str(path))) for path in python_files)
             validation_commands.append(f"python -m py_compile {quoted}")
 
-        if (workspace / "tests").exists() or any(path.name.startswith("test_") and path.suffix == ".py" for path in created_paths):
-            validation_commands.append("python -m pytest -q")
+        generated_test_files = [path for path in created_paths if path.name.startswith("test_") and path.suffix == ".py"]
+        if generated_test_files:
+            if os.name == "nt":
+                quoted_tests = " ".join(f'"{self._relative_to_workspace(str(path))}"' for path in generated_test_files)
+            else:
+                quoted_tests = " ".join(shlex.quote(self._relative_to_workspace(str(path))) for path in generated_test_files)
+            validation_commands.append(f"python -m pytest -q {quoted_tests}")
 
         if (workspace / "package.json").exists():
             if self._has_package_script("build"):
@@ -496,6 +506,45 @@ class NeuroAgent:
 
             # Parse solution JSON to get file structure - USE ROBUST PARSER
             files_created = []
+
+            # NEW: Handle dry_run early return with plan output
+            if self.config.dry_run:
+                thinking_context = thinking_result.get("context", {})
+                dry_run_output = (
+                    solution.strip()
+                    or str(thinking_context.get("plan") or "").strip()
+                    or str(thinking_context.get("enhanced_prompt") or "").strip()
+                    or next(
+                        (
+                            str(p.get("response_preview") or "").strip()
+                            for p in reversed(thinking_result.get("passes", []))
+                            if str(p.get("response_preview") or "").strip()
+                        ),
+                        "",
+                    )
+                )
+                self.current_step = max(self.current_step, 1 if dry_run_output else 0)
+                duration_ms = (time.time() - self.start_time) * 1000
+                self.config.test_results = {
+                    **self.config.test_results,
+                    "dry_run_plan_generated": bool(dry_run_output),
+                }
+                if self.config.verbose and dry_run_output:
+                    print("\n📋 Dry-run plan generated successfully")
+                return AgentResult(
+                    success=bool(dry_run_output),
+                    goal=self.config.goal,
+                    status="completed" if dry_run_output else "error",
+                    steps=self.current_step,
+                    passes_used=passes_used,
+                    duration_ms=duration_ms,
+                    validation_passed=bool(dry_run_output),
+                    test_results=self.config.test_results,
+                    model_used=self.config.model or "auto",
+                    metadata={"plan": dry_run_output},
+                    skills_used=self.skill_orchestrator.active_skills if self.skill_orchestrator else [],
+                    error=None if dry_run_output else "Dry-run produced no plan output",
+                )
 
             # NEW: Use the robust CodeParser
             from neuro.core.code_parser import parse_and_write_files
