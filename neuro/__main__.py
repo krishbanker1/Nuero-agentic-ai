@@ -50,6 +50,23 @@ def _print_provider_key_help() -> None:
     print("  OpenRouter: https://openrouter.ai/keys", file=sys.stderr)
     print("  HuggingFace: https://huggingface.co/settings/tokens", file=sys.stderr)
 
+
+def _resolve_dry_run(args) -> bool:
+    """
+    Resolve the effective dry_run flag from parsed CLI args.
+
+    Priority:
+      1. --apply flag → always False (write files)
+      2. --dry-run flag → True (preview only)
+      3. default → False (write files by default)
+    """
+    if getattr(args, "apply", False):
+        return False
+    if getattr(args, "dry_run", None):
+        return True
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Neuro Autonomous Agent - Enterprise App Builder System",
@@ -282,12 +299,7 @@ Environment Variables:
         return 2
 
     # Determine dry_run mode
-    if args.apply:
-        dry_run = False
-    elif args.dry_run is not None:
-        dry_run = args.dry_run
-    else:
-        dry_run = False  # Apply changes by default
+    dry_run = _resolve_dry_run(args)
 
     # Show startup info
     if args.verbose or args.goal:
