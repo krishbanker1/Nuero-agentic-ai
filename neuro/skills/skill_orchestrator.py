@@ -183,8 +183,10 @@ class SkillOrchestrator:
                             if self.verbose:
                                 print(f"⚠️ Lazy skill {skill_name} unavailable: {exc}")
                             skill_class = None
-                    if hasattr(skill_class, 'invoke'):
-                        result = skill_class.invoke(goal, {"context": context})
+                    if skill_class:
+                        from neuro.skills import invoke_skill_class
+
+                        result = invoke_skill_class(skill_name, skill_class, goal, {"context": context})
                         self.skill_results[skill_name] = result
 
                         # Add skill-specific hints to context

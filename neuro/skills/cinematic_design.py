@@ -29,6 +29,31 @@ class CinematicDesign:
         "build from reference", "visual analysis", "design system",
     ]
     REQUIRED_PACKAGES = ["yt-dlp", "opencv-python", "Pillow", "numpy", "requests"]
+    TECHNOLOGY_STACKS = {
+        "animation_libraries": {
+            "gsap": {"npm": "gsap", "features": ["timeline", "scrolltrigger", "easings"]},
+            "framer_motion": {"npm": "framer-motion", "features": ["variants", "gestures", "layout"]},
+            "react_spring": {"npm": "@react-spring/web", "features": ["spring physics", "trail", "decay"]},
+            "motion_one": {"npm": "motion", "features": ["timeline", "scroll", "keyframes"]},
+            "css_animation": {"npm": None, "features": ["@keyframes", "transitions", "transforms"]},
+        },
+        "3d_libraries": {
+            "threejs": {"npm": "three @react-three/fiber @react-three/drei", "features": ["mesh", "lighting", "materials"]},
+            "babylonjs": {"npm": "@babylonjs/core @babylonjs/loaders", "features": ["scene", "engine", "physics"]},
+            "css_3d": {"npm": None, "features": ["perspective", "rotateY", "translateZ"]},
+        },
+        "text_animation": {
+            "split_type": {"npm": "split-type", "features": ["chars", "words", "lines"]},
+            "blotter": {"npm": "blotter", "features": ["procedural text", "shader text"]},
+            "css_text": {"npm": None, "features": ["clip-path", "mask", "transform"]},
+        },
+        "scroll_libraries": {
+            "lenis": {"npm": "lenis", "features": ["smooth scroll", "lerp"]},
+            "locomotive_scroll": {"npm": "locomotive-scroll", "features": ["parallax", "sticky", "sections"]},
+            "gsap_scroll": {"npm": "gsap", "features": ["scrub", "pin", "snap"]},
+            "native_scroll": {"npm": None, "features": ["IntersectionObserver", "CSS scroll-behavior"]},
+        },
+    }
 
     @classmethod
     def invoke(cls, task: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -380,13 +405,219 @@ export default function CinematicHero({{ content }}) {{
             css_parts.append(self.generate_motion(analysis))
             jsx_parts.append(self.generate_framer_motion(analysis))
             patterns_used.append("motion")
+        tech_stack = self.detect_technology_stack(analysis)
+        library_code = self.generate_library_implementation(analysis, tech_stack)
+        packages = sorted(set(library_code.pop("packages", []) + tech_stack.get("recommended_packages", [])))
         return {
             "css": "\n\n".join(css_parts),
             "jsx": jsx_parts[0] if jsx_parts else self._generate_basic_jsx(content),
             "component_name": "CinematicHero",
             "patterns_used": patterns_used,
             "analysis_metadata": self._metadata(analysis),
+            "technology_stack": tech_stack,
+            "library_code": library_code,
+            "packages": packages,
         }
+
+    def detect_technology_stack(self, analysis: dict[str, Any]) -> dict[str, Any]:
+        """Detect animation/3D/text/scroll libraries from derived analysis."""
+        brightness = analysis.get("brightness_level", "medium")
+        motion = analysis.get("motion_level", "static")
+        depth = analysis.get("depth_perception", "2d")
+        edge_score = float(analysis.get("edge_score", 50))
+        scene_changes = int(analysis.get("scene_changes", 0))
+        packages: list[str] = []
+        reasoning: dict[str, str] = {}
+
+        if motion == "heavy" or (brightness == "dark" and motion != "static"):
+            animation = "gsap"
+            packages.append("gsap")
+            reasoning["animation"] = "Heavy or dark cinematic motion benefits from timeline control."
+        elif motion == "subtle":
+            animation = "framer_motion"
+            packages.append("framer-motion")
+            reasoning["animation"] = "Subtle React motion benefits from declarative variants."
+        else:
+            animation = "css_animation"
+            reasoning["animation"] = "Static/simple motion can remain dependency-free."
+
+        if depth == "3d" and edge_score > 220:
+            three_d = "threejs"
+            packages.extend(["three", "@react-three/fiber", "@react-three/drei"])
+            reasoning["3d"] = "High edge score indicates real 3D/object depth."
+        elif depth == "3d" and edge_score > 150:
+            three_d = "babylonjs"
+            packages.extend(["@babylonjs/core", "@babylonjs/loaders"])
+            reasoning["3d"] = "Complex 3D depth can use Babylon.js enterprise tooling."
+        elif depth in {"2.5d", "3d"}:
+            three_d = "css_3d"
+            reasoning["3d"] = "Moderate depth can use CSS transforms without WebGL."
+        else:
+            three_d = None
+            reasoning["3d"] = "Flat visuals do not need a 3D runtime."
+
+        if brightness == "dark":
+            text_animation = "split_type"
+            packages.append("split-type")
+            reasoning["text"] = "Dark cinematic typography benefits from split text reveals."
+        elif motion == "heavy" and edge_score > 150:
+            text_animation = "blotter"
+            packages.append("blotter")
+            reasoning["text"] = "Complex motion/depth can support procedural text effects."
+        else:
+            text_animation = "css_text"
+            reasoning["text"] = "Simple text animation can stay CSS-only."
+
+        if scene_changes > 2:
+            scroll = "locomotive_scroll"
+            packages.append("locomotive-scroll")
+            reasoning["scroll"] = "Multiple scene changes suggest section/parallax scrolling."
+        elif animation == "gsap":
+            scroll = "gsap_scroll"
+            reasoning["scroll"] = "GSAP timeline can reuse ScrollTrigger for scroll motion."
+        elif motion == "subtle":
+            scroll = "lenis"
+            packages.append("lenis")
+            reasoning["scroll"] = "Subtle premium motion benefits from smooth scrolling."
+        else:
+            scroll = "native_scroll"
+            reasoning["scroll"] = "Native scroll keeps the dependency budget small."
+
+        return {
+            "animation_library": animation,
+            "3d_library": three_d,
+            "text_animation": text_animation,
+            "scroll_effect": scroll,
+            "recommended_packages": sorted(set(packages)),
+            "reasoning": reasoning,
+        }
+
+    def generate_library_implementation(self, analysis: dict[str, Any], stack: dict[str, Any]) -> dict[str, Any]:
+        """Generate implementation snippets for the detected library stack."""
+        result: dict[str, Any] = {"imports": [], "packages": []}
+        animation = stack.get("animation_library")
+        if animation == "gsap":
+            result["animation_code"] = self._generate_gsap(analysis)
+            result["imports"].append("import gsap from 'gsap'")
+            result["packages"].append("gsap")
+        elif animation == "framer_motion":
+            result["animation_code"] = self.generate_framer_motion(analysis)
+            result["imports"].append("import { motion } from 'framer-motion'")
+            result["packages"].append("framer-motion")
+        elif animation == "react_spring":
+            result["animation_code"] = self._generate_react_spring(analysis)
+            result["imports"].append("import { animated, useSpring } from '@react-spring/web'")
+            result["packages"].append("@react-spring/web")
+        elif animation == "motion_one":
+            result["animation_code"] = self._generate_motion_one(analysis)
+            result["imports"].append("import { animate, scroll } from 'motion'")
+            result["packages"].append("motion")
+        else:
+            result["animation_code"] = self.generate_motion(analysis)
+
+        three_d = stack.get("3d_library")
+        if three_d == "threejs":
+            result["3d_code"] = self._generate_threejs(analysis)
+            result["imports"].append("import * as THREE from 'three'")
+            result["packages"].extend(["three", "@react-three/fiber", "@react-three/drei"])
+        elif three_d == "babylonjs":
+            result["3d_code"] = self._generate_babylonjs(analysis)
+            result["imports"].extend(["import * as BABYLON from '@babylonjs/core'", "import '@babylonjs/loaders'"])
+            result["packages"].extend(["@babylonjs/core", "@babylonjs/loaders"])
+        elif three_d == "css_3d":
+            result["3d_code"] = self.generate_3d_depth(analysis)
+
+        if stack.get("text_animation") == "blotter":
+            result["text_code"] = self._generate_blotter(analysis)
+            result["imports"].append("import Blotter from 'blotter'")
+            result["packages"].append("blotter")
+        elif stack.get("text_animation") == "split_type":
+            result["text_code"] = self._generate_split_type(analysis)
+            result["imports"].append("import SplitType from 'split-type'")
+            result["packages"].append("split-type")
+        else:
+            result["text_code"] = ".text-reveal { clip-path: inset(0 0 0 0); transition: clip-path .7s ease; }"
+
+        if stack.get("scroll_effect") == "locomotive_scroll":
+            result["scroll_code"] = self._generate_locomotive(analysis)
+            result["imports"].append("import LocomotiveScroll from 'locomotive-scroll'")
+            result["packages"].append("locomotive-scroll")
+        elif stack.get("scroll_effect") == "gsap_scroll":
+            result["scroll_code"] = self._generate_gsap_scroll(analysis)
+            result["packages"].append("gsap")
+        elif stack.get("scroll_effect") == "lenis":
+            result["scroll_code"] = self._generate_lenis(analysis)
+            result["imports"].append("import Lenis from 'lenis'")
+            result["packages"].append("lenis")
+        else:
+            result["scroll_code"] = "const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.target.classList.toggle('visible', entry.isIntersecting)));"
+        return result
+
+    def _generate_gsap(self, params: dict[str, Any]) -> str:
+        duration = 0.8 if params.get("motion_level") == "heavy" else 1.2
+        return f"""gsap.timeline({{ defaults: {{ ease: 'power3.out', duration: {duration} }} }})
+  .from('.hero-title .char', {{ yPercent: 120, opacity: 0, stagger: 0.025 }})
+  .from('.hero-subtitle', {{ y: 32, opacity: 0 }}, '-=0.35')
+  .from('.hero-cta', {{ scale: 0.92, opacity: 0 }}, '-=0.25');"""
+
+    def _generate_react_spring(self, params: dict[str, Any]) -> str:
+        tension = 210 if params.get("motion_level") == "heavy" else 140
+        return f"""const heroSpring = useSpring({{
+  from: {{ opacity: 0, y: 40 }},
+  to: {{ opacity: 1, y: 0 }},
+  config: {{ tension: {tension}, friction: 22 }},
+}});"""
+
+    def _generate_motion_one(self, params: dict[str, Any]) -> str:
+        distance = 48 if params.get("motion_level") == "heavy" else 24
+        return f"""animate('.hero-title', {{ opacity: [0, 1], transform: ['translateY({distance}px)', 'translateY(0)'] }}, {{ duration: 0.8, easing: 'ease-out' }});
+scroll(animate('.cinematic-hero', {{ transform: ['scale(1)', 'scale(1.04)'] }}));"""
+
+    def _generate_threejs(self, params: dict[str, Any]) -> str:
+        intensity = 1.4 if params.get("lighting_type") == "spotlight" else 0.9
+        return f"""const scene = new THREE.Scene();
+const keyLight = new THREE.SpotLight(0xffffff, {intensity});
+keyLight.position.set(3, 4, 5);
+scene.add(keyLight);
+// Add product mesh/material using extracted palette and edge-derived depth."""
+
+    def _generate_babylonjs(self, params: dict[str, Any]) -> str:
+        contrast = params.get("contrast", "medium")
+        return f"""const engine = new BABYLON.Engine(canvas, true);
+const scene = new BABYLON.Scene(engine);
+scene.environmentIntensity = {1.2 if contrast == 'high' else 0.8};
+new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 5, BABYLON.Vector3.Zero(), scene);
+new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);"""
+
+    def _generate_blotter(self, params: dict[str, Any]) -> str:
+        speed = 0.35 if params.get("motion_level") == "heavy" else 0.12
+        return f"""const material = new Blotter.LiquidDistortMaterial();
+material.uniforms.uSpeed.value = {speed};
+const blotter = new Blotter(material, {{ texts: [new Blotter.Text('Premium', {{ size: 96 }})] }});"""
+
+    def _generate_split_type(self, params: dict[str, Any]) -> str:
+        stagger = 0.018 if params.get("motion_level") == "heavy" else 0.035
+        return f"""const split = new SplitType('.hero-title', {{ types: 'chars, words' }});
+gsap.from(split.chars, {{ yPercent: 120, opacity: 0, stagger: {stagger}, ease: 'power3.out' }});"""
+
+    def _generate_locomotive(self, params: dict[str, Any]) -> str:
+        lerp = 0.08 if params.get("motion_level") == "heavy" else 0.12
+        return f"""const scroll = new LocomotiveScroll({{
+  el: document.querySelector('[data-scroll-container]'),
+  smooth: true,
+  lerp: {lerp},
+}});"""
+
+    def _generate_gsap_scroll(self, params: dict[str, Any]) -> str:
+        scrub = "true" if params.get("motion_level") == "heavy" else "0.6"
+        return f"""gsap.registerPlugin(ScrollTrigger);
+gsap.to('.cinematic-hero', {{ scale: 1.04, scrollTrigger: {{ trigger: '.cinematic-hero', scrub: {scrub}, start: 'top top' }} }});"""
+
+    def _generate_lenis(self, params: dict[str, Any]) -> str:
+        lerp = 0.08 if params.get("motion_level") == "subtle" else 0.12
+        return f"""const lenis = new Lenis({{ lerp: {lerp}, smoothWheel: true }});
+function raf(time) {{ lenis.raf(time); requestAnimationFrame(raf); }}
+requestAnimationFrame(raf);"""
 
     def build_from_input(self, input_data: str, content: dict[str, str] | None = None) -> dict[str, Any]:
         content = content or {"title": "Premium Headline", "subtitle": "Subheadline text", "cta": "Explore"}
@@ -396,10 +627,15 @@ export default function CinematicHero({{ content }}) {{
     def build_prompt_block(self, component: dict[str, Any]) -> str:
         patterns = ", ".join(component.get("patterns_used", [])) or "basic cinematic"
         metadata = component.get("analysis_metadata", {})
+        stack = component.get("technology_stack", {})
+        packages = ", ".join(component.get("packages", [])) or "no required packages"
         return (
             "Cinematic design intelligence active. Use measured/derived visual principles: "
             f"patterns={patterns}; brightness={metadata.get('brightness_level')}; "
             f"depth={metadata.get('depth_perception')}; motion={metadata.get('motion_level')}. "
+            f"Detected stack: animation={stack.get('animation_library')}, 3d={stack.get('3d_library')}, "
+            f"text={stack.get('text_animation')}, scroll={stack.get('scroll_effect')}. "
+            f"Recommended packages: {packages}. "
             "Generate premium UI with complete CSS/React snippets and no paid services."
         )
 

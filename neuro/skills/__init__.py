@@ -3,6 +3,7 @@ Neuro Skill Manager - Automatic skill utilization system
 Auto-loads and auto-triggers skills based on task context
 """
 
+import inspect
 import os
 import re
 import json
@@ -94,6 +95,124 @@ _lazy_imports = {
     "context_optimizer": "neuro.skills.context_optimizer.ContextOptimizer",
     "context": "neuro.skills.context_optimizer.ContextOptimizer",
 }
+
+
+_SKILL_METHOD_PREFERENCE = (
+    "build_from_input",
+    "build_app",
+    "build",
+    "generate_full_stack",
+    "generate",
+    "create_plan",
+    "create_presentation",
+    "decompose",
+    "breakdown",
+    "review",
+    "audit",
+    "analyze_task",
+    "analyze_bottlenecks",
+    "optimize",
+    "write_commit_message",
+    "resolve_conflict",
+    "suggest_workflow",
+    "create_spec",
+    "validate_spec",
+    "generate_scene",
+    "generate_renderer",
+    "generate_utilities",
+    "generate_math_lib",
+    "generate_matrix_lib",
+    "generate_vertex_shader",
+    "generate_fragment_shader",
+    "generate_animations",
+    "generate_design_system",
+    "generate_component",
+    "run",
+    "execute",
+)
+
+
+def _normalize_skill_result(skill_name: str, method_name: str, result: Any) -> Dict[str, Any]:
+    """Return a consistent skill result envelope for all skill shapes."""
+    if isinstance(result, dict):
+        normalized = result.copy()
+    else:
+        normalized = {"result": result}
+    normalized.setdefault("skill", skill_name)
+    normalized.setdefault("method", method_name)
+    normalized.setdefault("success", "error" not in normalized)
+    return normalized
+
+
+def _call_skill_method(method: Any, task: str, context: Optional[Dict[str, Any]] = None) -> Any:
+    """Call a skill method using its signature instead of hardcoded wrappers."""
+    context = context or {}
+    signature = inspect.signature(method)
+    parameters = list(signature.parameters.values())
+    required = [
+        parameter for parameter in parameters
+        if parameter.default is inspect.Parameter.empty
+        and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+    ]
+    accepts_kwargs = any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters)
+    if not required:
+        return method()
+    if accepts_kwargs:
+        return method(task, **context)
+    if len(required) == 1:
+        return method(task)
+    if any(parameter.name == "context" for parameter in parameters):
+        return method(task, context)
+    raise TypeError(f"Method requires {len(required)} positional arguments and no context parameter")
+
+
+def invoke_skill_class(skill_name: str, skill_class: Any, task: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Invoke both modern `invoke` skills and legacy template-style skills.
+
+    Many older Neuro skills expose useful methods such as `build`, `generate`,
+    `review`, or `decompose` but not a uniform `invoke` entry point. This adapter
+    makes those skills callable without rewriting every individual skill file.
+    """
+    if skill_class is None:
+        return {"success": False, "skill": skill_name, "error": "Skill is not configured"}
+
+    if hasattr(skill_class, "invoke"):
+        return _normalize_skill_result(skill_name, "invoke", skill_class.invoke(task, context))
+
+    try:
+        instance = skill_class() if isinstance(skill_class, type) else skill_class
+    except TypeError as exc:
+        return {"success": False, "skill": skill_name, "error": f"Could not instantiate skill: {exc}"}
+
+    public_methods = sorted(
+        name for name in dir(instance)
+        if not name.startswith("_") and callable(getattr(instance, name, None))
+    )
+    candidate_methods = list(dict.fromkeys([*_SKILL_METHOD_PREFERENCE, *public_methods]))
+    last_error = ""
+    for method_name in candidate_methods:
+        method = getattr(instance, method_name, None)
+        if callable(method):
+            try:
+                result = _call_skill_method(method, task, context)
+            except TypeError as exc:
+                last_error = str(exc)
+                continue
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "skill": skill_name,
+                    "method": method_name,
+                    "error": str(exc),
+                }
+            return _normalize_skill_result(skill_name, method_name, result)
+
+    return {
+        "success": False,
+        "skill": skill_name,
+        "error": last_error or "Skill has no supported callable entry point",
+        "available_methods": public_methods,
+    }
 
 def _lazy_get_skill(name: str):
     """Lazily import and return a skill class."""
@@ -434,9 +553,9 @@ def invoke_skill(skill_name: str, task: str, context: Optional[Dict[str, Any]] =
             else:
                 return {"error": f"Skill {skill_name} has no lazy import path configured"}
         
-        if skill_class and hasattr(skill_class, 'invoke'):
-            return skill_class.invoke(task, context)
-        return {"error": f"Skill {skill_name} does not have an invoke method"}
+        if skill_class:
+            return invoke_skill_class(skill_name, skill_class, task, context)
+        return {"success": False, "error": f"Skill {skill_name} is unavailable"}
     
     # Fallback to auto-detection
     return {"auto_triggered": auto_skills(task, context)}
@@ -470,6 +589,31 @@ from neuro.skills.landing_page_builder import LandingPageBuilder, build_landing_
 # NEW: DevOps & Deployment
 from neuro.skills.docker_deploy import DockerDeploy, docker_deploy
 from neuro.skills.website_builder import WebsiteBuilder, build_website
+from neuro.skills.presentation_builder import PresentationBuilder, build_presentation
+from neuro.skills.security_hardening import SecurityHardening
+from neuro.skills.planning_task_breakdown import PlanningTaskBreakdown
+from neuro.skills.git_workflow import GitWorkflow
+from neuro.skills.spec_driven_development import SpecDrivenDevelopment
+from neuro.skills.performance_optimization import PerformanceOptimization
+from neuro.skills.debugging_error_recovery import DebuggingErrorRecovery
+
+SKILL_REGISTRY.update({
+    "code_generator": CodeGenerator,
+    "rest_api_builder": RESTAPIBuilder,
+    "api_builder": RESTAPIBuilder,
+    "database_builder": DatabaseBuilder,
+    "frontend_builder": FrontendBuilder,
+    "landing_page_builder": LandingPageBuilder,
+    "docker_deploy": DockerDeploy,
+    "website_builder": WebsiteBuilder,
+    "presentation_builder": PresentationBuilder,
+    "security_hardening": SecurityHardening,
+    "planning_task_breakdown": PlanningTaskBreakdown,
+    "git_workflow": GitWorkflow,
+    "spec_driven_development": SpecDrivenDevelopment,
+    "performance_optimization": PerformanceOptimization,
+    "debugging_error_recovery": DebuggingErrorRecovery,
+})
 
 
 # 3D & Motion Graphics Skills (ALL REAL AI)

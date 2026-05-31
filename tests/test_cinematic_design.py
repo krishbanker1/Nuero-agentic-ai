@@ -30,6 +30,22 @@ def test_cinematic_component_generation_derives_css_and_react():
     assert "gradient-depth" in result["css"]
     assert "CinematicHero" in result["jsx"]
     assert result["analysis_metadata"]["depth_perception"] in {"2.5d", "3d"}
+    assert result["technology_stack"]["animation_library"] in {"gsap", "framer_motion"}
+    assert result["technology_stack"]["3d_library"] in {"threejs", "babylonjs", "css_3d"}
+    assert "library_code" in result
+    assert result["packages"]
+
+
+def test_cinematic_detects_full_library_stack_from_analysis():
+    design = CinematicDesign()
+    analysis = design.analyze_description("dark premium 3d animated product hero with dynamic motion and spotlight")
+    component = design.generate_complete_component(analysis, {"title": "X", "subtitle": "Y", "cta": "Go"})
+
+    assert component["technology_stack"]["animation_library"] == "gsap"
+    assert component["technology_stack"]["text_animation"] == "split_type"
+    assert "animation_code" in component["library_code"]
+    assert "text_code" in component["library_code"]
+    assert "gsap" in component["packages"]
 
 
 def test_cinematic_skill_registry_and_orchestrator_prompt():
@@ -43,6 +59,7 @@ def test_cinematic_skill_registry_and_orchestrator_prompt():
     assert "cinematic_design_prompt" in enriched
     assert "cinematic_analysis" in enriched
     assert "premium UI" in enriched["cinematic_design_prompt"]
+    assert "Detected stack" in enriched["cinematic_design_prompt"]
 
 
 def test_thinking_loop_includes_cinematic_context():
