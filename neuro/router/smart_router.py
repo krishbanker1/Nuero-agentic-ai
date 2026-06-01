@@ -3,17 +3,17 @@ Smart Router - Rotating provider with circuit breaker
 Now with skill middleware integration and improved reliability
 """
 import os
+import threading
 import time
-from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import threading
+from typing import Any
+
 GOOGLE_MODELS = [
     "gemini-3.5-flash",
-    "gemini-3-flash",
+    "gemini-3-flash-preview",
     "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-image",
     "gemini-embedding-2",
 ]
 # OpenRouter models - ONLY truly FREE models NOT on Groq or Gemini
@@ -30,7 +30,7 @@ OPENROUTER_UNIQUE_MODELS = [
 UNKNOWN_TASK_MODEL_CHAIN = [
     "groq/llama-3.3-70b-versatile",
     "gemini-3.5-flash",
-    "qwen/qwen3-coder:free",
+    "openrouter/qwen/qwen3-coder:free",
 ]
 # Import skill middleware
 try:
@@ -67,7 +67,7 @@ class Provider(Enum):
 # Format: {PROVIDER}_API_KEYS (comma-separated for multiple keys)
 # Fallback: {PROVIDER}_API_KEY (singular)
 # =============================================================================
-def _get_env_keys_for_provider(provider: Provider) -> List[str]:
+def _get_env_keys_for_provider(provider: Provider) -> list[str]:
     """
     Get API keys from environment for any provider using generic format.
     Supports comma-separated values: key1,key2,key3
@@ -89,7 +89,7 @@ def _get_env_keys_for_provider(provider: Provider) -> List[str]:
             return [singular.strip()]
     return []
 # Legacy helper for backwards compatibility
-def _get_env_keys(var_name: str, fallback_singular: str = None) -> List[str]:
+def _get_env_keys(var_name: str, fallback_singular: str = None) -> list[str]:
     """Get API keys from environment (supports comma-separated)."""
     value = os.getenv(var_name, "")
     if value:
@@ -101,7 +101,7 @@ def _get_env_keys(var_name: str, fallback_singular: str = None) -> List[str]:
         if singular:
             return [singular.strip()]
     return []
-def _init_provider_keys() -> Dict[str, List[str]]:
+def _init_provider_keys() -> dict[str, list[str]]:
     """Initialize API keys for all providers using generic format."""
     return {
         # Use generic format: {PROVIDER}_API_KEYS
@@ -114,13 +114,13 @@ def _normalize_provider_name(provider: str) -> str:
     """Normalize legacy provider aliases to canonical provider names."""
     aliases = {"gemini": "google", "google": "google"}
     return aliases.get(provider, provider)
-def get_provider_keys(provider: str) -> List[str]:
+def get_provider_keys(provider: str) -> list[str]:
     """Get API keys for a provider."""
     return _PROVIDER_KEYS.get(_normalize_provider_name(provider), [])
 def has_provider(provider: str) -> bool:
     """Check if provider has available keys."""
     return bool(get_provider_keys(provider))
-def available_providers() -> Dict[str, int]:
+def available_providers() -> dict[str, int]:
     """Get provider key counts, including zero-count providers for health checks."""
     return {provider: len(keys) for provider, keys in _PROVIDER_KEYS.items()}
 def reload_keys():
@@ -133,7 +133,7 @@ class ProviderConfig:
     name: Provider
     base_url: str
     api_key_env: str
-    models: List[str]
+    models: list[str]
     requires_endpoint: bool = False
     rate_limit: int = 60  # requests per minute
     cooldown: int = 60  # seconds after rate limit
@@ -141,14 +141,14 @@ class ProviderConfig:
 class RouterStats:
     """Statistics for routing decisions."""
     total_calls: int = 0
-    provider_calls: Dict[str, int] = field(default_factory=dict)
-    failures: Dict[str, int] = field(default_factory=dict)
-    avg_latency: Dict[str, float] = field(default_factory=dict)
-    last_used: Dict[str, float] = field(default_factory=dict)
+    provider_calls: dict[str, int] = field(default_factory=dict)
+    failures: dict[str, int] = field(default_factory=dict)
+    avg_latency: dict[str, float] = field(default_factory=dict)
+    last_used: dict[str, float] = field(default_factory=dict)
     lock: threading.Lock = field(default_factory=threading.Lock)
     # Circuit breaker state
-    failures_since_success: Dict[str, int] = field(default_factory=dict)
-    circuit_open_until: Dict[str, float] = field(default_factory=dict)
+    failures_since_success: dict[str, int] = field(default_factory=dict)
+    circuit_open_until: dict[str, float] = field(default_factory=dict)
 @dataclass
 class CircuitBreakerConfig:
     """Circuit breaker configuration."""
@@ -163,7 +163,7 @@ class SmartRouter:
     Supports 50+ free models with 22 task categories.
     """
     # Provider configurations with 50+ models
-    PROVIDERS: Dict[Provider, ProviderConfig] = {
+    PROVIDERS: dict[Provider, ProviderConfig] = {
         Provider.GOOGLE: ProviderConfig(
             name=Provider.GOOGLE,
             base_url="https://generativelanguage.googleapis.com/v1beta",
@@ -303,7 +303,7 @@ class SmartRouter:
     }
     def __init__(self):
         self.stats = RouterStats()
-        self.cooldowns: Dict[str, float] = {}
+        self.cooldowns: dict[str, float] = {}
         self._local = threading.local()
         self.circuit_config = CircuitBreakerConfig()
         # Skill middleware
@@ -331,7 +331,7 @@ class SmartRouter:
         if self.stats.failures_since_success[key] >= self.circuit_config.failure_threshold:
             self.stats.circuit_open_until[key] = time.time() + self.circuit_config.recovery_timeout
             self.stats.failures_since_success[key] = 0  # Reset counter after circuit opens
-    def _get_api_key(self, provider: Provider) -> Optional[str]:
+    def _get_api_key(self, provider: Provider) -> str | None:
         """Get API key from environment using new key management system."""
         # Use new key management for consistency
         keys = get_provider_keys(provider.value)
@@ -363,7 +363,7 @@ class SmartRouter:
     def _set_cooldown(self, provider: Provider):
         """Set provider to cooldown."""
         self.cooldowns[provider.value] = time.time()
-    def _call_groq(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_groq(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Groq API."""
         try:
             from groq import Groq
@@ -406,7 +406,7 @@ class SmartRouter:
             elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
                 error_msg = "Connection error - check network"
             return {"error": error_msg}
-    def _call_openrouter(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_openrouter(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call OpenRouter API."""
         try:
             from openai import OpenAI
@@ -454,7 +454,7 @@ class SmartRouter:
             elif "model" in error_msg.lower() and "not found" in error_msg.lower():
                 error_msg = "Model not available on OpenRouter"
             return {"error": error_msg}
-    def _call_huggingface(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_huggingface(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call HuggingFace Inference API."""
         api_key = self._get_api_key(Provider.HUGGINGFACE)
         if not api_key:
@@ -482,7 +482,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.HUGGINGFACE, model, str(e))
             return {"error": str(e)}
-    def _call_cloudflare(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_cloudflare(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Cloudflare Workers AI."""
         api_key = self._get_api_key(Provider.CLOUDFLARE)
         if not api_key:
@@ -510,7 +510,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.CLOUDFLARE, model, str(e))
             return {"error": str(e)}
-    def _call_together(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_together(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Together AI."""
         try:
             from openai import OpenAI
@@ -542,7 +542,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.TOGETHER, model, str(e))
             return {"error": str(e)}
-    def _call_mistral(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_mistral(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Mistral AI."""
         try:
             from mistralai.client import MistralClient
@@ -571,7 +571,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.MISTRAL, model, str(e))
             return {"error": str(e)}
-    def _call_cohere(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_cohere(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Cohere API."""
         try:
             import cohere
@@ -601,7 +601,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.COHERE, model, str(e))
             return {"error": str(e)}
-    def _call_deepseek_api(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_deepseek_api(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call DeepSeek Direct API."""
         try:
             from openai import OpenAI
@@ -633,7 +633,7 @@ class SmartRouter:
         except Exception as e:
             self._record_failure(Provider.DEEPSEEK, model, str(e))
             return {"error": str(e)}
-    def _call_perplexity(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_perplexity(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Perplexity AI API."""
         try:
             from openai import OpenAI
@@ -687,7 +687,7 @@ class SmartRouter:
             if self.stats.failures[provider.value] >= 3:
                 self._set_cooldown(provider)
                 self.stats.failures[provider.value] = 0
-    def _call_gemini(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def _call_gemini(self, model: str, messages: list[dict], **kwargs) -> dict[str, Any]:
         """Call Gemini API using official google-genai SDK (new unified SDK for Gemini 2.0+)."""
         try:
             from google import genai
@@ -706,7 +706,7 @@ class SmartRouter:
                     combined_content += f"[System] {msg['content']}\n\n"
                 elif msg["role"] == "user":
                     combined_content += f"[User] {msg['content']}"
-            
+
             # Ensure model name is in correct format (e.g., "gemini-2.0-flash")
             if not model.startswith("gemini"):
                 model = f"gemini-{model}"
@@ -737,7 +737,7 @@ class SmartRouter:
             elif "quota" in error_msg.lower() or "limit" in error_msg.lower():
                 error_msg = "Gemini quota exceeded"
             return {"error": error_msg}
-    def _get_available_providers(self) -> List[Provider]:
+    def _get_available_providers(self) -> list[Provider]:
         """Get list of available providers (have keys, not in cooldown)."""
         available = []
         for provider in Provider:
@@ -745,12 +745,12 @@ class SmartRouter:
                 if not self._is_cooldown(provider):
                     available.append(provider)
         return available
-    def complete(self, messages: List[Dict], model: Optional[str] = None,
-                 preferred_provider: Optional[Provider] = None,
-                 task_type: Optional[str] = None,  # NEW: task-based routing
-                 skills: Optional[List[str]] = None,
+    def complete(self, messages: list[dict], model: str | None = None,
+                 preferred_provider: Provider | None = None,
+                 task_type: str | None = None,  # NEW: task-based routing
+                 skills: list[str] | None = None,
                  max_tokens: int = 4096,
-                 **kwargs) -> Dict[str, Any]:
+                 **kwargs) -> dict[str, Any]:
         """
         Complete a request with smart provider selection AND skill integration.
         Args:
@@ -841,12 +841,12 @@ class SmartRouter:
             if self._is_cooldown(provider):
                 errors.append(f"{provider.value}: cooldown")
                 continue
-            
+
             if "/" in model_config:
                 model = "/".join(model_config.split("/")[1:])
             else:
                 model = model_config
-            
+
             call_kwargs = {**kwargs, "max_tokens": max_tokens}
             if provider == Provider.GOOGLE:
                 result = self._call_gemini(model, messages, **call_kwargs)
@@ -862,14 +862,14 @@ class SmartRouter:
                 result = self._call_together(model, messages, **call_kwargs)
             else:
                 continue
-            
+
             if "error" in result:
                 errors.append(f"{provider.value}: {result['error'][:50]}")
             else:
                 if MIDDLEWARE_AVAILABLE and self.middleware:
                     result = self.middleware.postprocess(result)
                 return result
-        
+
         return {"error": "All providers failed", "details": errors}
     def chat(self, prompt: str, task_type: str = "code_generation",
              max_tokens: int = 4096, system: str = None) -> str:
@@ -908,7 +908,6 @@ class SmartRouter:
                 provider_map = {
                     "google": Provider.GOOGLE,
                     "gemini": Provider.GOOGLE,
-                    "google": Provider.GOOGLE,
                     "groq": Provider.GROQ,
                     "openrouter": Provider.OPENROUTER,
                     "huggingface": Provider.HUGGINGFACE,
@@ -949,7 +948,7 @@ class SmartRouter:
             except Exception:
                 continue
         return ""  # All providers failed
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get routing statistics."""
         with self.stats.lock:
             return {
@@ -958,7 +957,7 @@ class SmartRouter:
                 "failures": dict(self.stats.failures),
                 "last_used": dict(self.stats.last_used),
             }
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Check health of all providers."""
         health = {}
         for provider in self.PROVIDERS.keys():  # Only iterate over configured providers
@@ -974,7 +973,7 @@ class SmartRouter:
         return health
 # Global router instance
 _router = SmartRouter()
-def complete(messages: List[Dict], model: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+def complete(messages: list[dict], model: str | None = None, **kwargs) -> dict[str, Any]:
     """
     Convenience function for router.complete()
     Usage:
@@ -989,9 +988,9 @@ def complete(messages: List[Dict], model: Optional[str] = None, **kwargs) -> Dic
             print(f"Response: {result['content']}")
     """
     return _router.complete(messages, model, **kwargs)
-def health_check() -> Dict[str, Any]:
+def health_check() -> dict[str, Any]:
     """Check which providers are healthy."""
     return _router.health_check()
-def get_stats() -> Dict[str, Any]:
+def get_stats() -> dict[str, Any]:
     """Get router statistics."""
     return _router.get_stats()
