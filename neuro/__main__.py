@@ -263,7 +263,46 @@ Environment Variables:
         help="Operation mode (default: auto-detect)"
     )
 
+    # =========================================================================
+    # NEURO STUDIO UI FLAGS
+    # =========================================================================
+
+    parser.add_argument(
+        "--ui",
+        action="store_true",
+        help="Launch Neuro Studio web UI (browser-based interface)"
+    )
+
+    parser.add_argument(
+        "--ui-host",
+        default="127.0.0.1",
+        help="Host for Neuro Studio UI (default: 127.0.0.1)"
+    )
+
+    parser.add_argument(
+        "--ui-port",
+        type=int,
+        default=8765,
+        help="Port for Neuro Studio UI (default: 8765)"
+    )
+
+    parser.add_argument(
+        "--no-open-browser",
+        action="store_true",
+        help="Don't open browser automatically when starting Neuro Studio"
+    )
+
     args = parser.parse_args()
+
+    # Neuro Studio UI mode
+    if args.ui:
+        from neuro.web_ui import start_studio
+        start_studio(
+            host=args.ui_host,
+            port=args.ui_port,
+            open_browser=not args.no_open_browser
+        )
+        return 0
 
     # Version
     if args.version:

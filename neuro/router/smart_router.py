@@ -971,7 +971,8 @@ class SmartRouter:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        for model_config in models_to_try[:4]:
+        # Try all models in the fallback chain (removed depth cap for deeper fallback)
+        for model_config in models_to_try:
             try:
                 # Extract provider and model from config
                 if "/" in model_config:

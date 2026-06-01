@@ -160,6 +160,33 @@ summary = run_mini_evals()
 print(f"Passed: {summary['passed']}/{summary['total']}")
 ```
 
+### Neuro Studio - Browser UI
+
+Neuro Studio provides a web-based interface for using Neuro without the terminal:
+
+```bash
+# Start Neuro Studio
+neuro --ui
+
+# Custom host/port
+neuro --ui --ui-host 0.0.0.0 --ui-port 8080
+
+# Don't open browser automatically
+neuro --ui --no-open-browser
+```
+
+Features:
+- Prompt composer for describing what to build
+- Screenshot/image upload for visual references
+- Provider health display
+- Working directory selection
+- Max steps/pass configuration
+- Dry-run toggle
+- App preview launching (Launch/Stop buttons)
+- Mobile-responsive design for iPhone/remote browsers
+
+The `/api/chat` endpoint runs the Neuro agent with your goal, and `/api/launch` starts a preview server for generated apps.
+
 ## Testing
 
 ```bash
