@@ -86,11 +86,17 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
             "output": _capture_output(result),
         }
     except Exception as e:
+        # Capture full error context for debugging
+        error_str = str(e)
+        # Remove any potentially sensitive info
+        if "api" in error_str.lower() or "key" in error_str.lower():
+            error_str = "API provider error - check your API keys"
+        
         return {
             "success": False,
             "status": "error",
-            "error": str(e),
-            "output": "",
+            "error": error_str,
+            "output": f"Exception: {type(e).__name__}",
         }
 
 
@@ -282,10 +288,16 @@ class StudioHandler(BaseHTTPRequestHandler):
         
         if parsed.path == "/api/chat":
             content_length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(content_length).decode()
+            body = self.rfile.read(content_length)
             
             try:
-                data = json.loads(body)
+                # Handle potential decode errors
+                try:
+                    body_str = body.decode('utf-8')
+                except UnicodeDecodeError:
+                    body_str = body.decode('utf-8', errors='replace')
+                
+                data = json.loads(body_str)
                 goal = data.get("goal", "")
                 working_dir = data.get("working_dir", ".")
                 dry_run = data.get("dry_run", False)
@@ -305,11 +317,26 @@ class StudioHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(result).encode())
                 
+            except json.JSONDecodeError:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "status": "error",
+                    "error": "Invalid JSON request",
+                    "output": ""
+                }).encode())
             except Exception as e:
                 self.send_response(500)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "status": "error",
+                    "error": str(e),
+                    "output": f"Exception: {type(e).__name__}"
+                }).encode())
         
         elif parsed.path == "/api/upload":
             content_length = int(self.headers.get("Content-Length", 0))

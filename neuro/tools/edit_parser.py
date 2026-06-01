@@ -99,17 +99,18 @@ class StructuredEdit:
         if match:
             try:
                 return cls.from_json(match.group(1))
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, Exception):
                 pass
         
-        # Try to find raw JSON
-        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
+        # Try to find raw JSON with more robust pattern
+        # Use simpler non-recursive approach to avoid regex issues
+        json_pattern = r"\{[^{}]*\}"
         for match in re.finditer(json_pattern, text, re.DOTALL):
             try:
                 data = json.loads(match.group(0))
                 if "files" in data:
                     return cls.from_json(match.group(0))
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, Exception):
                 continue
         
         return None
