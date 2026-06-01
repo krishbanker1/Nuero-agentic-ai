@@ -93,7 +93,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini-2.5-flash-lite",
+        name="gemini-2.0-flash-lite",
         provider="google",
         roles=["router", "summarizer", "json", "documentation"],
         strengths=["fast", "cheap", "classification", "summarization"],
@@ -104,7 +104,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini-3.1-flash-live-preview",
+        name="gemini-2.5-flash",
         provider="google",
         roles=["voice", "realtime"],
         strengths=["realtime", "audio", "voice"],
@@ -115,7 +115,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini-2.5-flash-native-audio-preview-12-2025",
+        name="gemini-2.5-flash",
         provider="google",
         roles=["voice", "audio"],
         strengths=["native_audio", "realtime"],
@@ -126,7 +126,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini-3.1-flash-tts-preview",
+        name="gemini-2.5-flash",
         provider="google",
         roles=["tts", "narration"],
         strengths=["tts", "voice_output"],
@@ -137,7 +137,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=1000000,
     ),
     ModelMetadata(
-        name="gemini-2.5-flash-preview-tts",
+        name="gemini-2.5-flash",
         provider="google",
         roles=["tts", "narration"],
         strengths=["tts", "fallback_voice"],
@@ -170,7 +170,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=8192,
     ),
     ModelMetadata(
-        name="gemini-embedding-001",
+        name="gemini-embedding-2",
         provider="google",
         roles=["embedding", "memory", "rag"],
         strengths=["embedding", "semantic_search", "fallback"],
@@ -823,7 +823,7 @@ def get_model_by_name(name: str) -> Optional[ModelMetadata]:
 # ---------------------------
 # GEMINI (gemini-*):
 #   - Best: coding, reasoning, multimodal (vision), 1M context, agentic
-#   - Models: gemini-3.5-flash, gemini-2.5-flash, gemini-2.5-flash-lite
+#   - Models: gemini-3.5-flash, gemini-2.5-flash, gemini-2.0-flash-lite
 #
 # GROQ (groq/*):
 #   - GPT-OSS 120B: Best for complex reasoning, code review, architecture
@@ -925,7 +925,7 @@ TASK_CATEGORIES = {
 
     # 9. CODE COMPLETION - Autocomplete, snippets
     "code_completion": {
-        "primary": "gemini-2.5-flash-lite",
+        "primary": "gemini-2.0-flash-lite",
         "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "openrouter/qwen/qwen3-coder:free"],
         "roles": ["coder"],
         "description": "Autocomplete, snippet generation"
@@ -1022,7 +1022,7 @@ TASK_CATEGORIES = {
     # 19. GIT OPERATIONS - Git commands, PRs, merges
     "git_operations": {
         "primary": "groq/llama-3.1-8b-instant",
-        "fallback": ["gemini-2.5-flash-lite", "gemini-2.5-flash", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
+        "fallback": ["gemini-2.0-flash-lite", "gemini-2.5-flash", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Git commands, PRs, merges"
     },
@@ -1062,7 +1062,7 @@ TASK_CATEGORIES = {
     # 23. OFFICE DOCUMENT - Word, Excel, PowerPoint generation
     "office_document_generation": {
         "primary": "gemini-2.5-flash",
-        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash-lite", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.0-flash-lite", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner"],
         "description": "Word, Excel, PowerPoint generation"
     },
@@ -1135,7 +1135,7 @@ TASK_CATEGORIES = {
 
     # 31. FAST RESPONSE - Quick answers, simple tasks
     "fast_response": {
-        "primary": "gemini-2.5-flash-lite",
+        "primary": "gemini-2.0-flash-lite",
         "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Quick answers, simple tasks"
@@ -1143,8 +1143,8 @@ TASK_CATEGORIES = {
 
     # 32. AGENTIC TASKS - Tasks requiring tools (browsing, code execution)
     "agentic_tasks": {
-        "primary": "groq/groq/compound",
-        "fallback": ["gemini-3.5-flash", "groq/groq/compound-mini", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile-mini", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["agent", "planner", "coder"],
         "description": "Tasks requiring tools (browsing, code execution)"
     },
@@ -1221,8 +1221,8 @@ MODEL_ROLES = {
     },
     # AGENT - Tasks requiring tools
     "agent": {
-        "primary": "groq/groq/compound",
-        "fallback": ["gemini-3.5-flash", "groq/groq/compound-mini"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile-mini"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
@@ -1251,7 +1251,7 @@ TASK_CATEGORIES.update({
     "frontend_react": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-3.5-flash", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "coder"], "description": "React, Next.js, Vue, Svelte"},
     "frontend_ui": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend"], "description": "HTML/CSS, UI components"},
     "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile", "openrouter/meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
-    "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.5-flash-lite", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
+    "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.0-flash-lite", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
     "long_context": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Large codebase, 1M+ context"},
     "multi_modal": {"primary": "gemini-3.5-flash", "fallback": ["gemini-2.5-flash-image", "openrouter/qwen/qwen3-coder:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "vision"], "description": "Image understanding, file processing"},
 })

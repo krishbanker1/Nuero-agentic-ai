@@ -33,8 +33,8 @@ class BrainModel(Enum):
     GEMINI_2_5_FLASH = "gemini-2.5-flash"
     GEMINI_2_5_FLASH_ALT = "gemini-2.5-flash"
     GEMINI_3_5_FLASH_ALT = "gemini-3.5-flash"
-    GEMINI_2_5_FLASH_LITE_ALT = "gemini-2.5-flash-lite"
-    GEMINI_2_5_FLASH_LITE = "gemini-2.5-flash-lite"
+    GEMINI_2_5_FLASH_LITE_ALT = "gemini-2.0-flash-lite"
+    GEMINI_2_5_FLASH_LITE = "gemini-2.0-flash-lite"
     GEMINI_3_FLASH_PREVIEW_ALT = "gemini-3-flash-preview"
     GEMINI_2_5_FLASH_IMAGE = "gemini-2.5-flash-image"
     
@@ -160,7 +160,7 @@ MAIN_BRAIN_TASKS: List[TaskBrainConfig] = [
     TaskBrainConfig(
         task_name="Fast Response",
         primary_model="groq-llama-3.1-8b-instant",
-        fallback_1="gemini-2.5-flash-lite",
+        fallback_1="gemini-2.0-flash-lite",
         fallback_2="openrouter-llama-3.2-3b",
         primary_reason="Ultra-fast inference, optimized for speed (Groq infrastructure)",
         is_gemini_primary=False
@@ -183,7 +183,7 @@ MAIN_BRAIN_TASKS: List[TaskBrainConfig] = [
     # =========================================================================
     TaskBrainConfig(
         task_name="Simple Task",
-        primary_model="gemini-2.5-flash-lite",
+        primary_model="gemini-2.0-flash-lite",
         fallback_1="groq-llama-3.1-8b-instant",
         fallback_2="gemini-2.5-flash",
         primary_reason="Cost-effective, fast, reliable for simple straightforward tasks",
@@ -215,7 +215,7 @@ PERMANENT_FALLBACK_CHAINS: Dict[str, List[str]] = {
     
     "fast": [
         "groq-llama-3.1-8b-instant",     # Fastest (Groq)
-        "gemini-2.5-flash-lite",           # Efficient
+        "gemini-2.0-flash-lite",           # Efficient
         "openrouter-llama-3.2-3b",       # Small fast
         "gemini-2.5-flash",              # Reliable
     ],
@@ -266,7 +266,7 @@ MODEL_CAPABILITIES: Dict[str, Dict] = {
         "provider": "google"
     },
     
-    "gemini-2.5-flash-lite": {
+    "gemini-2.0-flash-lite": {
         "primary_tasks": ["Simple Task"],
         "strengths": ["fast", "coding", "reasoning", "cost_effective"],
         "context_window": "1M tokens",
@@ -405,7 +405,7 @@ GEMINI PRIMARY TASKS (Use Gemini API):
   🧠 Deep Reasoning → gemini-3.5-flash (PRIMARY)
   🖼️ Multimodal → gemini-2.5-flash (PRIMARY)
   🔀 Agent Swarm → gemini-3.5-flash (PRIMARY)
-  ✅ Simple Task → gemini-2.5-flash-lite (PRIMARY)
+  ✅ Simple Task → gemini-2.0-flash-lite (PRIMARY)
   📜 Long Context → gemini-3.5-flash (fallback) | gemini-3.5-flash
 
 CODING PRIMARY TASKS (Use OpenRouter/Together):

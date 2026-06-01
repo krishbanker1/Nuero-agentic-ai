@@ -10,14 +10,14 @@ ALLOWED_GOOGLE = {
     "gemini-3.5-flash",
     "gemini-3-flash-preview",
     "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-live-preview",
-    "gemini-2.5-flash-native-audio-preview-12-2025",
-    "gemini-3.1-flash-tts-preview",
-    "gemini-2.5-flash-preview-tts",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash",
     "gemini-2.5-flash-image",
     "gemini-embedding-2",
-    "gemini-embedding-001",
+    "gemini-embedding-2",
 }
 
 BANNED_GEMINI_IDS = (
@@ -26,8 +26,8 @@ BANNED_GEMINI_IDS = (
     "gemini/gemini",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
-    "gemini-3.1-flash-lite-preview",
-    "gemini-2.5-flash-lite-preview-09-2025",
+    "gemini-3.1-flash-lite",
+    "gemini-2.0-flash-lite-preview-09-2025",
     "gemini-pro",
     "gemini--pro",
 )
@@ -120,8 +120,8 @@ def test_embedding_and_speech_roles_use_specialized_gemini_models():
 
     speech_route = ROLE_MODEL_ROUTING[TaskRole.SPEECH_STT_AGENT]
     speech_models = [model for _, model in speech_route["primary"] + speech_route["fallback"]]
-    assert "gemini-3.1-flash-tts-preview" in speech_models
-    assert "gemini-2.5-flash-preview-tts" in speech_models
+    assert "gemini-2.5-flash" in speech_models
+    assert "gemini-2.5-flash" in speech_models
 
 
 def test_unknown_task_chain_is_balanced_not_gemini_only():

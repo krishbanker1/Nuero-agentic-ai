@@ -12,22 +12,29 @@ import threading
 
 GOOGLE_MODELS = [
     "gemini-3.5-flash",
-    "gemini-3-flash-preview",
+    "gemini-3-flash",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-live-preview",
-    "gemini-2.5-flash-native-audio-preview-12-2025",
-    "gemini-3.1-flash-tts-preview",
-    "gemini-2.5-flash-preview-tts",
-    "gemini-2.5-flash-image",
+    "gemini-3.1-flash-lite",
     "gemini-embedding-2",
-    "gemini-embedding-001",
+]
+
+# OpenRouter models - ONLY unique models NOT available on Groq or Gemini
+# These are the best free/reasoning models on OpenRouter
+OPENROUTER_UNIQUE_MODELS = [
+    "deepseek/deepseek-v4-flash:free",
+    "deepseek/deepseek-chat-v3-0324:free", 
+    "qwen/qwen3-32b:free",
+    "anthropic/claude-3-haiku:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "x-ai/grok-2:free",
 ]
 
 UNKNOWN_TASK_MODEL_CHAIN = [
     "groq/llama-3.3-70b-versatile",
     "gemini-2.5-flash",
-    "google/gemini-2.0-flash",
+    "deepseek/deepseek-v4-flash:free",
 ]
 
 # Import skill middleware

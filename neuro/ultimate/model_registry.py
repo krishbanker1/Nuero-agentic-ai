@@ -129,33 +129,33 @@ MODEL_REGISTRY: Dict[str, ModelInfo] = {
         cost="FREE",
         api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
         api_key_env="GEMINI_API_KEY",
-        fallback_models=["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+        fallback_models=["gemini-2.5-flash", "gemini-2.0-flash-lite"]
     ),
     
-    "gemini-2.5-flash-lite": ModelInfo(
-        id="gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite": ModelInfo(
+        id="gemini-2.0-flash-lite",
         provider=ModelProvider.GOOGLE,
         name="Gemini 2.5 Flash Lite",
         context_window=1_000_000,
         strengths=["fast", "coding", "reasoning", "cost_efficient"],
         rate_limits="15 req/min (free)",
         cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent",
         api_key_env="GEMINI_API_KEY",
         fallback_models=["gemini-2.5-flash"]
     ),
     
-    "gemini-2.5-flash-lite": ModelInfo(
-        id="gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite": ModelInfo(
+        id="gemini-2.0-flash-lite",
         provider=ModelProvider.GOOGLE,
         name="Gemini 2.5 Flash Lite",
         context_window=1_000_000,
         strengths=["ultra_fast", "efficient", "cost_effective"],
         rate_limits="15 req/min (free)",
         cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent",
         api_key_env="GEMINI_API_KEY",
-        fallback_models=["gemini-2.5-flash-lite", "gemini-2.5-flash"]
+        fallback_models=["gemini-2.0-flash-lite", "gemini-2.5-flash"]
     ),
     
     "gemini-3-flash-preview": ModelInfo(
@@ -834,33 +834,33 @@ MODEL_REGISTRY: Dict[str, ModelInfo] = {
 
 
 APPROVED_GOOGLE_EXTRAS = {
-    "gemini-3.1-flash-live-preview": ModelInfo(
-        id="gemini-3.1-flash-live-preview", provider=ModelProvider.GOOGLE,
+    "gemini-2.5-flash": ModelInfo(
+        id="gemini-2.5-flash", provider=ModelProvider.GOOGLE,
         name="Gemini 3.1 Flash Live Preview", context_window=1_000_000,
         strengths=["realtime", "voice", "conversation"], rate_limits="free tier", cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-live-preview:generateContent",
-        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash-native-audio-preview-12-2025"],
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash"],
     ),
-    "gemini-2.5-flash-native-audio-preview-12-2025": ModelInfo(
-        id="gemini-2.5-flash-native-audio-preview-12-2025", provider=ModelProvider.GOOGLE,
+    "gemini-2.5-flash": ModelInfo(
+        id="gemini-2.5-flash", provider=ModelProvider.GOOGLE,
         name="Gemini 2.5 Flash Native Audio Preview", context_window=1_000_000,
         strengths=["audio", "realtime", "voice"], rate_limits="free tier", cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-native-audio-preview-12-2025:generateContent",
-        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-3.1-flash-live-preview"],
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash"],
     ),
-    "gemini-3.1-flash-tts-preview": ModelInfo(
-        id="gemini-3.1-flash-tts-preview", provider=ModelProvider.GOOGLE,
+    "gemini-2.5-flash": ModelInfo(
+        id="gemini-2.5-flash", provider=ModelProvider.GOOGLE,
         name="Gemini 3.1 Flash TTS Preview", context_window=32_000,
         strengths=["tts", "narration", "voice_output"], rate_limits="free tier", cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent",
-        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash-preview-tts"],
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash"],
     ),
-    "gemini-2.5-flash-preview-tts": ModelInfo(
-        id="gemini-2.5-flash-preview-tts", provider=ModelProvider.GOOGLE,
+    "gemini-2.5-flash": ModelInfo(
+        id="gemini-2.5-flash", provider=ModelProvider.GOOGLE,
         name="Gemini 2.5 Flash Preview TTS", context_window=32_000,
         strengths=["tts", "voice_output"], rate_limits="free tier", cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent",
-        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-3.1-flash-tts-preview"],
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-2.5-flash"],
     ),
     "gemini-2.5-flash-image": ModelInfo(
         id="gemini-2.5-flash-image", provider=ModelProvider.GOOGLE,
@@ -874,13 +874,13 @@ APPROVED_GOOGLE_EXTRAS = {
         name="Gemini Embedding 2", context_window=8_192,
         strengths=["embedding", "rag", "memory"], rate_limits="free tier", cost="FREE",
         api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent",
-        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-embedding-001"],
+        api_key_env="GEMINI_API_KEY", fallback_models=["gemini-embedding-2"],
     ),
-    "gemini-embedding-001": ModelInfo(
-        id="gemini-embedding-001", provider=ModelProvider.GOOGLE,
+    "gemini-embedding-2": ModelInfo(
+        id="gemini-embedding-2", provider=ModelProvider.GOOGLE,
         name="Gemini Embedding 001", context_window=8_192,
         strengths=["embedding", "rag", "memory"], rate_limits="free tier", cost="FREE",
-        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+        api_endpoint="https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent",
         api_key_env="GEMINI_API_KEY", fallback_models=["gemini-embedding-2"],
     ),
 }
@@ -1016,7 +1016,7 @@ TASK_ASSIGNMENTS: List[TaskAssignment] = [
         display_name="Fast Response",
         description="Quick responses, simple queries, fast iterations",
         primary_model="groq-llama-3.1-8b-instant",
-        secondary_model="gemini-2.5-flash-lite",
+        secondary_model="gemini-2.0-flash-lite",
         tertiary_model="openrouter-llama-3.2-3b",
         why_primary="Ultra-fast inference, optimized for speed (Groq infrastructure)",
         why_fallback="Gemini 2.5 Flash Lite for efficiency, OpenRouter for variety"
@@ -1039,7 +1039,7 @@ TASK_ASSIGNMENTS: List[TaskAssignment] = [
         task_type=TaskType.SIMPLE_TASK,
         display_name="Simple Task",
         description="Simple queries, basic operations, straightforward tasks",
-        primary_model="gemini-2.5-flash-lite",
+        primary_model="gemini-2.0-flash-lite",
         secondary_model="groq-llama-3.1-8b-instant",
         tertiary_model="gemini-2.5-flash",
         why_primary="Cost-effective, fast, reliable for simple tasks",
@@ -1069,7 +1069,7 @@ TASK_ASSIGNMENTS: List[TaskAssignment] = [
         description="Fastest possible response for simple queries",
         primary_model="groq-gpt-oss-20b",
         secondary_model="groq-llama-3.1-8b-instant",
-        tertiary_model="gemini-2.5-flash-lite",
+        tertiary_model="gemini-2.0-flash-lite",
         why_primary="FASTEST model at 1000 tps, optimized for speed",
         why_fallback="Groq Llama 3.1 8B also fast, Gemini for efficiency"
     ),
@@ -1080,7 +1080,7 @@ TASK_ASSIGNMENTS: List[TaskAssignment] = [
         display_name="Safety & Moderation",
         description="Content safety, guardrails, moderation checks",
         primary_model="groq-gpt-oss-safeguard-20b",
-        secondary_model="gemini-2.5-flash-lite",
+        secondary_model="gemini-2.0-flash-lite",
         tertiary_model="groq-llama-3.1-8b-instant",
         why_primary="Safety-optimized model, 1000 tps, guardrails built-in",
         why_fallback="Gemini for safety, Groq for speed"

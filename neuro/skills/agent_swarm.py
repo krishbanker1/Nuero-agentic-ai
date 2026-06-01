@@ -58,7 +58,7 @@ class AgentSwarmCoordinator:
     ROLE_MODELS = {
         AgentRole.PLANNER: "gemini-3.5-flash",        # Best for planning & reasoning
         AgentRole.CODER: "openrouter/qwen/qwen3-coder:free", # Best for coding
-        AgentRole.REVIEWER: "groq/openai/gpt-oss-120b",      # 120B for comprehensive review
+        AgentRole.REVIEWER: "groq/llama-3.3-70b-versatile",      # 120B for comprehensive review
         AgentRole.TESTER: "openrouter/google/gemma-4-31b-it:free",  # Test generation
         AgentRole.DEBUGGER: "gemini-2.5-flash",       # Fast debugging
         AgentRole.VALIDATOR: "groq/llama-3.3-70b-versatile", # Validation & testing
