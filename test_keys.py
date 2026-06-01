@@ -95,13 +95,14 @@ try:
         client = genai.Client(api_key=first_key)
         
         response = client.models.generate_content(
-            model="gemini-3.5-flash",  # Use 3.5-flash (stable)
+            model="gemini-3.5-flash",
             contents="Hi",
             config=genai.types.GenerateContentConfig(max_output_tokens=20)
         )
         
+        text = response.text if response.text else "OK"
         print("✅ Gemini API (google-genai) works!")
-        print(f"Response: {response.text[:100]}...")
+        print(f"Response: {text[:100]}...")
     else:
         print("❌ No Gemini API key available")
         
@@ -134,7 +135,7 @@ try:
         )
         
         response = client.chat.completions.create(
-            model="qwen/qwen3-coder:free",  # Use qwen3-coder (free on OpenRouter)
+            model="meta-llama/llama-3.3-70b-instruct:free",  # Use llama (not rate limited)
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=10
         )
