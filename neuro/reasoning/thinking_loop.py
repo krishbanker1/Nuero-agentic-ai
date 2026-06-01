@@ -120,11 +120,18 @@ class ThinkingLoop:
 
             # Only update best_solution if it contains JSON (actual code)
             # Skip RESEARCH and PROMPT_WRITE passes from best_solution
-            has_json = '"files"' in response or '"path"' in response
+            has_json = ('"files"' in response or '"path"' in response or 
+                       '```json' in response or '{' in response[:200])
             if has_json and score > best_score:
                 best_score = score
                 best_solution = response
                 print(f"   ✓ Pass {pass_num} complete (score: {score:.2f}) - JSON code found!")
+            elif response.strip() and pass_type == PassType.IMPLEMENTATION:
+                # IMPLEMENTATION pass should always be considered
+                if not best_solution or len(response) > len(best_solution):
+                    best_solution = response
+                    best_score = max(score, 0.5)
+                    print(f"   ✓ Pass {pass_num} complete (score: {score:.2f}) - Implementation captured")
             else:
                 print(f"   ✓ Pass {pass_num} complete (score: {score:.2f})")
 

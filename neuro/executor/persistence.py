@@ -602,11 +602,22 @@ class TaskPersistence:
         """
         import json
         import os
+        from enum import Enum
+        
+        def json_serializable(obj):
+            """Convert non-serializable objects to JSON-safe types."""
+            if isinstance(obj, Enum):
+                return obj.value
+            if hasattr(obj, '__dict__'):
+                return obj.__dict__
+            if hasattr(obj, 'asdict'):
+                return obj.asdict()
+            raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
         
         try:
             path = os.path.join(self.storage_path, f"{task_id}.json")
             with open(path, 'w') as f:
-                json.dump(state, f, indent=2)
+                json.dump(state, f, indent=2, default=json_serializable)
             return True
         except Exception:
             return False

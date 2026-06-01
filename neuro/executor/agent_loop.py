@@ -517,6 +517,15 @@ class NeuroAgent:
             solution = thinking_result["solution"]
             passes_used = thinking_result["num_passes"]
 
+            # Fallback: if solution is empty, use the last pass response
+            if not solution.strip() and thinking_result.get("passes"):
+                for p in reversed(thinking_result["passes"]):
+                    resp = p.get("response_preview") or ""
+                    if resp.strip():
+                        solution = resp
+                        print(f"   📝 Using fallback solution from pass response ({len(solution)} chars)")
+                        break
+
             # NEW: Extract research context from passes for next iteration
             for p in thinking_result.get("passes", []):
                 if "KEY FEATURES IDENTIFIED" in p.get("response", ""):
