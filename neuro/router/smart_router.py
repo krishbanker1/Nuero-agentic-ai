@@ -487,7 +487,7 @@ class SmartRouter:
             }
 
             # OpenRouter uses full model names like "deepseek/deepseek-chat-v3-0324:free"
-            openrouter_model = model if "/" in model else f"default/{model}"
+            openrouter_model = model if "/" in model else f"google/{model}"
             response = client.chat.completions.create(
                 model=openrouter_model,
                 messages=messages,
@@ -506,8 +506,16 @@ class SmartRouter:
                 }
             }
         except Exception as e:
-            self._record_failure(Provider.OPENROUTER, model, str(e))
-            return {"error": str(e)}
+            error_msg = str(e)
+            self._record_failure(Provider.OPENROUTER, model, error_msg)
+            # Provide helpful error messages
+            if "API key" in error_msg.lower() or "401" in error_msg or "auth" in error_msg.lower():
+                error_msg = "Invalid OpenRouter API key"
+            elif "rate limit" in error_msg.lower() or "429" in error_msg:
+                error_msg = "OpenRouter rate limit exceeded"
+            elif "model" in error_msg.lower() and "not found" in error_msg.lower():
+                error_msg = "Model not available on OpenRouter"
+            return {"error": error_msg}
 
     def _call_huggingface(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
         """Call HuggingFace Inference API."""
@@ -794,9 +802,9 @@ class SmartRouter:
                 self.stats.failures[provider.value] = 0
 
     def _call_gemini(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
-        """Call Gemini API."""
+        """Call Gemini API using official google-genai SDK."""
         try:
-            import google.genai as genai
+            from google import genai
         except ImportError:
             return {"error": "google-genai not installed: pip install google-genai"}
 
@@ -805,27 +813,33 @@ class SmartRouter:
             return {"error": "No Google Gemini API key found"}
 
         try:
-            from google.genai import types
-
             client = genai.Client(api_key=api_key)
 
-            # Convert messages format for Gemini using types
-            contents = []
+            # Convert messages format for Gemini
+            # Combine system prompt with first user message if present
+            combined_content = ""
             for msg in messages:
-                role = "user" if msg["role"] == "user" else "model"
-                contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
+                if msg["role"] == "system":
+                    combined_content += f"[System] {msg['content']}\n\n"
+                elif msg["role"] == "user":
+                    combined_content += f"[User] {msg['content']}"
+            
+            # Ensure model name is in correct format
+            if not model.startswith("gemini"):
+                model = f"gemini-{model}"
 
             # Filter kwargs for Gemini API
-            clean_kwargs = {
-                k: v for k, v in kwargs.items()
-                if k in ["temperature", "max_output_tokens", "top_p", "stop"]
-            }
-            if "max_tokens" in kwargs and "max_output_tokens" not in clean_kwargs:
+            clean_kwargs = {}
+            if "temperature" in kwargs:
+                clean_kwargs["temperature"] = kwargs["temperature"]
+            if "max_tokens" in kwargs:
                 clean_kwargs["max_output_tokens"] = kwargs["max_tokens"]
+            if "top_p" in kwargs:
+                clean_kwargs["top_p"] = kwargs["top_p"]
 
             response = client.models.generate_content(
                 model=model,
-                contents=contents,
+                contents=combined_content,
                 **clean_kwargs
             )
 
@@ -837,8 +851,13 @@ class SmartRouter:
                 "model": model,
             }
         except Exception as e:
-            self._record_failure(Provider.GOOGLE, model, str(e))
-            return {"error": str(e)}
+            error_msg = str(e)
+            self._record_failure(Provider.GOOGLE, model, error_msg)
+            if "API_KEY" in error_msg or "auth" in error_msg.lower():
+                error_msg = "Invalid Gemini API key"
+            elif "quota" in error_msg.lower() or "limit" in error_msg.lower():
+                error_msg = "Gemini quota exceeded"
+            return {"error": error_msg}
 
     def _get_available_providers(self) -> List[Provider]:
         """Get list of available providers (have keys, not in cooldown)."""
