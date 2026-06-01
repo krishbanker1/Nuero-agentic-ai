@@ -138,37 +138,45 @@ def launch_app_preview(workspace: str, request_host: str = "127.0.0.1",
     workspace_path = Path(workspace)
     
     if not workspace_path.exists():
-        return {"success": False, "error": "Workspace does not exist"}
+        return {"success": False, "error": f"Workspace does not exist: {workspace}"}
     
     with _preview_lock:
         # Stop existing preview if running
         stop_app_previews()
         
         try:
-            # Auto-detect if this is a static site or has a backend
-            if app_type == "auto":
-                if (workspace_path / "pyproject.toml").exists() or (workspace_path / "requirements.txt").exists():
-                    app_type = "python"
-                else:
-                    app_type = "static"
+            # Auto-detect app type and find entry point
+            entry_point = None
             
-            if app_type == "static":
-                # Use Python's built-in HTTP server for static files
-                cmd = [sys.executable, "-m", "http.server", str(port)]
-                preview = subprocess.Popen(
-                    cmd,
-                    cwd=str(workspace_path),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-            else:
-                # Python app - try to run it
+            # Look for index.html in various locations
+            for possible_index in [
+                workspace_path / "index.html",
+                workspace_path / "templates" / "index.html",
+                workspace_path / "public" / "index.html",
+                workspace_path / "dist" / "index.html",
+                workspace_path / "build" / "index.html",
+            ]:
+                if possible_index.exists():
+                    entry_point = possible_index
+                    break
+            
+            # Check for Python backend
+            python_entry = None
+            if (workspace_path / "app.py").exists():
+                python_entry = workspace_path / "app.py"
+            elif (workspace_path / "server.py").exists():
+                python_entry = workspace_path / "server.py"
+            elif (workspace_path / "main.py").exists():
+                python_entry = workspace_path / "main.py"
+            
+            if python_entry and (workspace_path / "requirements.txt").exists():
+                # Python web app
                 if (workspace_path / "app.py").exists():
                     cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", str(port)]
-                elif (workspace_path / "main.py").exists():
-                    cmd = [sys.executable, str(workspace_path / "main.py")]
+                elif (workspace_path / "server.py").exists():
+                    cmd = [sys.executable, "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", str(port)]
                 else:
-                    return {"success": False, "error": "No entry point found"}
+                    cmd = [sys.executable, str(python_entry)]
                 
                 preview = subprocess.Popen(
                     cmd,
@@ -176,24 +184,47 @@ def launch_app_preview(workspace: str, request_host: str = "127.0.0.1",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
+                app_type = "python"
+            elif entry_point:
+                # Static site - use Python http.server
+                cmd = [sys.executable, "-m", "http.server", str(port)]
+                preview = subprocess.Popen(
+                    cmd,
+                    cwd=str(workspace_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                app_type = "static"
+            else:
+                # No entry point found
+                files = [str(f.relative_to(workspace_path)) for f in workspace_path.rglob("*") if f.is_file()]
+                return {
+                    "success": False, 
+                    "error": f"No entry point found. Files: {files[:10]}",
+                    "workspace": str(workspace_path),
+                    "files": files[:20]
+                }
             
-            # Wait a moment for server to start
-            time.sleep(1)
+            # Wait for server to start
+            time.sleep(2)
             
             # Check if process is still running
             if preview.poll() is not None:
-                return {"success": False, "error": "Server failed to start"}
+                return {"success": False, "error": "Server failed to start", "app_type": app_type}
             
             _preview_processes[str(port)] = preview
             
             # Determine browser URL
-            browser_url = f"http://{request_host.split(':')[0]}:{port}"
+            host_part = request_host.split(":")[0]
+            browser_url = f"http://{host_part}:{port}"
             
             return {
                 "success": True,
                 "browser_url": browser_url,
                 "app_type": app_type,
                 "port": port,
+                "entry_point": str(entry_point) if entry_point else str(python_entry) if python_entry else None,
+                "workspace": str(workspace_path),
             }
             
         except Exception as e:

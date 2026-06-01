@@ -165,8 +165,11 @@
             if (data.success) {
                 previewStatus.textContent = 'Preview: ' + data.browser_url;
                 previewStatus.style.color = '#4ade80';
+                // Open preview in new tab
+                window.open(data.browser_url, '_blank');
             } else {
-                previewStatus.textContent = 'Error: ' + (data.error || 'failed');
+                previewStatus.innerHTML = 'Error: ' + (data.error || 'failed') + 
+                    (data.files ? '<br><small style="color:#888;">Files: ' + data.files.join(', ') + '</small>' : '');
                 previewStatus.style.color = '#f87171';
             }
         }
