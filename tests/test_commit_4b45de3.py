@@ -55,6 +55,37 @@ class TestStaticSiteScaffold:
         assert len(plan.validation_commands) >= 1
         assert any("html" in cmd.lower() for cmd in plan.validation_commands)
 
+    def test_static_site_quality_gates_forbid_backend_artifacts(self):
+        """Static site quality gates should explicitly forbid backend artifacts."""
+        from neuro.skills.production_scaffolder import ProductionScaffolder
+        
+        plan = ProductionScaffolder.create_plan("Build a simple HTML landing page")
+        gates_text = " ".join(plan.quality_gates).lower()
+        
+        # Quality gates should mention forbidding backend artifacts
+        # The gates should mention things like Python, package.json are not allowed
+        assert "paid" in gates_text or "python" in gates_text, \
+            "Quality gates should forbid Python/payment requirements"
+
+    def test_static_site_forbids_pyproject_and_package_json(self):
+        """Static site scaffold should not include pyproject.toml or package.json."""
+        from neuro.skills.production_scaffolder import ProductionScaffolder
+        
+        # Use "landing" which is an explicit keyword for static_site
+        plan = ProductionScaffolder.create_plan("Build a simple landing page")
+        
+        # Verify we're testing static_site stack
+        assert plan.stack == "static_site", f"Expected static_site, got {plan.stack}"
+        
+        # These files should NOT be in static_site scaffold
+        file_paths = [f.path for f in plan.files]
+        assert "pyproject.toml" not in file_paths, "Static site should not include pyproject.toml"
+        assert "requirements.txt" not in file_paths, "Static site should not include requirements.txt"
+        assert "package.json" not in file_paths, "Static site should not include package.json"
+        assert "Dockerfile" not in file_paths, "Static site should not include Dockerfile"
+        assert "docker-compose.yml" not in file_paths, "Static site should not include docker-compose.yml"
+        assert "src/main.py" not in file_paths, "Static site should not include Python entrypoint"
+
 
 class TestMemorySerialization:
     """Test memory serialization robustness."""
