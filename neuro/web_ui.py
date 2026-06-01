@@ -55,6 +55,7 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
     """Run Neuro agent with the given goal."""
     try:
         from neuro.executor.agent_loop import create_agent
+        import re
         
         # Prepend screenshot references to goal
         if screenshots:
@@ -63,8 +64,24 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
                 screenshot_note += f"- {path}\n"
             goal = goal + screenshot_note
         
-        # Convert relative paths to absolute for the agent
-        abs_working_dir = str(Path(working_dir).resolve())
+        # Create project folder with slug from goal
+        repo_root = Path(__file__).parent.parent
+        builds_dir = repo_root / "neuro-build-apps"
+        builds_dir.mkdir(exist_ok=True)
+        
+        # Create folder name from goal (sanitize)
+        goal_slug = re.sub(r'[^a-zA-Z0-9]', '-', goal.lower())[:50]
+        goal_slug = re.sub(r'-+', '-', goal_slug).strip('-')
+        project_dir = builds_dir / goal_slug
+        
+        # Handle duplicate folder names
+        counter = 1
+        while project_dir.exists():
+            project_dir = builds_dir / f"{goal_slug}-{counter}"
+            counter += 1
+        
+        project_dir.mkdir(parents=True, exist_ok=True)
+        abs_working_dir = str(project_dir)
         
         agent = create_agent(
             goal=goal,
@@ -92,16 +109,15 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
             "passes_used": result.passes_used,
             "duration_ms": result.duration_ms,
             "files_changed": result.files_changed or [],
-            "files_created": created_files[:20],  # Limit to 20 files
+            "files_created": created_files[:20],
             "working_dir": abs_working_dir,
+            "project_folder": str(project_dir.relative_to(repo_root)),
             "validation_passed": result.validation_passed,
             "error": result.error,
             "output": _capture_output(result),
         }
     except Exception as e:
-        # Capture full error context for debugging
         error_str = str(e)
-        # Remove any potentially sensitive info
         if "api" in error_str.lower() or "key" in error_str.lower():
             error_str = "API provider error - check your API keys"
         
@@ -132,23 +148,39 @@ _preview_processes: Dict[str, subprocess.Popen] = {}
 _preview_lock = threading.Lock()
 
 
-def launch_app_preview(workspace: str, request_host: str = "127.0.0.1", 
+def launch_app_preview(workspace: str = None, request_host: str = "127.0.0.1:8080", 
                         port: int = 8080, app_type: str = "auto") -> Dict[str, Any]:
     """Launch a preview server for the generated app."""
+    import os
+    
+    # If no workspace provided, look in neuro-build-apps
+    if not workspace:
+        repo_root = Path(__file__).parent.parent
+        builds_dir = repo_root / "neuro-build-apps"
+        
+        if builds_dir.exists():
+            # Get the most recently modified folder
+            folders = [f for f in builds_dir.iterdir() if f.is_dir()]
+            if folders:
+                # Sort by modification time, newest first
+                folders.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                workspace = str(folders[0])
+    
+    if not workspace:
+        return {"success": False, "error": "No workspace found. Build an app first!"}
+    
     workspace_path = Path(workspace)
     
     if not workspace_path.exists():
         return {"success": False, "error": f"Workspace does not exist: {workspace}"}
     
     with _preview_lock:
-        # Stop existing preview if running
         stop_app_previews()
         
         try:
-            # Auto-detect app type and find entry point
             entry_point = None
             
-            # Look for index.html in various locations
+            # Look for index.html
             for possible_index in [
                 workspace_path / "index.html",
                 workspace_path / "templates" / "index.html",
@@ -160,7 +192,6 @@ def launch_app_preview(workspace: str, request_host: str = "127.0.0.1",
                     entry_point = possible_index
                     break
             
-            # Check for Python backend
             python_entry = None
             if (workspace_path / "app.py").exists():
                 python_entry = workspace_path / "app.py"
@@ -170,7 +201,6 @@ def launch_app_preview(workspace: str, request_host: str = "127.0.0.1",
                 python_entry = workspace_path / "main.py"
             
             if python_entry and (workspace_path / "requirements.txt").exists():
-                # Python web app
                 if (workspace_path / "app.py").exists():
                     cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", str(port)]
                 elif (workspace_path / "server.py").exists():
@@ -178,43 +208,23 @@ def launch_app_preview(workspace: str, request_host: str = "127.0.0.1",
                 else:
                     cmd = [sys.executable, str(python_entry)]
                 
-                preview = subprocess.Popen(
-                    cmd,
-                    cwd=str(workspace_path),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
+                preview = subprocess.Popen(cmd, cwd=str(workspace_path), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 app_type = "python"
             elif entry_point:
-                # Static site - use Python http.server
                 cmd = [sys.executable, "-m", "http.server", str(port)]
-                preview = subprocess.Popen(
-                    cmd,
-                    cwd=str(workspace_path),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
+                preview = subprocess.Popen(cmd, cwd=str(workspace_path), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 app_type = "static"
             else:
-                # No entry point found
                 files = [str(f.relative_to(workspace_path)) for f in workspace_path.rglob("*") if f.is_file()]
-                return {
-                    "success": False, 
-                    "error": f"No entry point found. Files: {files[:10]}",
-                    "workspace": str(workspace_path),
-                    "files": files[:20]
-                }
+                return {"success": False, "error": "No entry point found", "files": files[:20], "workspace": str(workspace_path)}
             
-            # Wait for server to start
             time.sleep(2)
             
-            # Check if process is still running
             if preview.poll() is not None:
                 return {"success": False, "error": "Server failed to start", "app_type": app_type}
             
             _preview_processes[str(port)] = preview
             
-            # Determine browser URL
             host_part = request_host.split(":")[0]
             browser_url = f"http://{host_part}:{port}"
             
@@ -403,37 +413,13 @@ class StudioHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
         
-        elif parsed.path == "/api/launch":
+        elif parsed.path == "/api/launch" or parsed.path == "/api/preview":
             parsed_qs = parse_qs(parsed.query)
-            workspace = parsed_qs.get("workspace", ["."])[0]
+            workspace = parsed_qs.get("workspace", [None])[0]
             request_host = self.headers.get("Host", "127.0.0.1:8080")
             
-            # Use port 8080 for preview
+            # Pass None to let launch_app_preview find the latest build
             result = launch_app_preview(workspace, request_host, port=8080)
-            
-            self.send_response(200 if result.get("success") else 400)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode())
-        
-        elif parsed.path == "/api/preview":
-            # Direct preview - use the last successful build directory or default
-            import os
-            workspace = parsed_qs.get("workspace", [None]) if 'parsed_qs' in dir() else None
-            
-            # Check Replit environment
-            if os.environ.get('REPLIT_DB_HOST'):
-                # On Replit, serve from /tmp/neuro-workspace or current directory
-                possible_dirs = ['/tmp/neuro-workspace', '.', os.getcwd()]
-                for d in possible_dirs:
-                    if Path(d).exists():
-                        result = launch_app_preview(d, request_host, port=8080)
-                        if result.get('success'):
-                            break
-                else:
-                    result = {"success": False, "error": "No workspace found"}
-            else:
-                result = launch_app_preview(".", request_host, port=8080)
             
             self.send_response(200 if result.get("success") else 400)
             self.send_header("Content-Type", "application/json")

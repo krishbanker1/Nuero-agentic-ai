@@ -152,6 +152,7 @@
                 });
                 html += '</div>';
             }
+            if (data.project_folder) html += '<div class="status-item"><span>Project Folder</span><span style="color:#4ade80">' + data.project_folder + '</span></div>';
             if (data.working_dir) html += '<div class="status-item"><span>Working Dir</span><span style="font-size:11px;">' + data.working_dir + '</span></div>';
             if (data.error) html += '<div class="status-item" style="color:#f87171"><span>Error</span><span>' + data.error + '</span></div>';
             if (data.output) html += '<div class="status-item"><pre style="white-space:pre-wrap;margin-top:10px;font-size:12px;">' + data.output + '</pre></div>';
