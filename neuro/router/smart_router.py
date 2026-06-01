@@ -941,12 +941,45 @@ class SmartRouter:
             else:
                 continue
 
-            if "error" not in result:
+            # Add error details to the response
+        errors = []
+        for model_config in models_to_try:
+            provider = get_provider_from_model(model_config)
+            if provider not in providers_to_try:
+                continue
+            if self._is_cooldown(provider):
+                errors.append(f"{provider.value}: cooldown")
+                continue
+            
+            if "/" in model_config:
+                model = "/".join(model_config.split("/")[1:])
+            else:
+                model = model_config
+            
+            call_kwargs = {**kwargs, "max_tokens": max_tokens}
+            if provider == Provider.GOOGLE:
+                result = self._call_gemini(model, messages, **call_kwargs)
+            elif provider == Provider.GROQ:
+                result = self._call_groq(model, messages, **call_kwargs)
+            elif provider == Provider.OPENROUTER:
+                result = self._call_openrouter(model, messages, **call_kwargs)
+            elif provider == Provider.HUGGINGFACE:
+                result = self._call_huggingface(model, messages, **call_kwargs)
+            elif provider == Provider.CLOUDFLARE:
+                result = self._call_cloudflare(model, messages, **call_kwargs)
+            elif provider == Provider.TOGETHER:
+                result = self._call_together(model, messages, **call_kwargs)
+            else:
+                continue
+            
+            if "error" in result:
+                errors.append(f"{provider.value}: {result['error'][:50]}")
+            else:
                 if MIDDLEWARE_AVAILABLE and self.middleware:
                     result = self.middleware.postprocess(result)
                 return result
-
-        return {"error": "All providers failed or unavailable"}
+        
+        return {"error": "All providers failed", "details": errors}
 
     def chat(self, prompt: str, task_type: str = "code_generation",
              max_tokens: int = 4096, system: str = None) -> str:

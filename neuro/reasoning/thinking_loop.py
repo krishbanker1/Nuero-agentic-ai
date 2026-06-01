@@ -618,11 +618,22 @@ Make the enhanced prompt SPECIFIC - impossible to create generic code from it.""
         try:
             # Call with explicit max_tokens to ensure response
             result = self.router.complete(messages, max_tokens=4096, temperature=0.1)
+            
+            # Check for errors
             if "error" in result:
-                return f"Error: {result['error']}"
+                error_detail = result.get("error", "Unknown error")
+                details = result.get("details", [])
+                error_msg = f"API Error: {error_detail}"
+                if details:
+                    error_msg += f" | Provider failures: {', '.join(details)}"
+                print(f"   ⚠️ {error_msg}")
+                return f"Error: {error_msg}"
+            
             return result.get("content", "")
         except Exception as e:
-            return f"Execution error: {str(e)}"
+            error_msg = f"Execution error: {str(e)}"
+            print(f"   ⚠️ {error_msg}")
+            return f"Error: {error_msg}"
 
     def _get_system_prompt(self) -> str:
         """Get system prompt for thinking WITH skill awareness."""
