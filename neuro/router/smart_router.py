@@ -802,18 +802,18 @@ class SmartRouter:
                 self.stats.failures[provider.value] = 0
 
     def _call_gemini(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
-        """Call Gemini API using official google-generativeai SDK."""
+        """Call Gemini API using official google-genai SDK (new unified SDK for Gemini 2.0+)."""
         try:
-            import google.generativeai as genai
+            from google import genai
         except ImportError:
-            return {"error": "google-generativeai not installed: pip install google-generativeai"}
+            return {"error": "google-genai not installed: pip install google-genai"}
 
         api_key = self._get_api_key(Provider.GOOGLE)
         if not api_key:
             return {"error": "No Google Gemini API key found"}
 
         try:
-            genai.configure(api_key=api_key)
+            client = genai.Client(api_key=api_key)
 
             # Convert messages format for Gemini
             # Combine system prompt with first user message if present
@@ -824,23 +824,23 @@ class SmartRouter:
                 elif msg["role"] == "user":
                     combined_content += f"[User] {msg['content']}"
             
-            # Ensure model name is in correct format (e.g., "gemini-1.5-flash")
+            # Ensure model name is in correct format (e.g., "gemini-2.0-flash")
             if not model.startswith("gemini"):
                 model = f"gemini-{model}"
 
             # Filter kwargs for Gemini API
-            generation_config = {}
+            config = {}
             if "temperature" in kwargs:
-                generation_config["temperature"] = kwargs["temperature"]
+                config["temperature"] = kwargs["temperature"]
             if "max_tokens" in kwargs:
-                generation_config["max_output_tokens"] = kwargs["max_tokens"]
+                config["max_output_tokens"] = kwargs["max_tokens"]
             if "top_p" in kwargs:
-                generation_config["top_p"] = kwargs["top_p"]
+                config["top_p"] = kwargs["top_p"]
 
-            model_instance = genai.GenerativeModel(model)
-            response = model_instance.generate_content(
-                combined_content,
-                generation_config=generation_config if generation_config else None
+            response = client.models.generate_content(
+                model=model,
+                contents=combined_content,
+                config=genai.types.GenerateContentConfig(**config) if config else None
             )
 
             self._record_success(Provider.GOOGLE, model)

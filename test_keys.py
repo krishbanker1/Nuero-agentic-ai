@@ -75,13 +75,13 @@ try:
 except Exception as e:
     print(f"❌ Groq API failed: {e}")
 
-# Test Gemini
+# Test Gemini with new google-genai SDK
 print("\n" + "=" * 50)
-print("Testing Gemini API Call")
+print("Testing Gemini API (google-genai SDK)")
 print("=" * 50)
 
 try:
-    import google.generativeai as genai
+    from google import genai
     
     if gemini_keys:
         first_key = [k.strip() for k in gemini_keys.split(",") if k.strip()][0]
@@ -92,18 +92,21 @@ try:
     
     if first_key:
         print(f"Testing with key: {first_key[:15]}...")
-        genai.configure(api_key=first_key)
+        client = genai.Client(api_key=first_key)
         
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content("Hi")
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents="Hi",
+            config=genai.types.GenerateContentConfig(max_output_tokens=20)
+        )
         
-        print("✅ Gemini API works!")
+        print("✅ Gemini API (google-genai) works!")
         print(f"Response: {response.text[:100]}...")
     else:
         print("❌ No Gemini API key available")
         
 except Exception as e:
-    print(f"❌ Gemini API failed: {e}")
+    print(f"❌ Gemini API (google-genai) failed: {e}")
 
 # Test OpenRouter
 print("\n" + "=" * 50)
