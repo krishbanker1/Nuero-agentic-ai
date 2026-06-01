@@ -493,8 +493,9 @@ class SmartRouter:
                 if k in ["temperature", "max_tokens", "top_p", "stop"]
             }
 
-            # OpenRouter uses full model names like "deepseek/deepseek-chat-v3-0324:free"
-            openrouter_model = model if "/" in model else f"google/{model}"
+            # OpenRouter uses full model names - only prefix if it's a known OpenRouter model
+            # Don't use google/ prefix for Gemini (use official Google provider instead)
+            openrouter_model = model  # Use model as-is (should have / prefix for OpenRouter models)
             response = client.chat.completions.create(
                 model=openrouter_model,
                 messages=messages,

@@ -95,7 +95,7 @@ try:
         client = genai.Client(api_key=first_key)
         
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",  # Use 2.5-flash (has quota)
             contents="Hi",
             config=genai.types.GenerateContentConfig(max_output_tokens=20)
         )
@@ -134,7 +134,7 @@ try:
         )
         
         response = client.chat.completions.create(
-            model="google/gemini-2.0-flash",
+            model="deepseek/deepseek-chat-v3-0324:free",  # Use DeepSeek (free on OpenRouter)
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=10
         )
