@@ -258,7 +258,7 @@ MODEL_REGISTRY: Dict[str, ModelInfo] = {
     # =========================================================================
     
     "openrouter-deepseek-v4-flash": ModelInfo(
-        id="deepseek/deepseek-v4-flash:free",
+        id="nvidia/nemotron-3-super-120b-a12b:free",
         provider=ModelProvider.OPENROUTER,
         name="DeepSeek V4 Flash (OpenRouter)",
         context_window=1_000_000,

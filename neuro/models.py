@@ -283,7 +283,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     # OPENROUTER FREE MODELS (20+ models)
     # =============================================================================
     ModelMetadata(
-        name="openrouter/deepseek/deepseek-v4-flash:free",
+        name="nvidia/nemotron-3-super-120b-a12b:free",
         provider="openrouter",
         roles=["planner", "architect", "debugger", "validator"],
         strengths=["reasoning", "long-context", "code", "free"],
@@ -294,7 +294,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=64000,
     ),
     ModelMetadata(
-        name="openrouter/qwen/qwen3-coder:free",
+        name="qwen/qwen3-coder:free",
         provider="openrouter",
         roles=["coder", "debugger", "validator"],
         strengths=["code", "fast", "free"],
@@ -305,7 +305,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/qwen/qwen3-next-80b-a3b-instruct:free",
+        name="qwen/qwen3-next-80b-a3b-instruct:free",
         provider="openrouter",
         roles=["planner", "architect", "coder"],
         strengths=["reasoning", "code", "free"],
@@ -316,7 +316,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/google/gemma-4-31b-it:free",
+        name="google/gemma-4-31b-it:free",
         provider="openrouter",
         roles=["frontend", "architect", "refactor"],
         strengths=["reasoning", "frontend", "free"],
@@ -327,7 +327,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/google/gemma-4-26b-a4b-it:free",
+        name="google/gemma-4-26b-a4b-it:free",
         provider="openrouter",
         roles=["frontend", "coder"],
         strengths=["frontend", "fast", "free"],
@@ -338,7 +338,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/meta-llama/llama-3.3-70b-instruct:free",
+        name="meta-llama/llama-3.3-70b-instruct:free",
         provider="openrouter",
         roles=["planner", "architect", "reviewer"],
         strengths=["reasoning", "code", "free"],
@@ -349,7 +349,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=128000,
     ),
     ModelMetadata(
-        name="openrouter/meta-llama/llama-3.2-3b-instruct:free",
+        name="meta-llama/llama-3.2-3b-instruct:free",
         provider="openrouter",
         roles=["documentation", "frontend"],
         strengths=["fast", "cheap", "free"],
@@ -360,7 +360,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=128000,
     ),
     ModelMetadata(
-        name="openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+        name="nvidia/nemotron-3-super-120b-a12b:free",
         provider="openrouter",
         roles=["architect", "reviewer", "security"],
         strengths=["reasoning", "code", "free"],
@@ -426,7 +426,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/anthropic/claude-3-haiku:free",
+        name="nvidia/nemotron-3-nano-30b-a3b:free",
         provider="openrouter",
         roles=["debugger", "validator"],
         strengths=["fast", "reasoning", "free"],
@@ -448,7 +448,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=16000,
     ),
     ModelMetadata(
-        name="openrouter/google/gemma-4-31b-it:free",
+        name="google/gemma-4-31b-it:free",
         provider="openrouter",
         roles=["documentation", "frontend"],
         strengths=["fast", "free"],
@@ -460,7 +460,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     # Qwen via OpenRouter (user specified Qwen/DeepSeek use OpenRouter)
     ModelMetadata(
-        name="openrouter/qwen/qwen3-32b",
+        name="qwen/qwen3-32b",
         provider="openrouter",
         roles=["coder", "planner", "debugger"],
         strengths=["code", "reasoning"],
@@ -471,7 +471,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=32000,
     ),
     ModelMetadata(
-        name="openrouter/qwen/qwen2.5-72b-instruct",
+        name="qwen/qwen2.5-72b-instruct",
         provider="openrouter",
         roles=["planner", "architect", "coder"],
         strengths=["reasoning", "code"],
@@ -483,7 +483,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     # DeepSeek via OpenRouter
     ModelMetadata(
-        name="openrouter/deepseek/deepseek-coder-v2",
+        name="deepseek/deepseek-coder-v2",
         provider="openrouter",
         roles=["coder", "debugger"],
         strengths=["code"],
@@ -494,7 +494,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         context_window=64000,
     ),
     ModelMetadata(
-        name="openrouter/deepseek/deepseek-chat",
+        name="deepseek/deepseek-chat",
         provider="openrouter",
         roles=["planner", "debugger"],
         strengths=["reasoning"],
@@ -520,7 +520,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     ),
     # NEW: DeepSeek V3 - Top free reasoning model (strong code-repair performance)
     ModelMetadata(
-        name="openrouter/deepseek/deepseek-v4-flash:free",
+        name="nvidia/nemotron-3-super-120b-a12b:free",
         provider="openrouter",
         roles=["planner", "architect", "coder", "reasoning"],
         strengths=["reasoning", "code", "free"],
@@ -926,7 +926,7 @@ TASK_CATEGORIES = {
     # 9. CODE COMPLETION - Autocomplete, snippets
     "code_completion": {
         "primary": "gemini-2.0-flash-lite",
-        "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "qwen/qwen3-coder:free"],
         "roles": ["coder"],
         "description": "Autocomplete, snippet generation"
     },
@@ -938,7 +938,7 @@ TASK_CATEGORIES = {
     # 10. FRONTEND REACT - React, Next.js, Vue, Svelte
     "frontend_react": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder"],
         "description": "React, Next.js, Vue, Svelte"
     },
@@ -946,7 +946,7 @@ TASK_CATEGORIES = {
     # 11. FRONTEND UI - HTML/CSS, UI components
     "frontend_ui": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder"],
         "description": "HTML/CSS, UI components"
     },
@@ -954,7 +954,7 @@ TASK_CATEGORIES = {
     # 12. WEBSITE BUILDER - Full website generation
     "website_builder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder", "designer"],
         "description": "Full website generation with HTML/CSS/JS"
     },
@@ -962,7 +962,7 @@ TASK_CATEGORIES = {
     # 13. APP BUILDER - Enterprise app generation
     "app_builder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder", "architect"],
         "description": "Enterprise app generation (React, Vue, etc)"
     },
@@ -974,7 +974,7 @@ TASK_CATEGORIES = {
     # 14. BACKEND API - REST, GraphQL, FastAPI, Node.js
     "backend_api": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "architect"],
         "description": "REST, GraphQL, FastAPI, backend logic"
     },
@@ -982,7 +982,7 @@ TASK_CATEGORIES = {
     # 15. API DEVELOPMENT - Express, Node.js, API design
     "api_development": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "architect"],
         "description": "API design, Express, Node.js"
     },
@@ -994,7 +994,7 @@ TASK_CATEGORIES = {
     # 16. DATABASE SQL - SQL, PostgreSQL, MongoDB, migrations
     "database_sql": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "architect"],
         "description": "SQL, PostgreSQL, MongoDB, migrations"
     },
@@ -1002,7 +1002,7 @@ TASK_CATEGORIES = {
     # 17. DATA ANALYSIS - Pandas, NumPy, analytics, Jupyter
     "data_analysis": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "planner"],
         "description": "Pandas, NumPy, analytics, Jupyter"
     },
@@ -1014,7 +1014,7 @@ TASK_CATEGORIES = {
     # 18. DEVOPS DEPLOYMENT - Docker, K8s, CI/CD, AWS, GCP
     "devops_deployment": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "architect"],
         "description": "Docker, K8s, CI/CD, AWS, GCP"
     },
@@ -1022,7 +1022,7 @@ TASK_CATEGORIES = {
     # 19. GIT OPERATIONS - Git commands, PRs, merges
     "git_operations": {
         "primary": "groq/llama-3.1-8b-instant",
-        "fallback": ["gemini-2.0-flash-lite", "gemini-2.5-flash", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
+        "fallback": ["gemini-2.0-flash-lite", "gemini-2.5-flash", "meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Git commands, PRs, merges"
     },
@@ -1034,7 +1034,7 @@ TASK_CATEGORIES = {
     # 20. SECURITY AUDIT - Vulnerability scanning, fixes
     "security_audit": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["reviewer", "debugger"],
         "description": "Vulnerability scanning, fixes"
     },
@@ -1046,7 +1046,7 @@ TASK_CATEGORIES = {
     # 21. DOCUMENTATION - README, API docs, comments
     "documentation": {
         "primary": "gemini-2.5-flash",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.1-8b-instant", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.1-8b-instant", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["documentation"],
         "description": "README, API docs, comments"
     },
@@ -1054,7 +1054,7 @@ TASK_CATEGORIES = {
     # 22. NATURAL LANGUAGE - Chatbots, summarization, NLP
     "natural_language": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["gemini-2.5-flash", "groq/llama-3.1-8b-instant", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.1-8b-instant", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["planner"],
         "description": "Chatbots, summarization, NLP"
     },
@@ -1062,7 +1062,7 @@ TASK_CATEGORIES = {
     # 23. OFFICE DOCUMENT - Word, Excel, PowerPoint generation
     "office_document_generation": {
         "primary": "gemini-2.5-flash",
-        "fallback": ["gemini-3.5-flash", "gemini-2.0-flash-lite", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.0-flash-lite", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["planner"],
         "description": "Word, Excel, PowerPoint generation"
     },
@@ -1074,7 +1074,7 @@ TASK_CATEGORIES = {
     # 24. LONG CONTEXT - Large codebase, 1M+ context
     "long_context": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["architect", "planner"],
         "description": "Large codebase, 1M+ context"
     },
@@ -1082,7 +1082,7 @@ TASK_CATEGORIES = {
     # 25. MULTI_MODAL - Vision + text, image understanding
     "multi_modal": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder"],
         "description": "Image understanding, file processing"
     },
@@ -1090,7 +1090,7 @@ TASK_CATEGORIES = {
     # 26. MOBILE DEVELOPMENT - iOS, Android, React Native, Flutter
     "mobile_development": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["frontend", "coder"],
         "description": "iOS, Android, React Native, Flutter"
     },
@@ -1098,7 +1098,7 @@ TASK_CATEGORIES = {
     # 27. ML AI TASKS - ML pipelines, AI training
     "ml_ai_tasks": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["coder", "planner"],
         "description": "ML pipelines, AI training"
     },
@@ -1106,13 +1106,13 @@ TASK_CATEGORIES = {
     # 28. PERFORMANCE OPT - Profiling, caching, optimization
     "performance_opt": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Profiling, caching, optimization"
     },
     "performance_optimization": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["debugger", "refactor"],
         "description": "Performance tuning, benchmarks"
     },
@@ -1120,7 +1120,7 @@ TASK_CATEGORIES = {
     # 29. ARCHITECTURE DESIGN - System design, microservices
     "architecture_design": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["architect", "planner"],
         "description": "System design, microservices, patterns"
     },
@@ -1128,7 +1128,7 @@ TASK_CATEGORIES = {
     # 30. REASONING PLANNING - Strategic planning, task decomposition
     "reasoning_planning": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["planner", "architect"],
         "description": "Strategic planning, task decomposition"
     },
@@ -1136,7 +1136,7 @@ TASK_CATEGORIES = {
     # 31. FAST RESPONSE - Quick answers, simple tasks
     "fast_response": {
         "primary": "gemini-2.0-flash-lite",
-        "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "openrouter/meta-llama/llama-3.2-3b-instruct:free"],
+        "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Quick answers, simple tasks"
     },
@@ -1144,7 +1144,7 @@ TASK_CATEGORIES = {
     # 32. AGENTIC TASKS - Tasks requiring tools (browsing, code execution)
     "agentic_tasks": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile-mini", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile-mini", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["agent", "planner", "coder"],
         "description": "Tasks requiring tools (browsing, code execution)"
     },
@@ -1159,21 +1159,21 @@ MODEL_ROLES = {
     # EXECUTOR - Primary code generator
     "executor": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "nvidia/nemotron-3-super-120b-a12b:free"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
     # PLANNER - Strategic thinking, task breakdown
     "planner": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "temperature": 0.3,
         "max_tokens": 8192,
     },
     # DEBUGGER - Bug finding, error analysis
     "debugger": {
         "primary": "groq/qwen/qwen3-32b",
-        "fallback": ["gemini-3.5-flash", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["gemini-3.5-flash", "qwen/qwen3-coder:free"],
         "temperature": 0.1,
         "max_tokens": 4096,
     },
@@ -1187,21 +1187,21 @@ MODEL_ROLES = {
     # VALIDATOR - Test writing, QA
     "validator": {
         "primary": "groq/qwen/qwen3-32b",
-        "fallback": ["gemini-3.5-flash", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["gemini-3.5-flash", "qwen/qwen3-coder:free"],
         "temperature": 0.2,
         "max_tokens": 4096,
     },
     # ARCHITECT - System design, patterns
     "architect": {
         "primary": "groq/llama-3.3-70b-versatile",
-        "fallback": ["gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-3.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "temperature": 0.3,
         "max_tokens": 8192,
     },
     # CODER - General coding tasks
     "coder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "nvidia/nemotron-3-super-120b-a12b:free"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
@@ -1239,34 +1239,34 @@ MODEL_ROLES = {
 # Balanced free-first routing policy: Gemini is native Google-only and is not
 # the default coding model. OpenRouter Qwen/DeepSeek own code/debug paths.
 TASK_CATEGORIES.update({
-    "code_generation": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"], "roles": ["coder"], "description": "Full app/feature implementation"},
-    "debugging": {"primary": "openrouter/deepseek/deepseek-v4-flash:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/qwen/qwen3-coder:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["debugger"], "description": "Error fixing, stack trace analysis"},
-    "bug_detection": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["debugger", "coder"], "description": "Bug finding and diagnosis"},
-    "testing_qa": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-chat:free"], "roles": ["validator"], "description": "QA automation, E2E tests"},
-    "test_writing": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-chat:free"], "roles": ["validator", "coder"], "description": "Unit tests, integration tests"},
-    "refactoring": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code restructuring, optimization"},
-    "code_refactoring": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code improvement, pattern application"},
+    "code_generation": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"], "roles": ["coder"], "description": "Full app/feature implementation"},
+    "debugging": {"primary": "nvidia/nemotron-3-super-120b-a12b:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-coder:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["debugger"], "description": "Error fixing, stack trace analysis"},
+    "bug_detection": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["debugger", "coder"], "description": "Bug finding and diagnosis"},
+    "testing_qa": {"primary": "qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"], "roles": ["validator"], "description": "QA automation, E2E tests"},
+    "test_writing": {"primary": "qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"], "roles": ["validator", "coder"], "description": "Unit tests, integration tests"},
+    "refactoring": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code restructuring, optimization"},
+    "code_refactoring": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code improvement, pattern application"},
     "deep_reasoning": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Complex reasoning, planning, analysis"},
-    "architecture_design": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/llama-3.3-70b-versatile", "openrouter/qwen/qwen3-coder:free"], "roles": ["architect"], "description": "System design, microservices, patterns"},
-    "frontend_react": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-3.5-flash", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "coder"], "description": "React, Next.js, Vue, Svelte"},
-    "frontend_ui": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend"], "description": "HTML/CSS, UI components"},
-    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile", "openrouter/meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
+    "architecture_design": {"primary": "gemini-3.5-flash", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "groq/llama-3.3-70b-versatile", "qwen/qwen3-coder:free"], "roles": ["architect"], "description": "System design, microservices, patterns"},
+    "frontend_react": {"primary": "qwen/qwen3-coder:free", "fallback": ["gemini-3.5-flash", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "coder"], "description": "React, Next.js, Vue, Svelte"},
+    "frontend_ui": {"primary": "gemini-3.5-flash", "fallback": ["qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend"], "description": "HTML/CSS, UI components"},
+    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile", "meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
     "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.0-flash-lite", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
     "long_context": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Large codebase, 1M+ context"},
-    "multi_modal": {"primary": "gemini-3.5-flash", "fallback": ["gemini-2.5-flash-image", "openrouter/qwen/qwen3-coder:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "vision"], "description": "Image understanding, file processing"},
+    "multi_modal": {"primary": "gemini-3.5-flash", "fallback": ["gemini-2.5-flash-image", "qwen/qwen3-coder:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "vision"], "description": "Image understanding, file processing"},
 })
 
 MODEL_ROLES.update({
-    "executor": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
-    "coder": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
-    "debugger": {"primary": "openrouter/deepseek/deepseek-v4-flash:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/qwen/qwen3-coder:free", "gemini-2.5-flash"], "temperature": 0.1, "max_tokens": 4096},
-    "validator": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-chat:free"], "temperature": 0.2, "max_tokens": 4096},
+    "executor": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
+    "coder": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
+    "debugger": {"primary": "nvidia/nemotron-3-super-120b-a12b:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-coder:free", "gemini-2.5-flash"], "temperature": 0.1, "max_tokens": 4096},
+    "validator": {"primary": "qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "nvidia/nemotron-3-super-120b-a12b:free"], "temperature": 0.2, "max_tokens": 4096},
     "planner": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
-    "architect": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/llama-3.3-70b-versatile", "openrouter/qwen/qwen3-coder:free"], "temperature": 0.3, "max_tokens": 8192},
-    "frontend": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
+    "architect": {"primary": "gemini-3.5-flash", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "groq/llama-3.3-70b-versatile", "qwen/qwen3-coder:free"], "temperature": 0.3, "max_tokens": 8192},
+    "frontend": {"primary": "gemini-3.5-flash", "fallback": ["qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
     "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile"], "temperature": 0.4, "max_tokens": 4096},
-    "reviewer": {"primary": "groq/llama-3.3-70b-versatile", "fallback": ["openrouter/deepseek/deepseek-chat:free", "gemini-3.5-flash"], "temperature": 0.1, "max_tokens": 4096},
-    "refactor": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
+    "reviewer": {"primary": "groq/llama-3.3-70b-versatile", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "gemini-3.5-flash"], "temperature": 0.1, "max_tokens": 4096},
+    "refactor": {"primary": "qwen/qwen3-coder:free", "fallback": ["nvidia/nemotron-3-super-120b-a12b:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
 })
 
 

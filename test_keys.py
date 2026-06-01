@@ -95,7 +95,7 @@ try:
         client = genai.Client(api_key=first_key)
         
         response = client.models.generate_content(
-            model="gemini-2.5-flash",  # Use 2.5-flash (has quota)
+            model="gemini-3.5-flash",  # Use 3.5-flash (stable)
             contents="Hi",
             config=genai.types.GenerateContentConfig(max_output_tokens=20)
         )
@@ -134,7 +134,7 @@ try:
         )
         
         response = client.chat.completions.create(
-            model="deepseek/deepseek-v4-flash:free",  # Use v4 which exists
+            model="qwen/qwen3-coder:free",  # Use qwen3-coder (free on OpenRouter)
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=10
         )

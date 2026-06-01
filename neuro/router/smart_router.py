@@ -19,22 +19,22 @@ GOOGLE_MODELS = [
     "gemini-embedding-2",
 ]
 
-# OpenRouter models - ONLY unique models NOT available on Groq or Gemini
-# These are the best free/reasoning models on OpenRouter
+# OpenRouter models - ONLY truly FREE models NOT on Groq or Gemini
+# Verified free on OpenRouter June 2026
 OPENROUTER_UNIQUE_MODELS = [
-    "deepseek/deepseek-v4-flash:free",
-    "deepseek/deepseek-chat-v3-0324:free", 
-    "qwen/qwen3-32b:free",
-    "anthropic/claude-3-haiku:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
-    "mistralai/mistral-7b-instruct:free",
-    "x-ai/grok-2:free",
+    "qwen/qwen3-coder:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "openai/gpt-oss-120b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemma-4-31b-it:free",
 ]
 
 UNKNOWN_TASK_MODEL_CHAIN = [
     "groq/llama-3.3-70b-versatile",
-    "gemini-2.5-flash",
-    "deepseek/deepseek-v4-flash:free",
+    "gemini-3.5-flash",
+    "qwen/qwen3-coder:free",
 ]
 
 # Import skill middleware
@@ -236,7 +236,7 @@ class SmartRouter:
             api_key_env="OPENROUTER_API_KEYS",
             models=[
                 # DeepSeek - fast flash variant
-                "deepseek/deepseek-v4-flash:free",
+                "nvidia/nemotron-3-super-120b-a12b:free",
                 # Qwen models - specialized coders
                 "qwen/qwen3-coder:free",
                 "qwen/qwen3-next-80b-a3b-instruct:free",

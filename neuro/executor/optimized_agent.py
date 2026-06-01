@@ -44,7 +44,7 @@ class ModelEnsemble:
     
     # Models for ensemble voting
     ENSEMBLE_MODELS = [
-        "deepseek/deepseek-v4-flash:free",      # Best reasoning
+        "nvidia/nemotron-3-super-120b-a12b:free",      # Best reasoning
         "qwen/qwen3-coder:free",                # Best coding
         "meta-llama/llama-3.3-70b-instruct:free",  # Best review
     ]
@@ -394,7 +394,7 @@ CONFIDENCE: [0.0-1.0]"""
         
         result = self.router.complete(
             [{"role": "user", "content": prompt}],
-            model="deepseek/deepseek-v4-flash:free"
+            model="nvidia/nemotron-3-super-120b-a12b:free"
         )
         
         if "error" in result:
@@ -503,7 +503,7 @@ CONFIDENCE: [0.0-1.0]"""
         
         result = self.router.complete(
             [{"role": "user", "content": prompt}],
-            model="deepseek/deepseek-v4-flash:free"
+            model="nvidia/nemotron-3-super-120b-a12b:free"
         )
         
         if "error" in result:
@@ -796,7 +796,7 @@ Provide:
         
         result = self.router.complete(
             [{"role": "user", "content": analysis_prompt}],
-            model="deepseek/deepseek-v4-flash:free"
+            model="nvidia/nemotron-3-super-120b-a12b:free"
         )
         
         return result.get("content", analysis_prompt) if "content" in result else analysis_prompt

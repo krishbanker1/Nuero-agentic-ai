@@ -511,7 +511,7 @@ plan = decomposer.decompose(
 Use model hints to route to optimal models:
 ```python
 step_model_map = {
-    "planner": "deepseek/deepseek-v4-flash:free",  # Analysis
+    "planner": "nvidia/nemotron-3-super-120b-a12b:free",  # Analysis
     "code_generator": "qwen/qwen3-coder:free",  # Coding
     "tester": "qwen/qwen3-coder:free",  # Test generation
     "security_reviewer": "meta-llama/llama-3.3-70b-instruct:free"  # 70B review
