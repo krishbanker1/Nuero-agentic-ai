@@ -2,9 +2,9 @@
 # Task-to-Model Assignment with 20 Categories - Free-first production app routing
 # Last saved: 2026-05-30
 
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class ModelRole(Enum):
@@ -25,16 +25,16 @@ class ModelMetadata:
     """Structured metadata for a model."""
     name: str
     provider: str
-    roles: List[str]
-    strengths: List[str]
+    roles: list[str]
+    strengths: list[str]
     priority: int  # 1 = highest
     fallback_priority: int
     cost: str  # "free", "cheap", "expensive"
     requires_key: bool
-    context_window: Optional[int]
+    context_window: int | None
     enabled: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "provider": self.provider,
@@ -55,7 +55,7 @@ APPROVED_PROVIDERS = frozenset({
 })
 
 # All 50+ models with structured metadata
-MODEL_REGISTRY: List[ModelMetadata] = [
+MODEL_REGISTRY: list[ModelMetadata] = [
     # =============================================================================
     # GOOGLE GEMINI MODELS (native Google GenAI SDK IDs, no OpenRouter prefixes)
     # =============================================================================
@@ -530,6 +530,18 @@ MODEL_REGISTRY: List[ModelMetadata] = [
         requires_key=True,
         context_window=64000,
     ),
+    ModelMetadata(
+        name="openrouter/deepseek/deepseek-v4-flash:free",
+        provider="openrouter",
+        roles=["coder", "debugger", "agent", "refactor"],
+        strengths=["code", "repair", "agentic", "free"],
+        priority=1,
+        fallback_priority=2,
+        cost="free",
+        requires_key=True,
+        context_window=64000,
+    ),
+
 
     # TOGETHER AI MODELS (5 models)
     # =============================================================================
@@ -773,10 +785,10 @@ MODEL_REGISTRY: List[ModelMetadata] = [
 ]
 
 
-def _dedupe_model_registry(models: List[ModelMetadata]) -> List[ModelMetadata]:
+def _dedupe_model_registry(models: list[ModelMetadata]) -> list[ModelMetadata]:
     """Remove duplicate model names while preserving first-seen routing order."""
     seen = set()
-    deduped: List[ModelMetadata] = []
+    deduped: list[ModelMetadata] = []
     for model in models:
         if model.name in seen:
             continue
@@ -791,23 +803,23 @@ MODEL_REGISTRY = _dedupe_model_registry(MODEL_REGISTRY)
 APPROVED_MODELS = [m.name for m in MODEL_REGISTRY]
 
 
-def get_models_by_role(role: ModelRole) -> List[ModelMetadata]:
+def get_models_by_role(role: ModelRole) -> list[ModelMetadata]:
     """Get models filtered by role, sorted by priority."""
     filtered = [m for m in MODEL_REGISTRY if role.value in m.roles]
     return sorted(filtered, key=lambda x: x.priority)
 
 
-def get_models_by_provider(provider: str) -> List[ModelMetadata]:
+def get_models_by_provider(provider: str) -> list[ModelMetadata]:
     """Get models filtered by provider."""
     return [m for m in MODEL_REGISTRY if m.provider == provider]
 
 
-def get_free_models() -> List[ModelMetadata]:
+def get_free_models() -> list[ModelMetadata]:
     """Get all free models."""
     return [m for m in MODEL_REGISTRY if m.cost == "free"]
 
 
-def get_model_by_name(name: str) -> Optional[ModelMetadata]:
+def get_model_by_name(name: str) -> ModelMetadata | None:
     """Get model by full name."""
     for m in MODEL_REGISTRY:
         if m.name == name:
@@ -925,7 +937,7 @@ TASK_CATEGORIES = {
 
     # 9. CODE COMPLETION - Autocomplete, snippets
     "code_completion": {
-        "primary": "gemini-2.0-flash-lite",
+        "primary": "gemini-2.5-flash",
         "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "qwen/qwen3-coder:free"],
         "roles": ["coder"],
         "description": "Autocomplete, snippet generation"
@@ -1022,7 +1034,7 @@ TASK_CATEGORIES = {
     # 19. GIT OPERATIONS - Git commands, PRs, merges
     "git_operations": {
         "primary": "groq/llama-3.1-8b-instant",
-        "fallback": ["gemini-2.0-flash-lite", "gemini-2.5-flash", "meta-llama/llama-3.2-3b-instruct:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.1-8b-instant", "meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Git commands, PRs, merges"
     },
@@ -1062,7 +1074,7 @@ TASK_CATEGORIES = {
     # 23. OFFICE DOCUMENT - Word, Excel, PowerPoint generation
     "office_document_generation": {
         "primary": "gemini-2.5-flash",
-        "fallback": ["gemini-3.5-flash", "gemini-2.0-flash-lite", "nvidia/nemotron-3-super-120b-a12b:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "nvidia/nemotron-3-super-120b-a12b:free"],
         "roles": ["planner"],
         "description": "Word, Excel, PowerPoint generation"
     },
@@ -1135,7 +1147,7 @@ TASK_CATEGORIES = {
 
     # 31. FAST RESPONSE - Quick answers, simple tasks
     "fast_response": {
-        "primary": "gemini-2.0-flash-lite",
+        "primary": "gemini-2.5-flash",
         "fallback": ["groq/llama-3.1-8b-instant", "gemini-2.5-flash", "meta-llama/llama-3.2-3b-instruct:free"],
         "roles": ["coder"],
         "description": "Quick answers, simple tasks"
@@ -1251,7 +1263,7 @@ TASK_CATEGORIES.update({
     "frontend_react": {"primary": "qwen/qwen3-coder:free", "fallback": ["gemini-3.5-flash", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "coder"], "description": "React, Next.js, Vue, Svelte"},
     "frontend_ui": {"primary": "gemini-3.5-flash", "fallback": ["qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend"], "description": "HTML/CSS, UI components"},
     "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile", "meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
-    "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.0-flash-lite", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
+    "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
     "long_context": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Large codebase, 1M+ context"},
     "multi_modal": {"primary": "gemini-3.5-flash", "fallback": ["gemini-2.5-flash-image", "qwen/qwen3-coder:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "vision"], "description": "Image understanding, file processing"},
 })
@@ -1326,7 +1338,7 @@ def detect_task_type(goal: str) -> str:
     return "code_generation"
 
 
-def get_model_for_task(task_type: str, available_models: List[str] = None) -> Dict[str, Any]:
+def get_model_for_task(task_type: str, available_models: list[str] = None) -> dict[str, Any]:
     """
     Get the best model for a task type.
 
@@ -1344,7 +1356,7 @@ def get_model_for_task(task_type: str, available_models: List[str] = None) -> Di
     return TASK_CATEGORIES["code_generation"]
 
 
-def get_role_model(role: str) -> Dict[str, Any]:
+def get_role_model(role: str) -> dict[str, Any]:
     """Get the optimal model configuration for an agent role."""
     if role in MODEL_ROLES:
         return MODEL_ROLES[role]
