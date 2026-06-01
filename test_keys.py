@@ -134,7 +134,7 @@ try:
         )
         
         response = client.chat.completions.create(
-            model="deepseek/deepseek-chat-v3-0324:free",  # Use DeepSeek (free on OpenRouter)
+            model="deepseek/deepseek-v4-flash:free",  # Use v4 which exists
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=10
         )
