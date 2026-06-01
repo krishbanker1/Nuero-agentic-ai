@@ -408,7 +408,32 @@ class StudioHandler(BaseHTTPRequestHandler):
             workspace = parsed_qs.get("workspace", ["."])[0]
             request_host = self.headers.get("Host", "127.0.0.1:8080")
             
-            result = launch_app_preview(workspace, request_host)
+            # Use port 8080 for preview
+            result = launch_app_preview(workspace, request_host, port=8080)
+            
+            self.send_response(200 if result.get("success") else 400)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode())
+        
+        elif parsed.path == "/api/preview":
+            # Direct preview - use the last successful build directory or default
+            import os
+            workspace = parsed_qs.get("workspace", [None]) if 'parsed_qs' in dir() else None
+            
+            # Check Replit environment
+            if os.environ.get('REPLIT_DB_HOST'):
+                # On Replit, serve from /tmp/neuro-workspace or current directory
+                possible_dirs = ['/tmp/neuro-workspace', '.', os.getcwd()]
+                for d in possible_dirs:
+                    if Path(d).exists():
+                        result = launch_app_preview(d, request_host, port=8080)
+                        if result.get('success'):
+                            break
+                else:
+                    result = {"success": False, "error": "No workspace found"}
+            else:
+                result = launch_app_preview(".", request_host, port=8080)
             
             self.send_response(200 if result.get("success") else 400)
             self.send_header("Content-Type", "application/json")
