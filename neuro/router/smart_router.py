@@ -452,8 +452,16 @@ class SmartRouter:
                 }
             }
         except Exception as e:
-            self._record_failure(Provider.GROQ, model, str(e))
-            return {"error": str(e)}
+            error_msg = str(e)
+            self._record_failure(Provider.GROQ, model, error_msg)
+            # Make error message more readable
+            if "authentication" in error_msg.lower() or "401" in error_msg:
+                error_msg = "Invalid API key or authentication failed"
+            elif "rate limit" in error_msg.lower() or "429" in error_msg:
+                error_msg = "Rate limit exceeded - will retry"
+            elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+                error_msg = "Connection error - check network"
+            return {"error": error_msg}
 
     def _call_openrouter(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
         """Call OpenRouter API."""
