@@ -95,3 +95,6 @@ chromadb/
 # Logs
 logs/
 neuro-build-apps/
+
+# Generated app builds
+neuro-build-apps/
