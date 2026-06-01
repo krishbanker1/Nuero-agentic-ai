@@ -508,7 +508,7 @@ MODEL_REGISTRY: List[ModelMetadata] = [
     # =============================================================================
     # NEW: OpenAI OSS 120B - Complex reasoning powerhouse
     ModelMetadata(
-        name="groq/openai/gpt-oss-120b",
+        name="groq/llama-3.3-70b-versatile",
         provider="openrouter",
         roles=["architect", "planner", "reviewer"],
         strengths=["reasoning", "complex-tasks", "long-context"],
@@ -912,13 +912,13 @@ TASK_CATEGORIES = {
     # 8. REFACTORING - Code restructuring, optimization
     "refactoring": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"],
         "roles": ["refactor", "reviewer"],
         "description": "Code restructuring, optimization"
     },
     "code_refactoring": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "groq/llama-3.3-70b-versatile"],
         "roles": ["refactor", "reviewer"],
         "description": "Code improvement, pattern application"
     },
@@ -938,7 +938,7 @@ TASK_CATEGORIES = {
     # 10. FRONTEND REACT - React, Next.js, Vue, Svelte
     "frontend_react": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["frontend", "coder"],
         "description": "React, Next.js, Vue, Svelte"
     },
@@ -954,7 +954,7 @@ TASK_CATEGORIES = {
     # 12. WEBSITE BUILDER - Full website generation
     "website_builder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["frontend", "coder", "designer"],
         "description": "Full website generation with HTML/CSS/JS"
     },
@@ -962,7 +962,7 @@ TASK_CATEGORIES = {
     # 13. APP BUILDER - Enterprise app generation
     "app_builder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["frontend", "coder", "architect"],
         "description": "Enterprise app generation (React, Vue, etc)"
     },
@@ -974,7 +974,7 @@ TASK_CATEGORIES = {
     # 14. BACKEND API - REST, GraphQL, FastAPI, Node.js
     "backend_api": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "REST, GraphQL, FastAPI, backend logic"
     },
@@ -982,7 +982,7 @@ TASK_CATEGORIES = {
     # 15. API DEVELOPMENT - Express, Node.js, API design
     "api_development": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "API design, Express, Node.js"
     },
@@ -994,7 +994,7 @@ TASK_CATEGORIES = {
     # 16. DATABASE SQL - SQL, PostgreSQL, MongoDB, migrations
     "database_sql": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "SQL, PostgreSQL, MongoDB, migrations"
     },
@@ -1002,7 +1002,7 @@ TASK_CATEGORIES = {
     # 17. DATA ANALYSIS - Pandas, NumPy, analytics, Jupyter
     "data_analysis": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "planner"],
         "description": "Pandas, NumPy, analytics, Jupyter"
     },
@@ -1013,8 +1013,8 @@ TASK_CATEGORIES = {
 
     # 18. DEVOPS DEPLOYMENT - Docker, K8s, CI/CD, AWS, GCP
     "devops_deployment": {
-        "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "architect"],
         "description": "Docker, K8s, CI/CD, AWS, GCP"
     },
@@ -1033,8 +1033,8 @@ TASK_CATEGORIES = {
 
     # 20. SECURITY AUDIT - Vulnerability scanning, fixes
     "security_audit": {
-        "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["reviewer", "debugger"],
         "description": "Vulnerability scanning, fixes"
     },
@@ -1074,7 +1074,7 @@ TASK_CATEGORIES = {
     # 24. LONG CONTEXT - Large codebase, 1M+ context
     "long_context": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["gemini-2.5-flash", "groq/openai/gpt-oss-120b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["architect", "planner"],
         "description": "Large codebase, 1M+ context"
     },
@@ -1090,14 +1090,14 @@ TASK_CATEGORIES = {
     # 26. MOBILE DEVELOPMENT - iOS, Android, React Native, Flutter
     "mobile_development": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["frontend", "coder"],
         "description": "iOS, Android, React Native, Flutter"
     },
 
     # 27. ML AI TASKS - ML pipelines, AI training
     "ml_ai_tasks": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["coder", "planner"],
         "description": "ML pipelines, AI training"
@@ -1105,13 +1105,13 @@ TASK_CATEGORIES = {
 
     # 28. PERFORMANCE OPT - Profiling, caching, optimization
     "performance_opt": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["debugger", "refactor"],
         "description": "Profiling, caching, optimization"
     },
     "performance_optimization": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["debugger", "refactor"],
         "description": "Performance tuning, benchmarks"
@@ -1119,7 +1119,7 @@ TASK_CATEGORIES = {
 
     # 29. ARCHITECTURE DESIGN - System design, microservices
     "architecture_design": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["architect", "planner"],
         "description": "System design, microservices, patterns"
@@ -1127,8 +1127,8 @@ TASK_CATEGORIES = {
 
     # 30. REASONING PLANNING - Strategic planning, task decomposition
     "reasoning_planning": {
-        "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-v4-flash:free"],
         "roles": ["planner", "architect"],
         "description": "Strategic planning, task decomposition"
     },
@@ -1159,13 +1159,13 @@ MODEL_ROLES = {
     # EXECUTOR - Primary code generator
     "executor": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
     # PLANNER - Strategic thinking, task breakdown
     "planner": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "temperature": 0.3,
         "max_tokens": 8192,
@@ -1179,7 +1179,7 @@ MODEL_ROLES = {
     },
     # REVIEWER - Code quality, PR reviews
     "reviewer": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "groq/llama-3.3-70b-versatile"],
         "temperature": 0.1,
         "max_tokens": 4096,
@@ -1193,7 +1193,7 @@ MODEL_ROLES = {
     },
     # ARCHITECT - System design, patterns
     "architect": {
-        "primary": "groq/openai/gpt-oss-120b",
+        "primary": "groq/llama-3.3-70b-versatile",
         "fallback": ["gemini-3.5-flash", "openrouter/deepseek/deepseek-v4-flash:free"],
         "temperature": 0.3,
         "max_tokens": 8192,
@@ -1201,14 +1201,14 @@ MODEL_ROLES = {
     # CODER - General coding tasks
     "coder": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
     # FRONTEND - UI/UX development
     "frontend": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "gemini-2.5-flash"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash"],
         "temperature": 0.3,
         "max_tokens": 8192,
     },
@@ -1229,7 +1229,7 @@ MODEL_ROLES = {
     # REFACTOR - Code improvement
     "refactor": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "groq/qwen/qwen3-32b"],
         "temperature": 0.2,
         "max_tokens": 8192,
     },
@@ -1246,13 +1246,13 @@ TASK_CATEGORIES.update({
     "test_writing": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-chat:free"], "roles": ["validator", "coder"], "description": "Unit tests, integration tests"},
     "refactoring": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code restructuring, optimization"},
     "code_refactoring": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"], "roles": ["refactor"], "description": "Code improvement, pattern application"},
-    "deep_reasoning": {"primary": "gemini-3.5-flash", "fallback": ["groq/openai/gpt-oss-120b", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Complex reasoning, planning, analysis"},
-    "architecture_design": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/openai/gpt-oss-120b", "openrouter/qwen/qwen3-coder:free"], "roles": ["architect"], "description": "System design, microservices, patterns"},
+    "deep_reasoning": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Complex reasoning, planning, analysis"},
+    "architecture_design": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/llama-3.3-70b-versatile", "openrouter/qwen/qwen3-coder:free"], "roles": ["architect"], "description": "System design, microservices, patterns"},
     "frontend_react": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-3.5-flash", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "coder"], "description": "React, Next.js, Vue, Svelte"},
     "frontend_ui": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend"], "description": "HTML/CSS, UI components"},
-    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/openai/gpt-oss-120b", "openrouter/meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
+    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile", "openrouter/meta-llama/llama-3.3-70b-instruct:free"], "roles": ["documentation"], "description": "README, API docs, comments"},
     "fast_response": {"primary": "groq/llama-3.1-8b-instant", "fallback": ["gemini-2.5-flash-lite", "groq/llama-3.3-70b-versatile", "openrouter/openrouter/free"], "roles": ["router"], "description": "Quick answers, simple tasks"},
-    "long_context": {"primary": "gemini-3.5-flash", "fallback": ["groq/openai/gpt-oss-120b", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Large codebase, 1M+ context"},
+    "long_context": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "roles": ["planner", "architect"], "description": "Large codebase, 1M+ context"},
     "multi_modal": {"primary": "gemini-3.5-flash", "fallback": ["gemini-2.5-flash-image", "openrouter/qwen/qwen3-coder:free", "groq/llama-3.3-70b-versatile"], "roles": ["frontend", "vision"], "description": "Image understanding, file processing"},
 })
 
@@ -1261,11 +1261,11 @@ MODEL_ROLES.update({
     "coder": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
     "debugger": {"primary": "openrouter/deepseek/deepseek-v4-flash:free", "fallback": ["openrouter/deepseek/deepseek-chat:free", "openrouter/qwen/qwen3-coder:free", "gemini-2.5-flash"], "temperature": 0.1, "max_tokens": 4096},
     "validator": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["gemini-2.5-flash", "groq/llama-3.3-70b-versatile", "openrouter/deepseek/deepseek-chat:free"], "temperature": 0.2, "max_tokens": 4096},
-    "planner": {"primary": "gemini-3.5-flash", "fallback": ["groq/openai/gpt-oss-120b", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
-    "architect": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/openai/gpt-oss-120b", "openrouter/qwen/qwen3-coder:free"], "temperature": 0.3, "max_tokens": 8192},
+    "planner": {"primary": "gemini-3.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "openrouter/openrouter/owl-alpha", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
+    "architect": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/deepseek/deepseek-chat:free", "groq/llama-3.3-70b-versatile", "openrouter/qwen/qwen3-coder:free"], "temperature": 0.3, "max_tokens": 8192},
     "frontend": {"primary": "gemini-3.5-flash", "fallback": ["openrouter/qwen/qwen3-coder:free", "openrouter/z-ai/glm-4.5-air:free", "groq/llama-3.3-70b-versatile"], "temperature": 0.3, "max_tokens": 8192},
-    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/openai/gpt-oss-120b"], "temperature": 0.4, "max_tokens": 4096},
-    "reviewer": {"primary": "groq/openai/gpt-oss-120b", "fallback": ["openrouter/deepseek/deepseek-chat:free", "gemini-3.5-flash"], "temperature": 0.1, "max_tokens": 4096},
+    "documentation": {"primary": "gemini-2.5-flash", "fallback": ["groq/llama-3.3-70b-versatile", "groq/llama-3.3-70b-versatile"], "temperature": 0.4, "max_tokens": 4096},
+    "reviewer": {"primary": "groq/llama-3.3-70b-versatile", "fallback": ["openrouter/deepseek/deepseek-chat:free", "gemini-3.5-flash"], "temperature": 0.1, "max_tokens": 4096},
     "refactor": {"primary": "openrouter/qwen/qwen3-coder:free", "fallback": ["openrouter/deepseek/deepseek-v4-flash:free", "gemini-2.5-flash"], "temperature": 0.2, "max_tokens": 8192},
 })
 
