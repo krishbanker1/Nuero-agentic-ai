@@ -63,9 +63,12 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
                 screenshot_note += f"- {path}\n"
             goal = goal + screenshot_note
         
+        # Convert relative paths to absolute for the agent
+        abs_working_dir = str(Path(working_dir).resolve())
+        
         agent = create_agent(
             goal=goal,
-            working_dir=working_dir,
+            working_dir=abs_working_dir,
             max_steps=max_steps,
             max_passes=max_passes,
             dry_run=dry_run,
@@ -74,6 +77,14 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
         
         result = agent.run()
         
+        # List files created for debugging
+        workspace_path = Path(abs_working_dir)
+        created_files = []
+        if workspace_path.exists():
+            for f in workspace_path.rglob("*"):
+                if f.is_file() and f.suffix in ['.html', '.py', '.js', '.css', '.json']:
+                    created_files.append(str(f.relative_to(workspace_path)))
+        
         return {
             "success": result.success,
             "status": result.status,
@@ -81,6 +92,8 @@ def run_neuro_goal(goal: str, working_dir: str = ".", dry_run: bool = False,
             "passes_used": result.passes_used,
             "duration_ms": result.duration_ms,
             "files_changed": result.files_changed or [],
+            "files_created": created_files[:20],  # Limit to 20 files
+            "working_dir": abs_working_dir,
             "validation_passed": result.validation_passed,
             "error": result.error,
             "output": _capture_output(result),

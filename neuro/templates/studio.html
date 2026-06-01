@@ -142,9 +142,18 @@
             html += '<div class="status-item"><span>Success</span><span>' + (data.success ? 'OK' : 'FAIL') + '</span></div>';
             if (data.steps) html += '<div class="status-item"><span>Steps</span><span>' + data.steps + '</span></div>';
             if (data.duration_ms) html += '<div class="status-item"><span>Duration</span><span>' + (data.duration_ms/1000).toFixed(1) + 's</span></div>';
-            if (data.files_changed && data.files_changed.length) html += '<div class="status-item"><span>Files</span><span>' + data.files_changed.length + '</span></div>';
+            if (data.files_changed && data.files_changed.length) html += '<div class="status-item"><span>Files Changed</span><span>' + data.files_changed.length + '</span></div>';
+            if (data.files_created && data.files_created.length) {
+                html += '<div class="status-item"><span>Files Created</span><span>' + data.files_created.length + '</span></div>';
+                html += '<div style="margin-top:5px;font-size:12px;"><b>Created:</b><br>';
+                data.files_created.forEach(function(f) {
+                    html += '<span style="background:#2a2a3a;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block;">' + f + '</span> ';
+                });
+                html += '</div>';
+            }
+            if (data.working_dir) html += '<div class="status-item"><span>Working Dir</span><span style="font-size:11px;">' + data.working_dir + '</span></div>';
             if (data.error) html += '<div class="status-item" style="color:#f87171"><span>Error</span><span>' + data.error + '</span></div>';
-            if (data.output) html += '<div class="status-item"><pre style="white-space:pre-wrap;margin-top:10px;">' + data.output + '</pre></div>';
+            if (data.output) html += '<div class="status-item"><pre style="white-space:pre-wrap;margin-top:10px;font-size:12px;">' + data.output + '</pre></div>';
             status.innerHTML = html;
         }
         
@@ -155,6 +164,7 @@
             var previewStatus = document.getElementById('previewStatus');
             if (data.success) {
                 previewStatus.textContent = 'Preview: ' + data.browser_url;
+                previewStatus.style.color = '#4ade80';
             } else {
                 previewStatus.textContent = 'Error: ' + (data.error || 'failed');
                 previewStatus.style.color = '#f87171';
@@ -182,6 +192,7 @@
             }
         }
         
+        // Auto-refresh providers every 30s
         refreshProviders();
         setInterval(refreshProviders, 30000);
     </script>
