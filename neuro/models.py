@@ -856,15 +856,15 @@ TASK_CATEGORIES = {
     # 1. CODE GENERATION - Full app/feature implementation
     "code_generation": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/openai/gpt-oss-120b", "groq/qwen/qwen3-32b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/llama-3.3-70b-versatile", "gemini-2.5-flash", "groq/qwen/qwen3-32b"],
         "roles": ["coder", "planner"],
         "description": "Full app/feature implementation"
     },
 
     # 2. DEEP REASONING - Complex analysis and planning
     "deep_reasoning": {
-        "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "groq/qwen/qwen3-32b"],
         "roles": ["planner", "architect"],
         "description": "Complex reasoning, planning, analysis"
     },
@@ -872,7 +872,7 @@ TASK_CATEGORIES = {
     # 3. BUG DETECTION - Finding bugs and issues
     "bug_detection": {
         "primary": "groq/qwen/qwen3-32b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["debugger", "coder"],
         "description": "Bug finding and diagnosis"
     },
@@ -880,15 +880,15 @@ TASK_CATEGORIES = {
     # 4. DEBUGGING - Error fixing, stack trace analysis
     "debugging": {
         "primary": "groq/qwen/qwen3-32b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["debugger", "coder"],
         "description": "Error fixing, stack trace analysis"
     },
 
     # 5. CODE REVIEW - PR reviews, quality assessment
     "code_review": {
-        "primary": "groq/openai/gpt-oss-120b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "groq/llama-3.3-70b-versatile"],
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "groq/qwen/qwen3-32b"],
         "roles": ["reviewer", "architect"],
         "description": "PR reviews, quality assessment"
     },
@@ -896,7 +896,7 @@ TASK_CATEGORIES = {
     # 6. TEST WRITING - Unit tests, integration tests
     "test_writing": {
         "primary": "groq/qwen/qwen3-32b",
-        "fallback": ["gemini-3.5-flash", "groq/openai/gpt-oss-120b", "openrouter/qwen/qwen3-coder:free"],
+        "fallback": ["gemini-3.5-flash", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["validator", "coder"],
         "description": "Unit tests, integration tests"
     },
@@ -904,7 +904,7 @@ TASK_CATEGORIES = {
     # 7. TESTING QA - QA automation, E2E tests
     "testing_qa": {
         "primary": "gemini-3.5-flash",
-        "fallback": ["groq/qwen/qwen3-32b", "groq/openai/gpt-oss-120b", "openrouter/deepseek/deepseek-v4-flash:free"],
+        "fallback": ["groq/qwen/qwen3-32b", "gemini-2.5-flash", "groq/llama-3.3-70b-versatile"],
         "roles": ["validator", "coder"],
         "description": "QA automation, E2E tests"
     },

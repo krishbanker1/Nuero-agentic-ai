@@ -26,8 +26,8 @@ GOOGLE_MODELS = [
 
 UNKNOWN_TASK_MODEL_CHAIN = [
     "groq/llama-3.3-70b-versatile",
-    "gemini-2.5-flash",
-    "openrouter/openrouter/free",
+    "gemini-2.5-flash",  # No prefix = routed to GOOGLE provider via get_provider_from_model
+    "google/gemini-2.0-flash",  # Explicit GOOGLE prefix
 ]
 
 # Import skill middleware
