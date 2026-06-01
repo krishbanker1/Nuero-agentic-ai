@@ -186,14 +186,14 @@ class TaskStore:
             goal,
             goal_hash,
             status,
-            json.dumps(files_changed),
+            self._safe_json_dumps(files_changed),
             error,
             duration_ms,
             model_used,
             provider_used,
             passes_used,
             datetime.now().isoformat(),
-            json.dumps(metadata or {}),
+            self._safe_json_dumps(metadata or {}),
         ))
         
         self.conn.commit()
@@ -524,21 +524,34 @@ class TaskStore:
             for r in rows
         ]
     
+    def _safe_json_loads(self, json_str: str | None, default: Any = None) -> Any:
+        """Safely parse JSON with fallback for corrupted data."""
+        if not json_str:
+            return default
+        try:
+            return json.loads(json_str)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return default
+
+    def _safe_json_dumps(self, obj: Any) -> str:
+        """Safely serialize object to JSON with datetime handling."""
+        return json.dumps(obj, default=str, ensure_ascii=False)
+
     def _row_to_record(self, row: sqlite3.Row) -> TaskRecord:
-        """Convert a database row to TaskRecord."""
+        """Convert a database row to TaskRecord with safe JSON parsing."""
         return TaskRecord(
             id=row["id"],
             goal=row["goal"],
             goal_hash=row["goal_hash"],
             status=row["status"],
-            files_changed=json.loads(row["files_changed"] or "[]"),
+            files_changed=self._safe_json_loads(row["files_changed"], []),
             error=row["error"],
             duration_ms=row["duration_ms"],
             model_used=row["model_used"] or "",
             provider_used=row["provider_used"] or "",
             passes_used=row["passes_used"],
             created_at=row["created_at"],
-            metadata=json.loads(row["metadata"] or "{}"),
+            metadata=self._safe_json_loads(row["metadata"], {}),
         )
     
     def close(self):

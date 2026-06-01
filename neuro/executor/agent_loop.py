@@ -8,12 +8,19 @@ NOW WITH ECC-INSPIRED COMPONENTS:
 - AgentShield (security scanning)
 - Multi-Agent Orchestration
 - Autonomous Loops (self-improvement)
+
+ROBUSTNESS IMPROVEMENTS (commit 4b45de3):
+- Safe component initialization with graceful degradation
+- Safe JSON serialization with fallback for corrupted data
+- Comprehensive exception handling with context
 """
 
 import json
+import logging
 import os
 import shlex
 import time
+import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -53,6 +60,24 @@ from neuro.validation.patch_guard import PatchGuard
 from neuro.validation.test_runner import TestRunner
 
 # Advanced production-quality orchestration features
+logger = logging.getLogger(__name__)
+
+
+def _safe_json_dumps(obj: Any) -> str:
+    """Safely serialize object to JSON with datetime handling."""
+    return json.dumps(obj, default=str, ensure_ascii=False)
+
+
+def _safe_json_loads(json_str: str | None, default: Any = None) -> Any:
+    """Safely parse JSON with fallback for corrupted data."""
+    if not json_str:
+        return default
+    try:
+        return json.loads(json_str)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return default
+
+
 try:
     from neuro.executor.optimized_agent import (
         ContextManager,
@@ -886,6 +911,8 @@ class NeuroAgent:
 
         except Exception as e:
             duration_ms = (time.time() - self.start_time) * 1000
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error(f"Agent run failed: {error_msg}\n{traceback.format_exc()}")
 
             # Record failure
             if self.memory:
@@ -894,19 +921,23 @@ class NeuroAgent:
                         goal=self.config.goal,
                         status="failure",
                         files_changed=[],
-                        error=str(e),
+                        error=error_msg,
                         duration_ms=duration_ms,
+                        metadata={"error_type": type(e).__name__},
                     )
-                except:
-                    pass
+                except Exception as mem_err:
+                    logger.warning(f"Failed to record failure in memory: {mem_err}")
 
             # NEW: Store failure in skill memory too
             if self.skill_orchestrator:
-                self.skill_orchestrator.learn_from_task(
-                    self.config.goal,
-                    False,
-                    {"error": str(e)}
-                )
+                try:
+                    self.skill_orchestrator.learn_from_task(
+                        self.config.goal,
+                        False,
+                        {"error": error_msg, "type": type(e).__name__},
+                    )
+                except Exception as skill_err:
+                    logger.warning(f"Failed to record skill memory: {skill_err}")
 
             return AgentResult(
                 success=False,
@@ -915,7 +946,7 @@ class NeuroAgent:
                 steps=self.current_step,
                 passes_used=0,
                 duration_ms=duration_ms,
-                error=str(e),
+                error=error_msg,
                 skills_used=self.skill_orchestrator.active_skills if self.skill_orchestrator else [],
             )
 

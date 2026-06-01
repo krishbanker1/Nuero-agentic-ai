@@ -225,12 +225,27 @@ class ProductionScaffolder:
             files=[
                 ScaffoldFile("SPEC.md", "Audience, sections, content strategy, conversion goals"),
                 ScaffoldFile("README.md", "Local preview and customization instructions"),
-                ScaffoldFile("index.html", "Semantic accessible HTML"),
-                ScaffoldFile("styles.css", "Responsive custom CSS"),
-                ScaffoldFile("app.js", "Progressive enhancement only"),
+                ScaffoldFile("index.html", "Semantic accessible HTML with proper meta tags, og:tags, and structured content sections"),
+                ScaffoldFile("styles.css", "Responsive custom CSS with mobile-first breakpoints and CSS custom properties"),
+                ScaffoldFile("app.js", "Progressive enhancement only - no external frameworks"),
+                ScaffoldFile(".gitignore", "Standard static site gitignore"),
             ],
-            validation_commands=["python -m http.server 8000"],
-            quality_gates=[*cls.COMMON_GATES, "Page must be accessible, responsive, and not rely on paid CDNs."],
+            validation_commands=[
+                "python -m http.server 8000",
+                "grep -l '<html' index.html && grep -l 'body' index.html",
+            ],
+            quality_gates=[
+                *cls.COMMON_GATES,
+                "Page must be accessible (valid HTML semantics), responsive, and not rely on paid CDNs.",
+                "All CSS must use CSS custom properties for theming consistency.",
+                "JavaScript must be vanilla JS only - no jQuery, React, or Vue CDN imports.",
+                "HTML must include proper lang attribute, meta viewport, and semantic sections (header, main, footer).",
+            ],
+            notes=[
+                "Use system fonts by default to avoid external font CDN dependencies.",
+                "Images should use srcset for responsive loading if included.",
+                "CSS Grid and Flexbox only - no framework required.",
+            ],
         )
 
     @classmethod
