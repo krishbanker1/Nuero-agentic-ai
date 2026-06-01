@@ -105,4 +105,43 @@ try:
 except Exception as e:
     print(f"❌ Gemini API failed: {e}")
 
+# Test OpenRouter
+print("\n" + "=" * 50)
+print("Testing OpenRouter API Call")
+print("=" * 50)
+
+try:
+    from openai import OpenAI
+    
+    openrouter_keys = os.getenv("OPENROUTER_API_KEYS", "")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+    
+    if openrouter_keys:
+        first_key = [k.strip() for k in openrouter_keys.split(",") if k.strip()][0]
+    elif openrouter_key:
+        first_key = openrouter_key
+    else:
+        first_key = None
+    
+    if first_key:
+        print(f"Testing with key: {first_key[:15]}...")
+        client = OpenAI(
+            api_key=first_key,
+            base_url="https://openrouter.ai/api/v1"
+        )
+        
+        response = client.chat.completions.create(
+            model="google/gemini-2.0-flash",
+            messages=[{"role": "user", "content": "Hi"}],
+            max_tokens=10
+        )
+        
+        print("✅ OpenRouter API works!")
+        print(f"Response: {response.choices[0].message.content}")
+    else:
+        print("❌ No OpenRouter API key available")
+        
+except Exception as e:
+    print(f"❌ OpenRouter API failed: {e}")
+
 print("\n" + "=" * 50)
